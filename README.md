@@ -4,6 +4,8 @@ This is an example or how to write mediocre go code with no tests - don't try to
 
 Installation:
 
+You will need a mongodb database called "testdb", then:
+
 go get git.svc.ft.com/scm/cp/jsonapi-go.git/jsonapi
 
 Running:
