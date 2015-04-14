@@ -1,4 +1,4 @@
-package nativerw
+package main
 
 import (
 	"encoding/json"
