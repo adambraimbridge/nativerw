@@ -1,4 +1,4 @@
-package jsonapi
+package nativerw
 
 import "git.svc.ft.com/scm/gl/fthealth.git"
 

@@ -5,7 +5,7 @@
 
 ## Installation
 
-	go get git@git.svc.ft.com:7999/cp/native-store-reader-writer.git
+	go get git.svc.ft.com/scm/cp/native-store-reader-writer.git/nativerw
 
 ##Running
 

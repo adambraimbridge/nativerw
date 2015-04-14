@@ -1,4 +1,4 @@
-package jsonapi
+package nativerw
 
 import (
 	"encoding/json"

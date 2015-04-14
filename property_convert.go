@@ -1,4 +1,4 @@
-package jsonapi
+package nativerw
 
 import (
 	"code.google.com/p/go-uuid/uuid"
