@@ -1,4 +1,4 @@
-package main
+package jsonapi
 
 import (
 	"encoding/json"
@@ -11,6 +11,7 @@ import (
 	"os"
 	"reflect"
 	"time"
+	"git.svc.ft.com/scm/gl/fthealth.git"
 )
 
 type MgoApi struct {
@@ -142,6 +143,7 @@ func main() {
 
 	m.HandleFunc("/{collection}/{resource}", ma.readHandler).Methods("GET")
 	m.HandleFunc("/{collection}/{resource}", ma.writeHandler).Methods("PUT")
+	m.HandleFunc("/__health", fthealth.Handler("myserver", "a server", HealthCheck))
 
 	http.ListenAndServe(":8082", nil)
 }
