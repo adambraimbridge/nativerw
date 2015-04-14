@@ -11,7 +11,7 @@
 
 ##Running
 
-    $GOPATH/bin/nativerw
+    $GOPATH/bin/nativerw.git
 
 ## Try it!
 
