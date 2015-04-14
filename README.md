@@ -5,13 +5,13 @@
 
 ## Installation
 
-	go get git.svc.ft.com/scm/cp/native-store-reader-writer.git
+	go get git.svc.ft.com/scm/cp/nativerw.git
 	
-	go install git.svc.ft.com/scm/cp/native-store-reader-writer.git
+	go install git.svc.ft.com/scm/cp/nativerw.git
 
 ##Running
 
-    native-store-reader-writer
+    $GOPATH/bin/nativerw
 
 ## Try it!
 
