@@ -127,23 +127,28 @@ func (ma *MgoApi) writeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func main() {
-	m := mux.NewRouter()
-	http.Handle("/", handlers.CombinedLoggingHandler(os.Stdout, m))
-
-	ma, err := NewMgoApi("testdb", "uuid",
+func createMgoApi() (*MgoApi, error) {
+	mgoApi, err := NewMgoApi("testdb", "uuid",
 		compositePropertyConverter{[]propertyConverter{UUIDToBson, DateToBson}}.convert,
 		compositePropertyConverter{[]propertyConverter{UUIDFromBson, DateFromBson, MongoIdRemover, ApiUrlInserter}}.convert,
 	)
+	return mgoApi, err
+}
 
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err.Error())
+var mgoApi, mgoApiCreationErr = createMgoApi()
+
+func main() {
+	if mgoApiCreationErr != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", mgoApiCreationErr.Error())
 		return
 	}
 
-	m.HandleFunc("/{collection}/{resource}", ma.readHandler).Methods("GET")
-	m.HandleFunc("/{collection}/{resource}", ma.writeHandler).Methods("PUT")
-	m.HandleFunc("/__health", fthealth.Handler("myserver", "a server", HealthCheck))
+	m := mux.NewRouter()
+	http.Handle("/", handlers.CombinedLoggingHandler(os.Stdout, m))
+	m.HandleFunc("/{collection}/{resource}", mgoApi.readHandler).Methods("GET")
+	m.HandleFunc("/{collection}/{resource}", mgoApi.writeHandler).Methods("PUT")
+	m.HandleFunc("/__health", fthealth.Handler("Dependent services healthceck",
+	  "Checking connectivity and usability of dependent services: mongoDB and native-ingester.", mgoHealth))
 
 	http.ListenAndServe(":8082", nil)
 }
