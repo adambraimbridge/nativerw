@@ -1,4 +1,4 @@
-# Native Store Reader Writer
+# Native Store Reader Writer (nativerw)
 
 - backed by mongoDB
 - mapping from idiomatic json representations into bson/mongodb types (e.g., converting RFC3339 dates to bson date types)
