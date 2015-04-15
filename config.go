@@ -3,6 +3,7 @@ package main
 import (
     "encoding/json"
     "os"
+    "io"
 )
 
 type Server struct {
@@ -14,19 +15,22 @@ type Configuration struct {
 	Server  Server `json: server`
 }
 
-func readConfig() (c *Configuration, e error) {
-	file, fErr := os.Open("conf.json")
-	if (fErr != nil) {
-		return nil, fErr
-	}
-
+func readConfigFromReader(r io.Reader) (c *Configuration, e error) {
 	c = new(Configuration)
 
-	decoder := json.NewDecoder(file)
+	decoder := json.NewDecoder(r)
 	e = decoder.Decode(c)
 	if e != nil {
 		return nil, e
 	}
 
 	return 
+}
+
+func readConfig() (c *Configuration, e error) {
+	file, fErr := os.Open("conf.json")
+	if (fErr != nil) {
+		return nil, fErr
+	}
+	return readConfigFromReader(file)
 }

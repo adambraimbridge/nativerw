@@ -144,7 +144,6 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error: %+v\n", configErr.Error())
 		return
 	}
-	fmt.Printf("Init config: %+v\n", *config)
 
 	if mgoApiCreationErr != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", mgoApiCreationErr.Error())
