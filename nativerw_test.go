@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"testing"
+	"reflect"
+)
 
 func TestWrapResource(t *testing.T) {
 
@@ -32,8 +35,8 @@ func TestWrapResource(t *testing.T) {
 
 	for _, test := range tests {
 		result := wrapResource(test.resource, test.uuid, test.contentType)
-		if result != test.wantResource {
-			t.Errorf("Resource: %v, Expected: %v, Actual: %v", test.resource, test.wantResource, result)
+		if !reflect.DeepEqual(result, test.wantResource) {
+			t.Errorf("Resource: %v\n, Expected: %v\n, Actual: %v", test.resource, test.wantResource, result)
 		}
 	}
 }
