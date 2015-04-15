@@ -128,16 +128,24 @@ func (ma *MgoApi) writeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func createMgoApi() (*MgoApi, error) {
-	mgoApi, err := NewMgoApi("testdb", "uuid",
+	mgoApi, err := NewMgoApi(config.DbName, "uuid",
 		compositePropertyConverter{[]propertyConverter{UUIDToBson, DateToBson}}.convert,
 		compositePropertyConverter{[]propertyConverter{UUIDFromBson, DateFromBson, MongoIdRemover, ApiUrlInserter}}.convert,
 	)
 	return mgoApi, err
 }
 
+var config, configErr = readConfig()
 var mgoApi, mgoApiCreationErr = createMgoApi()
 
 func main() {
+
+	if ( configErr != nil) {
+		fmt.Fprintf(os.Stderr, "Error: %+v\n", configErr.Error())
+		return
+	}
+	fmt.Printf("Init config: %+v\n", *config)
+
 	if mgoApiCreationErr != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", mgoApiCreationErr.Error())
 		return
@@ -150,5 +158,5 @@ func main() {
 	m.HandleFunc("/__health", fthealth.Handler("Dependent services healthceck",
 	  "Checking connectivity and usability of dependent services: mongoDB and native-ingester.", mgoHealth))
 
-	http.ListenAndServe(":8082", nil)
+	http.ListenAndServe(":" + config.Server.Port, nil)
 }
