@@ -1,15 +1,14 @@
 package main
 
-import (
-"testing"
-"strings"
-)
+import "testing"
 
 func TestWrapResource(t *testing.T) {
 
 	var tests = [] struct {
-		resource map[string]interface, uuid, contentType string,
-		wantResource map[string]interface
+		resource map[string]interface{}
+		uuid string
+		contentType string
+		wantResource map[string]interface{}
 	} {
 		{ 			
 			map[string]interface{} {
@@ -27,8 +26,8 @@ func TestWrapResource(t *testing.T) {
 					"brands" : []string {"Lex", "Markets"},
 				},
 				"content-type" : "application/json",
-			}
-		}
+			},
+		},
 	}
 
 	for _, test := range tests {
