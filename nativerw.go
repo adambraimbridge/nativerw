@@ -118,10 +118,10 @@ func (ma *MgoApi) writeHandler(w http.ResponseWriter, req *http.Request) {
 
 	if plResourceId := resource[ma.resourceIdName]; plResourceId != resourceId {
 		http.Error(w, "given resource id does not match payload", http.StatusBadRequest)
-		return
+		return 
 	}
 
-	wrappedResource := wrapResource(resource, resourceId, "json")
+	wrappedResource := wrapResource(resource, resourceId, "application/json")
 
 	if err := ma.Write(collectionId, wrappedResource); err != nil {
 		http.Error(w, fmt.Sprintf("write failed:\n%v\n", err), http.StatusInternalServerError)
@@ -140,7 +140,7 @@ func wrapResource(resource map[string]interface{}, resourceId, contentType strin
 func createMgoApi() (*MgoApi, error) {
 	mgoApi, err := NewMgoApi(config.DbName, "uuid",
 		compositePropertyConverter{[]propertyConverter{UUIDToBson, DateToBson}}.convert,
-		compositePropertyConverter{[]propertyConverter{UUIDFromBson, DateFromBson, MongoIdRemover, ApiUrlInserter}}.convert,
+		compositePropertyConverter{[]propertyConverter{UUIDFromBson, DateFromBson, MongoIdRemover}}.convert,
 	)
 	return mgoApi, err
 }
