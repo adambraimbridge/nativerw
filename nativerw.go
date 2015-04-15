@@ -104,11 +104,11 @@ func (ma *MgoApi) readHandler(w http.ResponseWriter, r *http.Request) {
 	enc.Encode(resource)
 }
 
-func (ma *MgoApi) writeHandler(w http.ResponseWriter, r *http.Request) {
-	collectionId := mux.Vars(r)["collection"]
-	resourceId := mux.Vars(r)["resource"]
+func (ma *MgoApi) writeHandler(w http.ResponseWriter, req *http.Request) {
+	collectionId := mux.Vars(req)["collection"]
+	resourceId := mux.Vars(req)["resource"]
 
-	dec := json.NewDecoder(r.Body)
+	dec := json.NewDecoder(req.Body)
 	var resource map[string]interface{}
 
 	if err := dec.Decode(&resource); err != nil {
@@ -121,10 +121,20 @@ func (ma *MgoApi) writeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := ma.Write(collectionId, resource); err != nil {
+	wrappedResource := wrapResource(resource, resourceId, "json")
+
+	if err := ma.Write(collectionId, wrappedResource); err != nil {
 		http.Error(w, fmt.Sprintf("write failed:\n%v\n", err), http.StatusInternalServerError)
 		return
 	}
+}
+
+func wrapResource(resource map[string]interface{}, resourceId, contentType string) map[string]interface{} {
+	return map[string]interface{}{
+    "uuid": resourceId,
+    "content": resource,
+    "content-type": contentType,
+  }
 }
 
 func createMgoApi() (*MgoApi, error) {
