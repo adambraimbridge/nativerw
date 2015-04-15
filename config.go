@@ -6,11 +6,17 @@ import (
     "io"
 )
 
+type Mongo struct {
+	Host	string	`json: host`
+	Port 	string		`json: port`
+}
+
 type Server struct {
 	Port	string	`json: port`
 }
 
 type Configuration struct {
+	Mongos	[]Mongo `json: mongos`
 	DbName	string `json: dbName`
 	Server  Server `json: server`
 }
@@ -28,7 +34,7 @@ func readConfigFromReader(r io.Reader) (c *Configuration, e error) {
 }
 
 func readConfig() (c *Configuration, e error) {
-	file, fErr := os.Open("conf.json")
+	file, fErr := os.Open("config.json")
 	if (fErr != nil) {
 		return nil, fErr
 	}

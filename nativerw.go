@@ -12,7 +12,10 @@ import (
 	"reflect"
 	"time"
 	"git.svc.ft.com/scm/gl/fthealth.git"
+	"strings"
 )
+
+const uuidName = "uuid"
 
 type MgoApi struct {
 	dbName         string
@@ -22,14 +25,22 @@ type MgoApi struct {
 	afterRead      propertyConverter
 }
 
-func NewMgoApi(dbName string, resourceIdName string, beforeWrite, afterRead propertyConverter) (*MgoApi, error) {
-	s, err := mgo.DialWithTimeout("localhost", time.Duration(3*time.Second))
+func NewMgoApi(urls, dbName, resourceIdName string, beforeWrite, afterRead propertyConverter) (*MgoApi, error) {
+	s, err := mgo.DialWithTimeout(urls, time.Duration(3*time.Second))
 	if err != nil {
 		return nil, err
 	}
 	s.SetMode(mgo.Monotonic, true)
 
 	return &MgoApi{dbName, s, resourceIdName, beforeWrite, afterRead}, nil
+}
+
+func prepareMgoUrls(mongos []Mongo) string {
+	var hostsPorts string
+	for _, mongo := range mongos {
+		hostsPorts += mongo.Host + "," + mongo.Port + ","
+	}
+	return strings.TrimRight(hostsPorts, ",")
 }
 
 func (ma *MgoApi) Write(collection string, resource map[string]interface{}) error {
@@ -137,8 +148,8 @@ func wrapResource(resource map[string]interface{}, resourceId, contentType strin
   }
 }
 
-func createMgoApi() (*MgoApi, error) {
-	mgoApi, err := NewMgoApi(config.DbName, "uuid",
+func createMgoApi(config *Configuration) (*MgoApi, error) {
+	mgoApi, err := NewMgoApi(mongoUrls, config.DbName, uuidName,
 		compositePropertyConverter{[]propertyConverter{UUIDToBson, DateToBson}}.convert,
 		compositePropertyConverter{[]propertyConverter{UUIDFromBson, DateFromBson, MongoIdRemover}}.convert,
 	)
@@ -146,7 +157,8 @@ func createMgoApi() (*MgoApi, error) {
 }
 
 var config, configErr = readConfig()
-var mgoApi, mgoApiCreationErr = createMgoApi()
+var mongoUrls = prepareMgoUrls(config.Mongos)
+var mgoApi, mgoApiCreationErr = createMgoApi(config)
 
 func main() {
 
