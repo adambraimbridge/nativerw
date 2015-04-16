@@ -44,7 +44,10 @@ func prepareMgoUrls(mongos []Mongo) string {
 }
 
 func (ma *MgoApi) Write(collection string, resource map[string]interface{}) error {
-	coll := ma.session.DB(ma.dbName).C(collection)
+	newSession := ma.session.Copy()
+	defer newSession.Close()
+
+	coll := newSession.DB(ma.dbName).C(collection)
 
 	ma.mongoizeAll(resource)
 
@@ -54,7 +57,10 @@ func (ma *MgoApi) Write(collection string, resource map[string]interface{}) erro
 }
 
 func (ma *MgoApi) Read(collection string, resourceId string) (bool, interface{}) {
-	coll := ma.session.DB(ma.dbName).C(collection)
+	newSession := ma.session.Copy()
+	defer newSession.Close()
+
+	coll := newSession.DB(ma.dbName).C(collection)
 
 	// convert resource id to mgo friendly form if needed
 	props := make(map[string]interface{})
