@@ -4,6 +4,7 @@ import (
     "encoding/json"
     "os"
     "io"
+	"strings"
 )
 
 type Mongo struct {
@@ -19,6 +20,14 @@ type Configuration struct {
 	Mongos	[]Mongo `json: mongos`
 	DbName	string `json: dbName`
 	Server  Server `json: server`
+}
+
+func (c *Configuration) prepareMgoUrls() string {
+	var hostsPorts string
+	for _, mongo := range c.Mongos {
+		hostsPorts += mongo.Host + ":" + mongo.Port + ","
+	}
+	return strings.TrimRight(hostsPorts, ",")
 }
 
 func readConfigFromReader(r io.Reader) (c *Configuration, e error) {
