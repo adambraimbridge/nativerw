@@ -18,16 +18,15 @@ func createMgoApi(config *Configuration) (*MgoApi, error) {
 	return mgoApi, err
 }
 
-var config, configErr = readConfig()
-var mgoApi, mgoApiCreationErr = createMgoApi(config)
-
 func main() {
 
+	config, configErr := readConfig()
 	if configErr != nil {
 		fmt.Fprintf(os.Stderr, "Error: %+v\n", configErr.Error())
 		return
 	}
 
+	mgoApi, mgoApiCreationErr := createMgoApi(config)
 	if mgoApiCreationErr != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", mgoApiCreationErr.Error())
 		return
@@ -38,7 +37,7 @@ func main() {
 	router.HandleFunc("/{collection}/{resource}", mgoApi.readContent).Methods("GET")
 	router.HandleFunc("/{collection}/{resource}", mgoApi.writeContent).Methods("PUT")
 	router.HandleFunc("/__health", fthealth.Handler("Dependent services healthceck",
-		"Checking connectivity and usability of dependent services: mongoDB and native-ingester.", mgoHealth))
+		"Checking connectivity and usability of dependent services: mongoDB and native-ingester.", mgoApi.buildHealthCheck()))
 
 	http.ListenAndServe(":"+config.Server.Port, nil)
 }
