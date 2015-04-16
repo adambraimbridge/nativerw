@@ -1,25 +1,25 @@
 package main
 
 import (
-    "encoding/json"
-    "os"
-    "io"
+	"encoding/json"
+	"io"
+	"os"
 	"strings"
 )
 
 type Mongo struct {
-	Host	string	`json: host`
-	Port 	string		`json: port`
+	Host string `json: host`
+	Port string `json: port`
 }
 
 type Server struct {
-	Port	string	`json: port`
+	Port string `json: port`
 }
 
 type Configuration struct {
-	Mongos	[]Mongo `json: mongos`
-	DbName	string `json: dbName`
-	Server  Server `json: server`
+	Mongos []Mongo `json: mongos`
+	DbName string  `json: dbName`
+	Server Server  `json: server`
 }
 
 func (c *Configuration) prepareMgoUrls() string {
@@ -39,12 +39,12 @@ func readConfigFromReader(r io.Reader) (c *Configuration, e error) {
 		return nil, e
 	}
 
-	return 
+	return
 }
 
 func readConfig() (c *Configuration, e error) {
 	file, fErr := os.Open("config.json")
-	if (fErr != nil) {
+	if fErr != nil {
 		return nil, fErr
 	}
 	return readConfigFromReader(file)

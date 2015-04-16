@@ -5,24 +5,24 @@ import (
 )
 
 func TestPrepareMgoUrls(t *testing.T) {
-	var tests = [] struct {
-		config Configuration
+	var tests = []struct {
+		config  Configuration
 		wantUrl string
-	} {
+	}{
 		{
-			Configuration {
-				[]Mongo {
-					Mongo {
+			Configuration{
+				[]Mongo{
+					Mongo{
 						"localhost",
 						"1000",
 					},
-					Mongo {
+					Mongo{
 						"localhost",
 						"1001",
 					},
 				},
 				"testdb",
-				Server {
+				Server{
 					"9999",
 				},
 			},
