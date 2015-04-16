@@ -13,6 +13,7 @@ import (
 	"time"
 	"git.svc.ft.com/scm/gl/fthealth.git"
 	"strings"
+	"io/ioutil"
 )
 
 const uuidName = "uuid"
@@ -133,37 +134,87 @@ func unwrapResource(resource interface{}) interface{} {
 	return resource.(map[string]interface{})["content"]
 }
 
-func (ma *MgoApi) writeHandler(w http.ResponseWriter, req *http.Request) {
+type extractionError struct {
+	cause string
+	httpCode int
+}
+
+func (e extractionError) Error() string {
+	return e.cause
+}
+
+func (mgoApi *MgoApi) writeHandler(writer http.ResponseWriter, req *http.Request) {
+	defer req.Body.Close()
 	collectionId := mux.Vars(req)["collection"]
 	resourceId := mux.Vars(req)["resource"]
 
-	dec := json.NewDecoder(req.Body)
-	var resource map[string]interface{}
-
-	if err := dec.Decode(&resource); err != nil {
-		http.Error(w, fmt.Sprintf("json decode failed: %v", err.Error()), http.StatusBadRequest)
+	wrappedContent, exErr := extractContent(req, resourceId)
+	if exErr != nil {
+		err := exErr.(extractionError)
+		http.Error(writer, fmt.Sprintf("Extracting content from HTTP body failed:\n%v\n", exErr), err.httpCode)
 		return
 	}
 
-	if plResourceId := resource[ma.resourceIdName]; plResourceId != resourceId {
-		http.Error(w, "given resource id does not match payload", http.StatusBadRequest)
-		return 
-	}
-
-	wrappedResource := wrapResource(resource, resourceId, "application/json")
-
-	if err := ma.Write(collectionId, wrappedResource); err != nil {
-		http.Error(w, fmt.Sprintf("write failed:\n%v\n", err), http.StatusInternalServerError)
+	if wrErr := mgoApi.Write(collectionId, wrappedContent); wrErr != nil {
+		http.Error(writer, fmt.Sprintf("Writing to mongoDB failed:\n%v\n", wrErr), http.StatusInternalServerError)
 		return
 	}
 }
 
-func wrapResource(resource map[string]interface{}, resourceId, contentType string) map[string]interface{} {
+func extractContent(req *http.Request, resourceId string) (map[string]interface{}, error) {
+	var wrappedContent map[string]interface{}
+	var err error
+	if req.Header.Get("Content-Type") == "application/json" {
+		var content map[string]interface{}
+		content, err = extractJson(req, resourceId);
+		wrappedContent = wrapMap(content, resourceId, "application/json")
+	} else {
+		var binary []byte
+		binary, err = extractBinary(req)
+		wrappedContent = wrapBinary(binary, resourceId, "application/octet-stream")
+	}
+	if err != nil {
+		return nil, err
+	}
+	return wrappedContent, nil
+}
+
+func extractJson(req *http.Request, resourceId string) (map[string]interface{}, error) {
+	var content map[string]interface{}
+	decoder := json.NewDecoder(req.Body)
+	if err := decoder.Decode(&content); err != nil {
+		return nil, &extractionError{ fmt.Sprintf("JSON decode failed:\n%v\n", err), http.StatusBadRequest }
+	}
+	if payloadId := content[mgoApi.resourceIdName]; payloadId != resourceId {
+		return nil, &extractionError{ fmt.Sprintf("Given resource id %v does not match id in payload %v .",
+			resourceId, payloadId), http.StatusBadRequest }
+	}
+	return content, nil
+}
+
+func extractBinary(req *http.Request) ([]byte, error) {
+	content, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		return []byte {}, &extractionError{ fmt.Sprintf("Reading the body of the request failed:\n%v\n", err),
+			http.StatusInternalServerError }
+	}
+	return content, nil
+}
+
+func wrapMap(content map[string]interface{}, resourceId, contentType string) map[string]interface{} {
 	return map[string]interface{}{
-    "uuid": resourceId,
-    "content": resource,
-    "content-type": contentType,
-  }
+		"uuid": resourceId,
+		"content": content,
+		"content-type": contentType,
+	}
+}
+
+func wrapBinary(content []byte, resourceId, contentType string) map[string]interface{} {
+	return map[string]interface{}{
+		"uuid": resourceId,
+		"content": content,
+		"content-type": contentType,
+	}
 }
 
 func createMgoApi(config *Configuration) (*MgoApi, error) {
@@ -190,11 +241,11 @@ func main() {
 		return
 	}
 
-	m := mux.NewRouter()
-	http.Handle("/", handlers.CombinedLoggingHandler(os.Stdout, m))
-	m.HandleFunc("/{collection}/{resource}", mgoApi.readHandler).Methods("GET")
-	m.HandleFunc("/{collection}/{resource}", mgoApi.writeHandler).Methods("PUT")
-	m.HandleFunc("/__health", fthealth.Handler("Dependent services healthceck",
+	router := mux.NewRouter()
+	http.Handle("/", handlers.CombinedLoggingHandler(os.Stdout, router))
+	router.HandleFunc("/{collection}/{resource}", mgoApi.readHandler).Methods("GET")
+	router.HandleFunc("/{collection}/{resource}", mgoApi.writeHandler).Methods("PUT")
+	router.HandleFunc("/__health", fthealth.Handler("Dependent services healthceck",
 	  "Checking connectivity and usability of dependent services: mongoDB and native-ingester.", mgoHealth))
 
 	http.ListenAndServe(":" + config.Server.Port, nil)
