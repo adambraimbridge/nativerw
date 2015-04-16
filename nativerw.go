@@ -110,9 +110,21 @@ func (ma *MgoApi) readHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(fmt.Sprintf("resource with id %s was not found\n", resourceId)))
 		return
 	}
-	w.Header().Add("Content-Type", "application/json")
+
+	unwrappedResource := unwrapResource(resource)
+	contentType := getContentType(resource)
+	
+	w.Header().Add("Content-Type", contentType)
 	enc := json.NewEncoder(w)
-	enc.Encode(resource)
+	enc.Encode(unwrappedResource)
+}
+
+func getContentType(resource interface{}) string {
+	return resource.(map[string]interface{})["content-type"].(string)
+}
+
+func unwrapResource(resource interface{}) interface{} {
+	return resource.(map[string]interface{})["content"]
 }
 
 func (ma *MgoApi) writeHandler(w http.ResponseWriter, req *http.Request) {

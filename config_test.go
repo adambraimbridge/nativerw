@@ -21,7 +21,7 @@ func TestReadConfigFromReader(t *testing.T) {
 		var resServerPort = got.Server.Port
 		if resDbName != c.wantDbName ||
 			 resServerPort != c.wantPort {
-			t.Errorf("for Json: %q, resultDbName is %q and resultPort is %q", c.json, resDbName, resServerPort)
+			t.Errorf("Input Json: %q, resultDbName: %q and resultPort: %q", c.json, resDbName, resServerPort)
 		}
 	}
 
