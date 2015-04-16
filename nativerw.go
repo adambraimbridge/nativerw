@@ -113,7 +113,7 @@ func (ma *MgoApi) readHandler(w http.ResponseWriter, r *http.Request) {
 
 	unwrappedResource := unwrapResource(resource)
 	contentType := getContentType(resource)
-	
+
 	w.Header().Add("Content-Type", contentType)
 	enc := json.NewEncoder(w)
 	enc.Encode(unwrappedResource)
@@ -174,7 +174,7 @@ var mgoApi, mgoApiCreationErr = createMgoApi(config)
 
 func main() {
 
-	if ( configErr != nil) {
+	if configErr != nil {
 		fmt.Fprintf(os.Stderr, "Error: %+v\n", configErr.Error())
 		return
 	}
