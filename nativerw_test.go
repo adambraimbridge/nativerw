@@ -89,7 +89,7 @@ func TestPrepareMgoUrls(t *testing.T) {
 	for _, test := range tests {
 		result := prepareMgoUrls(test.mongos)
 		if result != test.wantUrl {
-			t.Errorf("\nResource: %v\nExpected: %v\nActual: %v", test.mongos, test.wantUrl, result)
+			t.Errorf("\nMongos: %v\nExpected: %v\nActual: %v", test.mongos, test.wantUrl, result)
 		}
 	}
 
