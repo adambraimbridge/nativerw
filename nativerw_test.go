@@ -46,23 +46,23 @@ func TestUnwrapResource(t *testing.T) {
 		wrappedResource map[string]interface{}
 		wantResource map[string]interface{}
 	} {
-			{ 	
-				map[string]interface{} {
-					"uuid": "9694733e-163a-4393-801f-000ab7de5041",
-					"content": map[string]interface{} {
-						"title": "Title", 
-						"body": "This is a body.",
-						"brands" : []string {"Lex", "Markets"},
-					},
-					"content-type" : "application/json",
-				},		
-				map[string]interface{} {
-					"title": "Title", 
+		{
+			map[string]interface{} {
+				"uuid": "9694733e-163a-4393-801f-000ab7de5041",
+				"content": map[string]interface{} {
+					"title": "Title",
 					"body": "This is a body.",
 					"brands" : []string {"Lex", "Markets"},
 				},
+				"content-type" : "application/json",
 			},
-		}
+			map[string]interface{} {
+				"title": "Title",
+				"body": "This is a body.",
+				"brands" : []string {"Lex", "Markets"},
+			},
+		},
+	}
 
 	for _, test := range tests {
 		result := unwrapResource(test.wrappedResource)
@@ -70,4 +70,27 @@ func TestUnwrapResource(t *testing.T) {
 			t.Errorf("Resource: %v\n, Expected: %v\n, Actual: %v", test.wrappedResource, test.wantResource, result)
 		}
 	}	
+}
+
+func TestPrepareMgoUrls(t *testing.T) {
+	var tests = [] struct {
+		mongos []Mongo
+		wantUrl string
+	} {
+		{
+			[]Mongo{
+				{"localhost", "1000"},
+				{"localhost", "1001"},
+			},
+			"localhost:1000,localhost:1001",
+		},
+	}
+
+	for _, test := range tests {
+		result := prepareMgoUrls(test.mongos)
+		if result != test.wantUrl {
+			t.Errorf("\nResource: %v\nExpected: %v\nActual: %v", test.mongos, test.wantUrl, result)
+		}
+	}
+
 }

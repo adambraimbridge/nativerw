@@ -38,7 +38,7 @@ func NewMgoApi(urls, dbName, resourceIdName string, beforeWrite, afterRead prope
 func prepareMgoUrls(mongos []Mongo) string {
 	var hostsPorts string
 	for _, mongo := range mongos {
-		hostsPorts += mongo.Host + "," + mongo.Port + ","
+		hostsPorts += mongo.Host + ":" + mongo.Port + ","
 	}
 	return strings.TrimRight(hostsPorts, ",")
 }
