@@ -71,26 +71,3 @@ func TestUnwrapResource(t *testing.T) {
 		}
 	}	
 }
-
-func TestPrepareMgoUrls(t *testing.T) {
-	var tests = [] struct {
-		mongos []Mongo
-		wantUrl string
-	} {
-		{
-			[]Mongo{
-				{"localhost", "1000"},
-				{"localhost", "1001"},
-			},
-			"localhost:1000,localhost:1001",
-		},
-	}
-
-	for _, test := range tests {
-		result := prepareMgoUrls(test.mongos)
-		if result != test.wantUrl {
-			t.Errorf("\nMongos: %v\nExpected: %v\nActual: %v", test.mongos, test.wantUrl, result)
-		}
-	}
-
-}

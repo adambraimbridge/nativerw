@@ -16,7 +16,7 @@ type MgoApi struct {
     afterRead      propertyConverter
 }
 
-func NewMgoApi(urls, dbName, beforeWrite, afterRead propertyConverter) (*MgoApi, error) {
+func NewMgoApi(urls, dbName string, beforeWrite, afterRead propertyConverter) (*MgoApi, error) {
     session, err := mgo.DialWithTimeout(urls, time.Duration(3 * time.Second))
     if err != nil {
         return nil, err
