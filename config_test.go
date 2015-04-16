@@ -2,7 +2,6 @@ package main
 
 import (
 	"testing"
-	"strings"
 )
 
 func TestPrepareMgoUrls(t *testing.T) {
