@@ -44,6 +44,7 @@ func readConfigFromReader(r io.Reader) (c *Configuration, e error) {
 
 func readConfig() (c *Configuration, e error) {
 	file, fErr := os.Open("config.json")
+	defer file.Close()
 	if fErr != nil {
 		return nil, fErr
 	}
