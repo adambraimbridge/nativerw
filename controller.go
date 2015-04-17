@@ -20,20 +20,9 @@ func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	unwrappedResource := unwrapResource(resource)
-	contentType := getContentType(resource)
-
-	writer.Header().Add("Content-Type", contentType)
+	writer.Header().Add("Content-Type", resource.ContentType)
 	encoder := json.NewEncoder(writer)
-	encoder.Encode(unwrappedResource)
-}
-
-func getContentType(resource interface{}) string {
-	return resource.(map[string]interface{})["content-type"].(string)
-}
-
-func unwrapResource(resource interface{}) interface{} {
-	return resource.(map[string]interface{})["content"]
+	encoder.Encode(resource.Content)
 }
 
 type extractionError struct {
@@ -63,8 +52,8 @@ func (mgoApi *MgoApi) writeContent(writer http.ResponseWriter, req *http.Request
 	}
 }
 
-func extractContent(req *http.Request, resourceId string) (map[string]interface{}, error) {
-	var wrappedContent map[string]interface{}
+func extractContent(req *http.Request, resourceId string) (Resource, error) {
+	var wrappedContent Resource
 	var err error
 	if req.Header.Get("Content-Type") == "application/json" {
 		var content map[string]interface{}
@@ -76,7 +65,7 @@ func extractContent(req *http.Request, resourceId string) (map[string]interface{
 		wrappedContent = wrapBinary(binary, resourceId, "application/octet-stream")
 	}
 	if err != nil {
-		return nil, err
+		return Resource{}, err
 	}
 	return wrappedContent, nil
 }
@@ -103,18 +92,18 @@ func extractBinary(req *http.Request) ([]byte, error) {
 	return content, nil
 }
 
-func wrapMap(content map[string]interface{}, resourceId, contentType string) map[string]interface{} {
-	return map[string]interface{}{
-		"uuid":         resourceId,
-		"content":      content,
-		"content-type": contentType,
+func wrapMap(content map[string]interface{}, resourceId, contentType string) Resource {
+	return Resource{
+		UUID:        resourceId,
+		Content:     content,
+		ContentType: contentType,
 	}
 }
 
-func wrapBinary(content []byte, resourceId, contentType string) map[string]interface{} {
-	return map[string]interface{}{
-		"uuid":         resourceId,
-		"content":      content,
-		"content-type": contentType,
+func wrapBinary(content []byte, resourceId, contentType string) Resource {
+	return Resource{
+		UUID:        resourceId,
+		Content:     content,
+		ContentType: contentType,
 	}
 }

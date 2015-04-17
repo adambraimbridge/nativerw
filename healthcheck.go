@@ -4,9 +4,10 @@ import "git.svc.ft.com/scm/gl/fthealth.git"
 
 const healthcheckColl = "healthcheck"
 
-var sampleResource = map[string]interface{}{
-	"foo": []string{"a", "b"},
-	"bar": 10.4,
+var sampleResource = Resource{
+	UUID:        "cda5d6a9-cd25-4d76-8bad-9eaa35e85f4a",
+	ContentType: "application/json",
+	Content:     "{\"foo\": [\"a\",\"b\"], \"bar\": 10.4}",
 }
 
 func (m *MgoApi) buildHealthCheck() fthealth.Check {
