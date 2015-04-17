@@ -31,7 +31,15 @@ func (mgoApi *MgoApi) writeContent(writer http.ResponseWriter, req *http.Request
 	collectionId := mux.Vars(req)["collection"]
 	resourceId := mux.Vars(req)["resource"]
 
-	content, contentType, err := extractContent(req)
+	contentType := req.Header.Get("Content-Type")
+	mapper := inMappers[contentType]
+	if mapper == nil {
+		// default to binary
+		contentType = "application/octet-stream"
+		mapper = inMappers[contentType]
+	}
+
+	content, err := mapper(req.Body)
 	if err != nil {
 		// TODO: this could be a server error too?
 		http.Error(writer, fmt.Sprintf("Extracting content from HTTP body failed:\n%v\n", err), http.StatusBadRequest)
@@ -44,18 +52,6 @@ func (mgoApi *MgoApi) writeContent(writer http.ResponseWriter, req *http.Request
 		http.Error(writer, fmt.Sprintf("Writing to mongoDB failed:\n%v\n", err), http.StatusInternalServerError)
 		return
 	}
-}
-
-func extractContent(req *http.Request) (content interface{}, contentType string, err error) {
-	contentType = req.Header.Get("Content-Type")
-	mapper := inMappers[contentType]
-	if mapper == nil {
-		// default to binary
-		contentType = "application/octet-stream"
-		mapper = inMappers[contentType]
-	}
-	content, err = mapper(req.Body)
-	return
 }
 
 type inMapper func(io.Reader) (interface{}, error)
