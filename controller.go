@@ -57,12 +57,14 @@ func extractContent(req *http.Request) (content interface{}, contentType string,
 	return
 }
 
-func extractJson(reader io.Reader) (content map[string]interface{}, err error) {
-	err = json.NewDecoder(reader).Decode(&content)
+func extractJson(reader io.Reader) (content interface{}, err error) {
+	var c map[string]interface{}
+	err = json.NewDecoder(reader).Decode(&c)
+	content = c
 	return
 }
 
-func extractBinary(reader io.Reader) (content []byte, err error) {
+func extractBinary(reader io.Reader) (content interface{}, err error) {
 	content, err = ioutil.ReadAll(reader)
 	return
 }
