@@ -39,12 +39,14 @@ func (mgoApi *MgoApi) writeContent(writer http.ResponseWriter, req *http.Request
 	collectionId := mux.Vars(req)["collection"]
 	resourceId := mux.Vars(req)["resource"]
 
-	wrappedContent, exErr := extractContent(req, resourceId)
+	content, contentType, exErr := extractContent(req)
 	if exErr != nil {
 		err := exErr.(*extractionError)
 		http.Error(writer, fmt.Sprintf("Extracting content from HTTP body failed:\n%v\n", exErr), err.httpCode)
 		return
 	}
+
+	wrappedContent := wrap(content, resourceId, contentType)
 
 	if wrErr := mgoApi.Write(collectionId, wrappedContent); wrErr != nil {
 		http.Error(writer, fmt.Sprintf("Writing to mongoDB failed:\n%v\n", wrErr), http.StatusInternalServerError)
@@ -52,20 +54,15 @@ func (mgoApi *MgoApi) writeContent(writer http.ResponseWriter, req *http.Request
 	}
 }
 
-func extractContent(req *http.Request, resourceId string) (Resource, error) {
-	var err error
-	var content interface{}
-	contentType := req.Header.Get("Content-Type")
+func extractContent(req *http.Request) (content interface{}, contentType string, err error) {
+	contentType = req.Header.Get("Content-Type")
 	if contentType == "application/json" {
 		content, err = extractJson(req)
 	} else {
 		content, err = extractBinary(req)
 		contentType = "application/octet-stream"
 	}
-	if err != nil {
-		return Resource{}, err
-	}
-	return wrap(content, resourceId, contentType), nil
+	return
 }
 
 func extractJson(req *http.Request) (map[string]interface{}, error) {
