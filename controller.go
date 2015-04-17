@@ -37,17 +37,15 @@ func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
 type outMapper func(io.Writer, Resource) error
 
 var outMappers = map[string]outMapper{
-	"application/json": writeJson,
+	"application/json": func(w io.Writer, resource Resource) error {
+		encoder := json.NewEncoder(w)
+		return encoder.Encode(resource.Content)
+	},
 	"application/octet-stream": func(w io.Writer, resource Resource) error {
 		data := resource.Content.([]byte)
 		_, err := io.Copy(w, bytes.NewReader(data))
 		return err
 	},
-}
-
-func writeJson(w io.Writer, resource Resource) error {
-	encoder := json.NewEncoder(w)
-	return encoder.Encode(resource.Content)
 }
 
 func (mgoApi *MgoApi) writeContent(writer http.ResponseWriter, req *http.Request) {
