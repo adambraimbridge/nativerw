@@ -25,6 +25,6 @@ class nativerw {
 
     $config_file:
       mode    => "0755",
-      content => template("${module_name}/config.json.erb");
+      content => template("$module_name/config.json.erb");
   }
 }
