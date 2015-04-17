@@ -20,7 +20,12 @@ func createMgoApi(config *Configuration) (*MgoApi, error) {
 
 func main() {
 
-	config, configErr := readConfig()
+	if (len(os.Args) < 2) {
+		fmt.Fprintf(os.Stderr, "Missing parameter. Usage: <pathToExecutable>/nativerw <confFilePath>\n");
+		return
+	}
+
+	config, configErr := readConfig(os.Args[1])
 	if configErr != nil {
 		fmt.Fprintf(os.Stderr, "Error: %+v\n", configErr.Error())
 		return
