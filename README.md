@@ -11,7 +11,7 @@
 
 ##Running
 
-    $GOPATH/bin/nativerw.git
+    $GOPATH/bin/nativerw.git $GOPATH/src/git.svc.ft.com/scm/cp/nativerw.git/config.json
 
 ## Try it!
 
