@@ -52,7 +52,7 @@ func (mgoApi *MgoApi) writeContent(writer http.ResponseWriter, req *http.Request
 
 	wrappedContent, exErr := extractContent(req, resourceId)
 	if exErr != nil {
-		err := exErr.(extractionError)
+		err := exErr.(*extractionError)
 		http.Error(writer, fmt.Sprintf("Extracting content from HTTP body failed:\n%v\n", exErr), err.httpCode)
 		return
 	}
