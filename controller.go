@@ -25,31 +25,22 @@ func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
 	encoder.Encode(resource.Content)
 }
 
-type extractionError struct {
-	cause    string
-	httpCode int
-}
-
-func (e extractionError) Error() string {
-	return e.cause
-}
-
 func (mgoApi *MgoApi) writeContent(writer http.ResponseWriter, req *http.Request) {
 	defer req.Body.Close()
 	collectionId := mux.Vars(req)["collection"]
 	resourceId := mux.Vars(req)["resource"]
 
-	content, contentType, exErr := extractContent(req)
-	if exErr != nil {
-		err := exErr.(*extractionError)
-		http.Error(writer, fmt.Sprintf("Extracting content from HTTP body failed:\n%v\n", exErr), err.httpCode)
+	content, contentType, err := extractContent(req)
+	if err != nil {
+		// TODO: this could be a server error too?
+		http.Error(writer, fmt.Sprintf("Extracting content from HTTP body failed:\n%v\n", err), http.StatusBadRequest)
 		return
 	}
 
 	wrappedContent := wrap(content, resourceId, contentType)
 
-	if wrErr := mgoApi.Write(collectionId, wrappedContent); wrErr != nil {
-		http.Error(writer, fmt.Sprintf("Writing to mongoDB failed:\n%v\n", wrErr), http.StatusInternalServerError)
+	if err := mgoApi.Write(collectionId, wrappedContent); err != nil {
+		http.Error(writer, fmt.Sprintf("Writing to mongoDB failed:\n%v\n", err), http.StatusInternalServerError)
 		return
 	}
 }
@@ -65,22 +56,14 @@ func extractContent(req *http.Request) (content interface{}, contentType string,
 	return
 }
 
-func extractJson(req *http.Request) (map[string]interface{}, error) {
-	var content map[string]interface{}
-	decoder := json.NewDecoder(req.Body)
-	if err := decoder.Decode(&content); err != nil {
-		return nil, &extractionError{fmt.Sprintf("JSON decode failed:\n%v\n", err), http.StatusBadRequest}
-	}
-	return content, nil
+func extractJson(req *http.Request) (content map[string]interface{}, err error) {
+	err = json.NewDecoder(req.Body).Decode(&content)
+	return
 }
 
-func extractBinary(req *http.Request) ([]byte, error) {
-	content, err := ioutil.ReadAll(req.Body)
-	if err != nil {
-		return []byte{}, &extractionError{fmt.Sprintf("Reading the body of the request failed:\n%v\n", err),
-			http.StatusInternalServerError}
-	}
-	return content, nil
+func extractBinary(req *http.Request) (content []byte, err error) {
+	content, err = ioutil.ReadAll(req.Body)
+	return
 }
 
 func wrap(content interface{}, resourceId, contentType string) Resource {
