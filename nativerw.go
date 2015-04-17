@@ -11,10 +11,7 @@ import (
 
 func createMgoApi(config *Configuration) (*MgoApi, error) {
 	mgoUrls := config.prepareMgoUrls()
-	mgoApi, err := NewMgoApi(mgoUrls, config.DbName,
-		compositePropertyConverter{[]propertyConverter{UUIDToBson, DateToBson}}.convert,
-		compositePropertyConverter{[]propertyConverter{UUIDFromBson, DateFromBson, MongoIdRemover}}.convert,
-	)
+	mgoApi, err := NewMgoApi(mgoUrls, config.DbName)
 	return mgoApi, err
 }
 
