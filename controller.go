@@ -57,7 +57,7 @@ func extractContent(req *http.Request, resourceId string) (Resource, error) {
 	var content interface{}
 	contentType := req.Header.Get("Content-Type")
 	if contentType == "application/json" {
-		content, err = extractJson(req, resourceId)
+		content, err = extractJson(req)
 	} else {
 		content, err = extractBinary(req)
 		contentType = "application/octet-stream"
@@ -68,15 +68,11 @@ func extractContent(req *http.Request, resourceId string) (Resource, error) {
 	return wrap(content, resourceId, contentType), nil
 }
 
-func extractJson(req *http.Request, resourceId string) (map[string]interface{}, error) {
+func extractJson(req *http.Request) (map[string]interface{}, error) {
 	var content map[string]interface{}
 	decoder := json.NewDecoder(req.Body)
 	if err := decoder.Decode(&content); err != nil {
 		return nil, &extractionError{fmt.Sprintf("JSON decode failed:\n%v\n", err), http.StatusBadRequest}
-	}
-	if payloadId := content[uuidName]; payloadId != resourceId {
-		return nil, &extractionError{fmt.Sprintf("Given resource id %v does not match id in payload %v .",
-			resourceId, payloadId), http.StatusBadRequest}
 	}
 	return content, nil
 }
