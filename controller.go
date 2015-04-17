@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"io"
 	"io/ioutil"
 	"net/http"
 )
@@ -48,21 +49,21 @@ func (mgoApi *MgoApi) writeContent(writer http.ResponseWriter, req *http.Request
 func extractContent(req *http.Request) (content interface{}, contentType string, err error) {
 	contentType = req.Header.Get("Content-Type")
 	if contentType == "application/json" {
-		content, err = extractJson(req)
+		content, err = extractJson(req.Body)
 	} else {
-		content, err = extractBinary(req)
+		content, err = extractBinary(req.Body)
 		contentType = "application/octet-stream"
 	}
 	return
 }
 
-func extractJson(req *http.Request) (content map[string]interface{}, err error) {
-	err = json.NewDecoder(req.Body).Decode(&content)
+func extractJson(reader io.Reader) (content map[string]interface{}, err error) {
+	err = json.NewDecoder(reader).Decode(&content)
 	return
 }
 
-func extractBinary(req *http.Request) (content []byte, err error) {
-	content, err = ioutil.ReadAll(req.Body)
+func extractBinary(reader io.Reader) (content []byte, err error) {
+	content, err = ioutil.ReadAll(reader)
 	return
 }
 
