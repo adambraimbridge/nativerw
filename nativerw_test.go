@@ -34,7 +34,7 @@ func TestWrapResource(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result := wrapMap(test.resource, test.uuid, test.contentType)
+		result := wrap(test.resource, test.uuid, test.contentType)
 		if !reflect.DeepEqual(result, test.wantResource) {
 			t.Errorf("Resource: %v\n, Expected: %v\n, Actual: %v", test.resource, test.wantResource, result)
 		}

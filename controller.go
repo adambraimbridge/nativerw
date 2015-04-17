@@ -58,11 +58,11 @@ func extractContent(req *http.Request, resourceId string) (Resource, error) {
 	if req.Header.Get("Content-Type") == "application/json" {
 		var content map[string]interface{}
 		content, err = extractJson(req, resourceId)
-		wrappedContent = wrapMap(content, resourceId, "application/json")
+		wrappedContent = wrap(content, resourceId, "application/json")
 	} else {
 		var binary []byte
 		binary, err = extractBinary(req)
-		wrappedContent = wrapBinary(binary, resourceId, "application/octet-stream")
+		wrappedContent = wrap(binary, resourceId, "application/octet-stream")
 	}
 	if err != nil {
 		return Resource{}, err
@@ -92,15 +92,7 @@ func extractBinary(req *http.Request) ([]byte, error) {
 	return content, nil
 }
 
-func wrapMap(content map[string]interface{}, resourceId, contentType string) Resource {
-	return Resource{
-		UUID:        resourceId,
-		Content:     content,
-		ContentType: contentType,
-	}
-}
-
-func wrapBinary(content []byte, resourceId, contentType string) Resource {
+func wrap(content interface{}, resourceId, contentType string) Resource {
 	return Resource{
 		UUID:        resourceId,
 		Content:     content,
