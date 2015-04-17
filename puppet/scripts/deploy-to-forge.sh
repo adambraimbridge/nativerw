@@ -3,7 +3,7 @@ set -x
 export PATH=$PATH:/usr/local/bin:/usr/bin:/usr/sbin:/bin
 
 start_time=`date +%s`
-MODULEFULLPATH="${project.build.directory}/ft-binary_writer"
+MODULEFULLPATH="${project.build.directory}/ft-nativerw"
 
 /usr/local/bin/forge-admin.py --publish --source "$MODULEFULLPATH"
 ERROR_CODE=$?
