@@ -53,21 +53,19 @@ func (mgoApi *MgoApi) writeContent(writer http.ResponseWriter, req *http.Request
 }
 
 func extractContent(req *http.Request, resourceId string) (Resource, error) {
-	var wrappedContent Resource
 	var err error
-	if req.Header.Get("Content-Type") == "application/json" {
-		var content map[string]interface{}
+	var content interface{}
+	contentType := req.Header.Get("Content-Type")
+	if contentType == "application/json" {
 		content, err = extractJson(req, resourceId)
-		wrappedContent = wrap(content, resourceId, "application/json")
 	} else {
-		var binary []byte
-		binary, err = extractBinary(req)
-		wrappedContent = wrap(binary, resourceId, "application/octet-stream")
+		content, err = extractBinary(req)
+		contentType = "application/octet-stream"
 	}
 	if err != nil {
 		return Resource{}, err
 	}
-	return wrappedContent, nil
+	return wrap(content, resourceId, contentType), nil
 }
 
 func extractJson(req *http.Request, resourceId string) (map[string]interface{}, error) {
