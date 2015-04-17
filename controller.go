@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -22,8 +23,31 @@ func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	writer.Header().Add("Content-Type", resource.ContentType)
-	encoder := json.NewEncoder(writer)
-	encoder.Encode(resource.Content)
+
+	om := outMappers[resource.ContentType]
+	if om == nil {
+		panic(fmt.Sprintf("AAA: %T %v\n", resource, resource))
+	}
+	err := om(writer, resource)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+type outMapper func(io.Writer, Resource) error
+
+var outMappers = map[string]outMapper{
+	"application/json": writeJson,
+	"application/octet-stream": func(w io.Writer, resource Resource) error {
+		data := resource.Content.([]byte)
+		_, err := io.Copy(w, bytes.NewReader(data))
+		return err
+	},
+}
+
+func writeJson(w io.Writer, resource Resource) error {
+	encoder := json.NewEncoder(w)
+	return encoder.Encode(resource.Content)
 }
 
 func (mgoApi *MgoApi) writeContent(writer http.ResponseWriter, req *http.Request) {

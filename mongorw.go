@@ -56,11 +56,21 @@ func (ma *MgoApi) Read(collection string, uuidString string) (found bool, resour
 
 	bsonUUID := bson.Binary{Kind: 0x04, Data: []byte(uuid.Parse(uuidString))}
 
-	if err := coll.Find(bson.M{uuidName: bsonUUID}).One(&resource); err != nil {
+	var bsonResource map[string]interface{}
+
+	if err := coll.Find(bson.M{uuidName: bsonUUID}).One(&bsonResource); err != nil {
 		if err == mgo.ErrNotFound {
 			return
 		}
 		panic(err)
+	}
+
+	uuidData := bsonResource["uuid"].(bson.Binary).Data
+
+	resource = Resource{
+		UUID:        uuid.UUID(uuidData).String(),
+		Content:     bsonResource["content"],
+		ContentType: bsonResource["content-type"].(string),
 	}
 
 	return true, resource
