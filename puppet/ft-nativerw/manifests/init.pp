@@ -13,10 +13,12 @@ class nativerw {
     install_init => false
   }
 
-  supervisord::program { 'nativerw-service':
-    command   => "$binary_file $config_file",
-    priority  => '100',
-    autostart => true
+  supervisor::service { 'nativerw':
+      ensure      => present,
+      command     => "$binary_file $config_file",
+      user        => 'root',
+      group       => 'root',
+#      require     => [ Package['nativerw'] ];
   }
 
   file {
