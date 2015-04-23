@@ -8,6 +8,17 @@ class nativerw {
 
   class { 'common_pp_up': }
 
+  class { 'supervisord':
+    package_provider => 'yum',
+    install_init => false
+  }
+
+  supervisord::program { 'nativerw-service':
+    command   => "$binary_file $config_file",
+    priority  => '100',
+    autostart => true
+  }
+
   file {
     $install_dir:
       mode    => "0755",
