@@ -8,12 +8,22 @@ class nativerw {
 
   class { 'common_pp_up': }
 
-  supervisor::service { 'nativerw':
-      ensure      => present,
-      command     => "$binary_file $config_file",
-      user        => 'root',
-      group       => 'root',
-      require     => [ File[$config_file] ];
+  satellitesubscribe {
+    'gateway-epel':
+      channel_name => 'epel'
+  }
+
+  package {
+    'python-pip':
+      ensure  => 'installed',
+      require => Satellitesubscribe["gateway-epel"];
+  }
+
+  package {
+    'supervisor':
+      provider  => pip,
+      ensure    => present,
+      require   => [ Package['python-pip']]
   }
 
   file {
@@ -34,6 +44,14 @@ class nativerw {
     $config_file:
       mode    => "0755",
       content => template("$module_name/config.json.erb");
+  }
+
+  supervisor::service { 'nativerw':
+    ensure      => present,
+    command     => "$binary_file $config_file",
+    user        => 'root',
+    group       => 'root',
+    require     => [ File[$config_file], Package['supervisor'] ];
   }
 
   File[$install_dir]
