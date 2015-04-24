@@ -8,17 +8,12 @@ class nativerw {
 
   class { 'common_pp_up': }
 
-  class { 'supervisord':
-    package_provider => 'yum',
-    install_init => false
-  }
-
   supervisor::service { 'nativerw':
       ensure      => present,
       command     => "$binary_file $config_file",
       user        => 'root',
       group       => 'root',
-#      require     => [ Package['nativerw'] ];
+      require     => [ File[$config_file] ];
   }
 
   file {
@@ -40,4 +35,8 @@ class nativerw {
       mode    => "0755",
       content => template("$module_name/config.json.erb");
   }
+
+  File[$install_dir]
+  -> File[$binary_file]
+  -> File[$config_file]
 }
