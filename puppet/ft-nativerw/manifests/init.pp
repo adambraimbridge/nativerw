@@ -5,6 +5,7 @@ class nativerw {
   $binary_file = "${install_dir}/${binary_name}"
   $log_dir = "/var/log/apps"
   $config_file = "/etc/${binary_name}.json"
+  $supevisord_init_file = "/etc/init.d/supervisord"
 
   class { 'common_pp_up': }
 
@@ -27,8 +28,7 @@ class nativerw {
   }
 
   file {
-    'supervisord - init script':
-      path      => "/etc/init.d/supervisord",
+    $supevisord_init_file:
       mode      => "0755",
       source    => "puppet:///modules/$module_name/supervisord.init",
       owner     => 'root',
@@ -61,7 +61,7 @@ class nativerw {
     command     => "$binary_file $config_file",
     user        => 'root',
     group       => 'root',
-    require     => [ File[$config_file], File['supervisord - init script'] ];
+    require     => [ File[$config_file], File[$supevisord_init_file] ];
   }
 
   File[$install_dir]
