@@ -27,6 +27,16 @@ class nativerw {
   }
 
   file {
+    'supervisord - init script':
+      path      => "/etc/init.d/supervisord",
+      mode      => "0755",
+      source    => "puppet:///modules/$module_name/supervisord.init",
+      owner     => 'root',
+      group     => 'root',
+      require   => [ Package['supervisor']]
+  }
+
+  file {
     $install_dir:
       mode    => "0755",
       ensure  => directory;
@@ -51,7 +61,7 @@ class nativerw {
     command     => "$binary_file $config_file",
     user        => 'root',
     group       => 'root',
-    require     => [ File[$config_file], Package['supervisor'] ];
+    require     => [ File[$config_file], Package['supervisord - init script'] ];
   }
 
   File[$install_dir]
