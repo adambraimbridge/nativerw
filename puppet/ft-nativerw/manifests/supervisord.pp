@@ -36,7 +36,7 @@ class nativerw::supervisord {
 
     $supervisord_config_file:
       mode      => "0664",
-      source    => "puppet:///modules/$module_name/supervisord.conf",
+      content    => template("$module_name/supervisord.conf"),
       owner     => 'root',
       group     => 'root',
       require   => [ Package['supervisor'] ];
