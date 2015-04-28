@@ -5,36 +5,9 @@ class nativerw {
   $binary_file = "${install_dir}/${binary_name}"
   $log_dir = "/var/log/apps"
   $config_file = "/etc/${binary_name}.json"
-  $supevisord_init_file = "/etc/init.d/supervisord"
 
   class { 'common_pp_up': }
-
-  satellitesubscribe {
-    'gateway-epel':
-      channel_name => 'epel'
-  }
-
-  package {
-    'python-pip':
-      ensure  => 'installed',
-      require => Satellitesubscribe["gateway-epel"];
-  }
-
-  package {
-    'supervisor':
-      provider  => pip,
-      ensure    => present,
-      require   => [ Package['python-pip']]
-  }
-
-  file {
-    $supevisord_init_file:
-      mode      => "0755",
-      source    => "puppet:///modules/$module_name/supervisord.init",
-      owner     => 'root',
-      group     => 'root',
-      require   => [ Package['supervisor'] ]
-  }
+  class { "$module_name::supervisord": }
 
   file {
     $install_dir:
@@ -42,10 +15,10 @@ class nativerw {
       ensure  => directory;
 
     $binary_file:
-      path   => "/usr/local/$binary_name/$binary_name",
-      ensure => present,
-      source => "puppet:///modules/$module_name/$binary_name",
-      mode   => "0755";
+      ensure  => present,
+      source  => "puppet:///modules/$module_name/$binary_name",
+      mode    => "0755",
+      require => File[$install_dir];
 
     $log_dir:
      mode   => "0755",
@@ -61,10 +34,7 @@ class nativerw {
     command     => "$binary_file $config_file",
     user        => 'root',
     group       => 'root',
-    require     => [ File[$config_file], File[$supevisord_init_file] ];
+    require     => [ File[$config_file], File[$binary_file], Class["$module_name::supervisord"] ];
   }
 
-  File[$install_dir]
-  -> File[$binary_file]
-  -> File[$config_file]
 }
