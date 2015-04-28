@@ -1,4 +1,5 @@
-class nativerw::supervisord{
+class nativerw::supervisord {
+
   $supevisord_init_file = "/etc/init.d/supervisord"
 
   satellitesubscribe {
@@ -16,7 +17,7 @@ class nativerw::supervisord{
     'supervisor':
       provider  => pip,
       ensure    => present,
-      require   => [ Package['python-pip']]
+      require   => [ Package['python-pip'] ]
   }
 
   file {

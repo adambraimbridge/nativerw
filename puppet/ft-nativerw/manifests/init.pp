@@ -7,7 +7,7 @@ class nativerw {
   $config_file = "/etc/${binary_name}.json"
 
   class { 'common_pp_up': }
-  class { "$module_name::supervisord": }
+  class { "${module_name}::supervisord": }
 
   file {
     $install_dir:
