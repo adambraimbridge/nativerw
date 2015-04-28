@@ -22,3 +22,4 @@
 	curl localhost:8082/content/221da02e-c853-48ed-8753-3d1540fa190f
 
 Look in your mongodb for database "testdb" and collection "content" and notice things with nice bson types.
+
