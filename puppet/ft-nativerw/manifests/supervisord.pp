@@ -21,6 +21,11 @@ class nativerw::supervisord {
       require   => [ Package['python-pip'] ]
   }
 
+  service { 'supervisord':
+    ensure      => running,
+    restart     => true
+  }
+
   file {
     $supervisord_init_file:
       mode      => "0755",
