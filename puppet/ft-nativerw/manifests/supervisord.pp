@@ -1,7 +1,7 @@
 class nativerw::supervisord {
 
   $supervisord_init_file = "/etc/init.d/supervisord"
-  $supervisord_conf_file = "/etc/supervisord.conf"
+  $supervisord_config_file = "/etc/supervisord.conf"
 
   satellitesubscribe {
     'gateway-epel':
@@ -29,7 +29,7 @@ class nativerw::supervisord {
       group     => 'root',
       require   => [ Package['supervisor'] ];
 
-    $supervisord_conf_file:
+    $supervisord_config_file:
       mode      => "0664",
       source    => "puppet:///modules/$module_name/supervisord.conf",
       owner     => 'root',
