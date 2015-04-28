@@ -1,7 +1,7 @@
 class nativerw::supervisord {
 
   $supervisord_init_file = "/etc/init.d/supervisord"
-  $supervisord_config_file = "/etc/supervisord-custom.conf"
+  $supervisord_config_file = "/etc/supervisord.conf"
 
   satellitesubscribe {
     'gateway-epel':
