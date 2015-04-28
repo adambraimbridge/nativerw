@@ -28,13 +28,4 @@ class nativerw {
       mode    => "0755",
       content => template("$module_name/config.json.erb");
   }
-
-  supervisor::service { 'nativerw':
-    ensure      => present,
-    command     => "$binary_file $config_file",
-    user        => 'root',
-    group       => 'root',
-    require     => [ File[$config_file], File[$binary_file], Class["$module_name::supervisord"] ];
-  }
-
 }

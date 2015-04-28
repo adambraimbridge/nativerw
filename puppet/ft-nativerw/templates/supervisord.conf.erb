@@ -24,3 +24,14 @@ serverurl=unix:///var/run/supervisor.sock ; use a unix:// URL  for a unix socket
 
 [include]
 files = /etc/supervisord.d/*.ini
+
+[program:<%=binary_name%>]
+command=<%=binary_file%> <%=config_file%>
+autorestart=true
+startsecs=20
+stdout_logfile=<%=log_dir%>/<%=binary_name%>.log
+stdout_logfile_maxbytes=5MB
+stdout_logfile_backups=30
+stderr_logfile=<%=log_dir%>/<%=binary_name%>.err
+stderr_logfile_maxbytes=5MB
+stderr_logfile_backups=30
