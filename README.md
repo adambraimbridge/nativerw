@@ -39,4 +39,4 @@ The following commands are useful to manage the application on the FT hosts (dep
 
 3. restart applying conf changes
 
-        supervisorctl update nativerw
+        supervisorctl update
