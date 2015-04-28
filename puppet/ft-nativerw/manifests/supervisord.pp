@@ -23,7 +23,7 @@ class nativerw::supervisord {
 
   service { 'supervisord':
     ensure      => running,
-    restart     =>
+    restart     => true
   }
 
   file {
