@@ -11,14 +11,12 @@ class nativerw {
   class { "${module_name}::supervisord": }
 
   group { $binary_name:
-    name      => $binary_name,
     ensure    => present,
+    members   => [ $binary_name, $supervisord_user ]
   }
 
   user { $binary_name:
-    name      => $binary_name,
     ensure    => present,
-    groups    => [ $binary_name, $supervisord_user ]
   }
 
   file {

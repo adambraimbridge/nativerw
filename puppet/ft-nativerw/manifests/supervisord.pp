@@ -22,12 +22,12 @@ class nativerw::supervisord {
   }
 
   group { $supervisord_user:
-    ensure    => present
+    ensure    => present,
+    members   => [ $supervisord_user, $binary_name ]
   }
 
   user { $supervisord_user:
-    ensure    => present,
-    groups    => [ $supervisord_user, $binary_name ],
+    ensure    => present
   }
 
   file {
