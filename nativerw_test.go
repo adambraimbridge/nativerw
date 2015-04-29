@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestWrapResource(t *testing.T) {
+func TestWrap(t *testing.T) {
 
 	var tests = []struct {
 		resource     map[string]interface{}
