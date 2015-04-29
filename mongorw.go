@@ -48,7 +48,7 @@ func (ma *MgoApi) Write(collection string, resource Resource) error {
 	return err
 }
 
-func (ma *MgoApi) Read(collection string, uuidString string) (found bool, resource Resource) {
+func (ma *MgoApi) Read(collection string, uuidString string) (found bool, resource Resource, err error) {
 	newSession := ma.session.Copy()
 	defer newSession.Close()
 
@@ -58,11 +58,11 @@ func (ma *MgoApi) Read(collection string, uuidString string) (found bool, resour
 
 	var bsonResource map[string]interface{}
 
-	if err := coll.Find(bson.M{uuidName: bsonUUID}).One(&bsonResource); err != nil {
+	if err = coll.Find(bson.M{uuidName: bsonUUID}).One(&bsonResource); err != nil {
 		if err == mgo.ErrNotFound {
-			return
+			return false, resource, nil
 		}
-		panic(err)
+		return false, resource, err
 	}
 
 	uuidData := bsonResource["uuid"].(bson.Binary).Data
@@ -73,5 +73,5 @@ func (ma *MgoApi) Read(collection string, uuidString string) (found bool, resour
 		ContentType: bsonResource["content-type"].(string),
 	}
 
-	return true, resource
+	return true, resource, nil
 }

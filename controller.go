@@ -14,8 +14,11 @@ func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	resourceId := vars["resource"]
 	collection := vars["collection"]
-
-	found, resource := ma.Read(collection, resourceId)
+	
+	found, resource, err := ma.Read(collection, resourceId)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
+	}
 	if !found {
 		writer.WriteHeader(http.StatusNotFound)
 		writer.Write([]byte(fmt.Sprintf("resource with id %s was not found\n", resourceId)))
@@ -28,7 +31,7 @@ func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
 	if om == nil {
 		panic(fmt.Sprintf("AAA: %T %v\n", resource, resource))
 	}
-	err := om(writer, resource)
+	err = om(writer, resource)
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
 	}

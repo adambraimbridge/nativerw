@@ -10,7 +10,7 @@ var sampleResource = Resource{
 	Content:     "{\"foo\": [\"a\",\"b\"], \"bar\": 10.4}",
 }
 
-func (m *MgoApi) buildHealthCheck() fthealth.Check {
+func (m *MgoApi) buildWriteHealthCheck() fthealth.Check {
 	return fthealth.Check{
 		BusinessImpact:   "Publishing won't work. Writing content to native store is broken.",
 		Name:             "Writing to mongoDB.",
@@ -23,6 +23,27 @@ func (m *MgoApi) buildHealthCheck() fthealth.Check {
 
 func (m *MgoApi) checkWritable() error {
 	if err := m.Write(healthcheckColl, sampleResource); err != nil {
+		return err
+	}
+	return nil
+}
+
+var sampleUUID = "cda5d6a9-cd25-4d76-8bad-9eaa35e85f4a"
+
+func (m *MgoApi) buildReadHealthCheck() fthealth.Check {
+	return fthealth.Check{
+		BusinessImpact:   "Reading content from native store is broken.",
+		Name:             "Reading from mongoDB.",
+		PanicGuide:       "https://sites.google.com/a/ft.com/technology/systems/dynamic-semantic-publishing/extra-publishing/nativerw-runbook",
+		Severity:         1,
+		TechnicalSummary: "Reading from mongoDB is broken. Check mongoDB is up, its disk space, ports, network between.",
+		Checker:          m.checkReadable,
+	}
+}
+
+func (m *MgoApi) checkReadable() error {
+	_, _, err:= m.Read(healthcheckColl, sampleUUID)
+	if err != nil {
 		return err
 	}
 	return nil

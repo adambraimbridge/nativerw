@@ -39,7 +39,8 @@ func main() {
 	router.HandleFunc("/{collection}/{resource}", mgoApi.readContent).Methods("GET")
 	router.HandleFunc("/{collection}/{resource}", mgoApi.writeContent).Methods("PUT")
 	router.HandleFunc("/__health", fthealth.Handler("Dependent services healthceck",
-		"Checking connectivity and usability of dependent services: mongoDB and native-ingester.", mgoApi.buildHealthCheck()))
+		"Checking connectivity and usability of dependent services: mongoDB and native-ingester.",
+		mgoApi.buildWriteHealthCheck(), mgoApi.buildReadHealthCheck()))
 
 	err := http.ListenAndServe(":"+config.Server.Port, nil)
 	if err != nil {
