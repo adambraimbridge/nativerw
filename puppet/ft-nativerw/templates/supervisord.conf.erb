@@ -7,6 +7,7 @@ chown=<%=supervisord_user%>:<%=supervisord_user%>
 port=9001
 
 [supervisord]
+user=<%=supervisord_user%>
 logfile=<%=supervisord_log_dir%>/supervisord.log          ; (main log file;default $CWD/supervisord.log)
 logfile_maxbytes=5MB                                      ; (max main logfile bytes b4 rotation;default 50MB)
 logfile_backups=30                                        ; (num of main logfile rotation backups;default 10)
