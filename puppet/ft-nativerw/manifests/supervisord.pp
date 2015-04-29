@@ -22,13 +22,8 @@ class nativerw::supervisord {
       require   => [ Package['python-pip'] ]
   }
 
-  group { $supervisord_user:
-    ensure    => absent
-  }
-
   user { $supervisord_user:
-    ensure    => present,
-    require   => [ Group[$supervisord_user] ]
+    ensure    => present
   }
 
   group { $supervisors_group:
