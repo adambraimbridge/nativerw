@@ -5,6 +5,7 @@ class nativerw {
   $binary_file = "$install_dir/$binary_name"
   $log_dir = "/var/log/apps/$binary_name"
   $config_file = "/etc/$binary_name.json"
+  $supervisors_group = "supervisors"
 
   class { 'common_pp_up': }
   class { "${module_name}::supervisord": }
@@ -37,7 +38,7 @@ class nativerw {
     $log_dir:
       ensure  => directory,
       owner   => $binary_name,
-      group   => $binary_name,
+      group   => $supervisors_group,
       mode    => "0664",
   }
 }
