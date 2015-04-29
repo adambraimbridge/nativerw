@@ -57,7 +57,7 @@ class nativerw::supervisord {
 
   service { 'supervisord':
     ensure      => running,
-    restart     => true
+    restart     => true,
     require     => [ File[$supervisord_init_file], File[$supervisord_config_file], File[$supervisord_log_dir] ];
   }
 }
