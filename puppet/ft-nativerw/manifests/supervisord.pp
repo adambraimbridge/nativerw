@@ -4,7 +4,7 @@ class nativerw::supervisord {
   $supervisors_group = "supervisors"
   $supervisord_init_file = "/etc/init.d/supervisord"
   $supervisord_config_file = "/etc/supervisord.conf"
-  $supervisord_log_dir = "/var/log/supervisor/"
+  $supervisord_log_dir = "/var/log/supervisor"
   $binary_name = "nativerw"
 
   satellitesubscribe { 'gateway-epel':
