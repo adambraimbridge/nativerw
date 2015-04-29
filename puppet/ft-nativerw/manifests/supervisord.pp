@@ -36,22 +36,22 @@ class nativerw::supervisord {
       mode      => "0755",
       content    => template("$module_name/supervisord.init.erb"),
       owner     => $supervisord_user,
-      group     => $supervisord_user,
-      require   => [ Package['supervisor'], User[$supervisord_user], Group[$supervisord_user] ];
+      group     => $supervisors_group,
+      require   => [ Package['supervisor'], User[$supervisord_user], Group[$supervisors_group] ];
 
     $supervisord_config_file:
       mode      => "0664",
       content    => template("$module_name/supervisord.conf.erb"),
       owner     => $supervisord_user,
-      group     => $supervisord_user,
-      require   => [ Package['supervisor'], User[$supervisord_user], Group[$supervisord_user] ];
+      group     => $supervisors_group,
+      require   => [ Package['supervisor'], User[$supervisord_user], Group[$supervisors_group] ];
 
     $supervisord_log_dir:
       ensure    => directory,
       owner     => $supervisord_user,
-      group     => $supervisord_user,
+      group     => $supervisors_group,
       mode      => "0664",
-      require   => [ Package['supervisor'], User[$supervisord_user], Group[$supervisord_user] ];
+      require   => [ Package['supervisor'], User[$supervisord_user], Group[$supervisors_group] ];
   }
 
   service { 'supervisord':
