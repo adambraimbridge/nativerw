@@ -1,6 +1,7 @@
 class nativerw::supervisord {
 
   $supervisord_user = "supervisord"
+  $supervisors_group = "supervisors"
   $supervisord_init_file = "/etc/init.d/supervisord"
   $supervisord_config_file = "/etc/supervisord.conf"
   $supervisord_log_dir = "/var/log/supervisor/"
@@ -21,7 +22,7 @@ class nativerw::supervisord {
       require   => [ Package['python-pip'] ]
   }
 
-  group { $supervisord_user:
+  group { $supervisors_group:
     ensure    => present,
     members   => [ $supervisord_user, $binary_name ]
   }

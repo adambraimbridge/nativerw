@@ -5,15 +5,9 @@ class nativerw {
   $binary_file = "$install_dir/$binary_name"
   $log_dir = "/var/log/apps/$binary_name"
   $config_file = "/etc/$binary_name.json"
-  $supervisord_user = "supervisord"
 
   class { 'common_pp_up': }
   class { "${module_name}::supervisord": }
-
-  group { $binary_name:
-    ensure    => present,
-    members   => [ $binary_name, $supervisord_user ]
-  }
 
   user { $binary_name:
     ensure    => present,
