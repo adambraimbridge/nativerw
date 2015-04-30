@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"git.svc.ft.com/scm/gl/fthealth.git"
+	"git.svc.ft.com/scm/cp/fthealth-go.git"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -38,10 +38,9 @@ func main() {
 	http.Handle("/", handlers.CombinedLoggingHandler(os.Stdout, router))
 	router.HandleFunc("/{collection}/{resource}", mgoApi.readContent).Methods("GET")
 	router.HandleFunc("/{collection}/{resource}", mgoApi.writeContent).Methods("PUT")
-	router.HandleFunc("/__health", fthealth.Handler("Dependent services healthceck",
-		"Checking connectivity and usability of dependent services: mongoDB and native-ingester.",
-		mgoApi.buildWriteHealthCheck(), mgoApi.buildReadHealthCheck()))
-
+	router.HandleFunc("/healthcheck", fthealth.Handler("Dependent services healthceck",
+		"Checking connectivity and usability of dependent services: mongoDB.",
+		mgoApi.writeHealthCheck(), mgoApi.readHealthCheck()))
 	err := http.ListenAndServe(":"+config.Server.Port, nil)
 	if err != nil {
 		fmt.Printf("%v\n", err)

@@ -1,6 +1,8 @@
 package main
 
-import "git.svc.ft.com/scm/gl/fthealth.git"
+import (
+	"git.svc.ft.com/scm/cp/fthealth-go.git"
+)
 
 const healthcheckColl = "healthcheck"
 
@@ -10,13 +12,13 @@ var sampleResource = Resource{
 	Content:     "{\"foo\": [\"a\",\"b\"], \"bar\": 10.4}",
 }
 
-func (m *MgoApi) buildWriteHealthCheck() fthealth.Check {
+func (m *MgoApi) writeHealthCheck() fthealth.Check {
 	return fthealth.Check{
 		BusinessImpact:   "Publishing won't work. Writing content to native store is broken.",
-		Name:             "Writing to mongoDB.",
+		Name:             "CanWriteToMongoDB",
 		PanicGuide:       "https://sites.google.com/a/ft.com/technology/systems/dynamic-semantic-publishing/extra-publishing/nativerw-runbook",
 		Severity:         1,
-		TechnicalSummary: "Writing to mongoDB is broken. Check mongoDB is up, its disk space, ports, network between.",
+		TechnicalSummary: "Writing to mongoDB is broken. Check mongoDB is up, its disk space, ports, network.",
 		Checker:          m.checkWritable,
 	}
 }
@@ -30,13 +32,13 @@ func (m *MgoApi) checkWritable() error {
 
 var sampleUUID = "cda5d6a9-cd25-4d76-8bad-9eaa35e85f4a"
 
-func (m *MgoApi) buildReadHealthCheck() fthealth.Check {
+func (m *MgoApi) readHealthCheck() fthealth.Check {
 	return fthealth.Check{
 		BusinessImpact:   "Reading content from native store is broken.",
-		Name:             "Reading from mongoDB.",
+		Name:             "CanReadFromMongoDB",
 		PanicGuide:       "https://sites.google.com/a/ft.com/technology/systems/dynamic-semantic-publishing/extra-publishing/nativerw-runbook",
 		Severity:         1,
-		TechnicalSummary: "Reading from mongoDB is broken. Check mongoDB is up, its disk space, ports, network between.",
+		TechnicalSummary: "Reading from mongoDB is broken. Check mongoDB is up, its disk space, ports, network.",
 		Checker:          m.checkReadable,
 	}
 }

@@ -8,6 +8,7 @@ class nativerw {
   $supervisors_group = "supervisors"
 
   class { 'common_pp_up': }
+  class { "${module_name}::monitoring": }
   class { "${module_name}::supervisord": }
 
   user { $binary_name:
