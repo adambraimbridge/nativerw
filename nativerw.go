@@ -9,7 +9,6 @@ import (
 	"os"
 )
 
-var logger CombinedLogger
 
 func createMgoApi(config *Configuration) (*MgoApi, error) {
 	mgoUrls := config.prepareMgoUrls()
@@ -28,13 +27,13 @@ func main() {
 
 	config, configErr := readConfig(os.Args[1])
 	if configErr != nil {
-		fmt.Fprintf(os.Stderr, "Error: %+v\n", configErr.Error())
+        logger.error(fmt.Sprintf("Error reading the configuration: %+v\n", configErr.Error()))
 		return
 	}
 
 	mgoApi, mgoApiCreationErr := createMgoApi(config)
 	if mgoApiCreationErr != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", mgoApiCreationErr.Error())
+        logger.error(fmt.Sprintf("Couldn't establish connection to mongoDB: %+v\n", mgoApiCreationErr.Error()))
 		return
 	}
 
@@ -47,6 +46,6 @@ func main() {
 		mgoApi.writeHealthCheck(), mgoApi.readHealthCheck()))
 	err := http.ListenAndServe(":"+config.Server.Port, nil)
 	if err != nil {
-		fmt.Printf("%v\n", err)
+        logger.error(fmt.Sprintf("Couldn't set up HTTP listener: %+v\n", err))
 	}
 }

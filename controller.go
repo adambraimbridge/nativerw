@@ -17,11 +17,15 @@ func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
 
 	found, resource, err := ma.Read(collection, resourceId)
 	if err != nil {
-		http.Error(writer, err.Error(), http.StatusInternalServerError)
+        msg := fmt.Sprintf("Reading from mongoDB failed.\n%v\n", err.Error())
+        logger.warn(msg)
+        http.Error(writer, msg, http.StatusInternalServerError)
+        return
 	}
 	if !found {
-		writer.WriteHeader(http.StatusNotFound)
-		writer.Write([]byte(fmt.Sprintf("resource with id %s was not found\n", resourceId)))
+        msg := fmt.Sprintf("Resource not found. collection: %v, id: %v\n", collection, resourceId)
+        logger.warn(msg)
+        http.Error(writer, msg, http.StatusNotFound)
 		return
 	}
 
@@ -29,11 +33,16 @@ func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
 
 	om := outMappers[resource.ContentType]
 	if om == nil {
-		panic(fmt.Sprintf("AAA: %T %v\n", resource, resource))
+        msg := fmt.Sprintf("Unable to handle resource of type %T. resourceId: %v, resource: %v\n", resource, resourceId, resource)
+        logger.warn(msg)
+        http.Error(writer, msg, http.StatusNotImplemented)
+        return
 	}
 	err = om(writer, resource)
 	if err != nil {
-		http.Error(writer, err.Error(), http.StatusInternalServerError)
+        msg := fmt.Sprintf("Unable to extract native content from resource with id %v. %v\n", resourceId, err.Error())
+        logger.warn(msg)
+        http.Error(writer, msg, http.StatusInternalServerError)
 	}
 }
 
@@ -67,14 +76,18 @@ func (mgoApi *MgoApi) writeContent(writer http.ResponseWriter, req *http.Request
 	content, err := mapper(req.Body)
 	if err != nil {
 		// TODO: this could be a server error too?
-		http.Error(writer, fmt.Sprintf("Extracting content from HTTP body failed:\n%v\n", err), http.StatusBadRequest)
+        msg := fmt.Sprintf("Extracting content from HTTP body failed:\n%v\n", err)
+        logger.warn(msg)
+		http.Error(writer, msg, http.StatusBadRequest)
 		return
 	}
 
 	wrappedContent := wrap(content, resourceId, contentType)
 
 	if err := mgoApi.Write(collectionId, wrappedContent); err != nil {
-		http.Error(writer, fmt.Sprintf("Writing to mongoDB failed:\n%v\n", err), http.StatusInternalServerError)
+        msg := fmt.Sprintf("Writing to mongoDB failed:\n%v\n", err)
+        logger.warn(msg)
+		http.Error(writer, msg, http.StatusInternalServerError)
 		return
 	}
 }

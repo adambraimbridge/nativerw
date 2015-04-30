@@ -11,14 +11,6 @@ type CombinedLogger struct {
     Error   *log.Logger
 }
 
-func initLoggers() {
-    logger = CombinedLogger {
-        log.New(os.Stdout, "INFO    - ", log.Ldate|log.Ltime|log.Lshortfile),
-        log.New(os.Stdout, "WARNING - ", log.Ldate|log.Ltime|log.Lshortfile),
-        log.New(os.Stderr, "ERROR   - ", log.Ldate|log.Ltime|log.Lshortfile),
-    }
-}
-
 func (l CombinedLogger) info(s string) {
     l.Info.Println(s);
 }
@@ -29,4 +21,14 @@ func (l CombinedLogger) warn(s string) {
 
 func (l CombinedLogger) error(s string) {
     l.Error.Println(s);
+}
+
+var logger CombinedLogger
+
+func initLoggers() {
+    logger = CombinedLogger {
+        log.New(os.Stdout, "INFO    - ", log.Ldate|log.Ltime|log.Lshortfile),
+        log.New(os.Stdout, "WARNING - ", log.Ldate|log.Ltime|log.Lshortfile),
+        log.New(os.Stderr, "ERROR   - ", log.Ldate|log.Ltime|log.Lshortfile),
+    }
 }
