@@ -14,7 +14,7 @@ func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	resourceId := vars["resource"]
 	collection := vars["collection"]
-	
+
 	found, resource, err := ma.Read(collection, resourceId)
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusInternalServerError)

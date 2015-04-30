@@ -44,7 +44,7 @@ func (m *MgoApi) readHealthCheck() fthealth.Check {
 }
 
 func (m *MgoApi) checkReadable() error {
-	_, _, err:= m.Read(healthcheckColl, sampleUUID)
+	_, _, err := m.Read(healthcheckColl, sampleUUID)
 	if err != nil {
 		return err
 	}
