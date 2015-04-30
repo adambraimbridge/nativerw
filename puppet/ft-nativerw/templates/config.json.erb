@@ -1,7 +1,8 @@
 {
 	"mongos" : <%=scope.function_hiera('mongos', nil)%>,
     "server": {
-	  "port" : "8082"
+	  "port" : "8082",
+	  "accessLogs": "<%=log_dir=>/<%=binary_name%>-access.log"
 	},
 	"dbName" : "testdb"
 }

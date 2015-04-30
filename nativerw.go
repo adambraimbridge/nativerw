@@ -31,6 +31,12 @@ func main() {
 		return
 	}
 
+    logErr := initAccessLog(config)
+    if logErr != nil {
+        logger.error(fmt.Sprintf("Error setting up access log file: %v", logErr));
+        return
+    }
+
 	mgoApi, mgoApiCreationErr := createMgoApi(config)
 	if mgoApiCreationErr != nil {
         logger.error(fmt.Sprintf("Couldn't establish connection to mongoDB: %+v\n", mgoApiCreationErr.Error()))
@@ -38,7 +44,7 @@ func main() {
 	}
 
 	router := mux.NewRouter()
-	http.Handle("/", handlers.CombinedLoggingHandler(os.Stdout, router))
+	http.Handle("/", handlers.CombinedLoggingHandler(logger.Info, router))
 	router.HandleFunc("/{collection}/{resource}", mgoApi.readContent).Methods("GET")
 	router.HandleFunc("/{collection}/{resource}", mgoApi.writeContent).Methods("PUT")
 	router.HandleFunc("/healthcheck", fthealth.Handler("Dependent services healthceck",

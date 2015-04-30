@@ -4,7 +4,8 @@
 	  "port" : "27017"
 	}],
     "server": {
-	  "port" : "8082"
+	  "port" : "8082",
+      "accessLogs": "/var/log/apps/nativerw/nativerw-access.log"
 	},
 	"dbName" : "testdb"
 }

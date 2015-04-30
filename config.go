@@ -14,6 +14,7 @@ type Mongo struct {
 
 type Server struct {
 	Port string `json: port`
+    AccessLogs string `json: accessLogs`
 }
 
 type Configuration struct {
