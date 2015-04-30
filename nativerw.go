@@ -9,6 +9,8 @@ import (
 	"os"
 )
 
+var logger CombinedLogger
+
 func createMgoApi(config *Configuration) (*MgoApi, error) {
 	mgoUrls := config.prepareMgoUrls()
 	mgoApi, err := NewMgoApi(mgoUrls, config.DbName)
@@ -16,9 +18,11 @@ func createMgoApi(config *Configuration) (*MgoApi, error) {
 }
 
 func main() {
+    initLoggers()
+    logger.info("Starting nativerw app.")
 
 	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "Missing parameter. Usage: <pathToExecutable>/nativerw <confFilePath>\n")
+        logger.error("Missing parameter. Usage: <pathToExecutable>/nativerw <pathToConfigurationFile>\n")
 		return
 	}
 
