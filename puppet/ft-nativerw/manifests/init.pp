@@ -31,12 +31,17 @@ class nativerw {
 
     $log_dir:
       ensure  => directory,
-      mode    => "0664";
+      mode    => "0664"
+  }
+
+  exec { 'restart_nativerw':
+    command => "supervisorctl restart $binary_name"
   }
 
   File[$binary_file]
   -> File[$config_file]
   -> File[$log_dir]
   -> Class["${module_name}::supervisord"]
+  -> Exec['restart_nativerw']
   -> Class["${module_name}::monitoring"]
 }

@@ -11,35 +11,37 @@ class nativerw::supervisord {
 
   package { 'python-pip':
       ensure    => 'installed',
-      require   => Satellitesubscribe["gateway-epel"];
+      require   => Satellitesubscribe["gateway-epel"]
   }
 
   package { 'supervisor':
       provider  => pip,
       ensure    => present,
-      require   => [ Package['python-pip'] ]
+      require   => Package['python-pip']
   }
 
   file {
     $supervisord_init_file:
       mode      => "0755",
       content   => template("$module_name/supervisord.init.erb"),
-      require   => Package['supervisor'];
+      require   => Package['supervisor'],
+      notify    => Service['supervisord'];
 
     $supervisord_config_file:
       mode      => "0664",
       content   => template("$module_name/supervisord.conf.erb"),
-      require   => Package['supervisor'];
+      require   => Package['supervisor'],
+      notify    => Service['supervisord'];
 
     $supervisord_log_dir:
       ensure    => directory,
       mode      => "0664",
-      require   => Package['supervisor'];
+      require   => Package['supervisor']
   }
 
   service { 'supervisord':
     ensure      => running,
     enable      => true,
-    require     => [ File[$supervisord_init_file], File[$supervisord_config_file], File[$supervisord_log_dir] ];
+    require     => File[$supervisord_log_dir]
   }
 }
