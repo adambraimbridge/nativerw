@@ -5,24 +5,11 @@ class nativerw::monitoring {
   $nrpe_cmd_check_http_json = '/usr/lib64/nagios/plugins/check_nrpe -H $HOSTNAME$ -c check_http_json -a "$expression$"'
   $action_url = 'https://sites.google.com/a/ft.com/technology/systems/dynamic-semantic-publishing/extra-publishing/native-store-reader-writer-run-book'
 
-  satellitesubscribe{"gateway-epel": channel_name => 'epel'}
-
-  file { 'removeTemporaryInstallDir':
-    ensure => absent,
-    path => '/tmp/pip-build-root/pymongo',
-    recurse => true,
-    purge => true,
-    force => true,
-  }
-
   package {
-    'python-pip':
-      ensure  => 'installed',
-      require => Satellitesubscribe["gateway-epel"];
     'argparse':
       ensure  => 'installed',
       provider => pip,
-      require  => [Package['python-pip'], File['removeTemporaryInstallDir']];
+      require  => Package['python-pip'];
   }
 
   # https://github.com/kovacshuni/nagios-http-json ; hash: 3b048f66c54e48607d195eef84e1746589492f39
