@@ -23,7 +23,7 @@ class nativerw::monitoring {
     tag => $content_platform_nagios::client::tags_to_apply
   }
 
-  @@nagios_service { "${hostname}_check_http_json":
+  @@nagios_service { "${hostname}_check_http_json_health_1":
     use                 => "generic-service",
     host_name           =>  "${::certname}",
     check_command       => "${hostname}_check_http_json!checks[0].ok!true!2!4",
@@ -36,7 +36,7 @@ class nativerw::monitoring {
     tag                 => $content_platform_nagios::client::tags_to_apply,
   }
 
-  @@nagios_service { "${hostname}_check_http_json":
+  @@nagios_service { "${hostname}_check_http_json_health_2":
     use                 => "generic-service",
     host_name           =>  "${::certname}",
     check_command       => "${hostname}_check_http_json!checks[1].ok!true!2!4",
