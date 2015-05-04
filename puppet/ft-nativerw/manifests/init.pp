@@ -33,4 +33,10 @@ class nativerw {
       ensure  => directory,
       mode    => "0664";
   }
+
+  File[$binary_file]
+  -> File[$config_file]
+  -> File[$log_dir]
+  -> Class["${module_name}::supervisord"]
+  -> Class["${module_name}::monitoring"]
 }
