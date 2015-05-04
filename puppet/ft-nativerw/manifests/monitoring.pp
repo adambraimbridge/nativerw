@@ -1,15 +1,15 @@
 class nativerw::monitoring {
 
-  $health_path = "http://$hostname:8082/__health"
-  $cmd_check_http_json = "/usr/lib64/nagios/plugins/check_http_json.rb -u \"$health_path\" --element \"\$element\$\" --result \"\$result\$\" --warn \"\$warn\$\" --crit \"\$crit\$\""
-  $nrpe_cmd_check_http_json = '/usr/lib64/nagios/plugins/check_nrpe -H $HOSTNAME$ -c check_http_json -a "$element$" "$result$" "$warn$" "$crit$"'
+  $port = "8082"
+  $cmd_check_http_json = "/usr/lib64/nagios/plugins/check_http_json.py --host http://$hostname:$port --path /__health --key_equals \"\$expression\$\""
+  $nrpe_cmd_check_http_json = '/usr/lib64/nagios/plugins/check_nrpe -H $HOSTNAME$ -c check_http_json -a "$expression$"'
   $action_url = 'https://sites.google.com/a/ft.com/technology/systems/dynamic-semantic-publishing/extra-publishing/native-store-reader-writer-run-book'
 
   # check_http_json v1.3.1 https://github.com/phrawzty/check_http_json
-  file { '/usr/lib64/nagios/plugins/check_http_json.rb':
+  file { '/usr/lib64/nagios/plugins/check_http_json.py':
     ensure          => 'present',
     mode            => 0755,
-    source          => 'puppet:///modules/nativerw/check_http_json.rb',
+    source          => 'puppet:///modules/nativerw/check_http_json.py',
   }
 
   file { '/etc/nrpe.d/check_http_json.cfg':
@@ -26,7 +26,7 @@ class nativerw::monitoring {
   @@nagios_service { "${hostname}_check_http_json_health_1":
     use                 => "generic-service",
     host_name           =>  "${::certname}",
-    check_command       => "${hostname}_check_http_json!checks[0].ok!true!2!4",
+    check_command       => "${hostname}_check_http_json!checks[0].ok,True",
     check_interval      => 1,
     action_url          => $action_url,
     notes_url           => $action_url,
@@ -39,7 +39,7 @@ class nativerw::monitoring {
   @@nagios_service { "${hostname}_check_http_json_health_2":
     use                 => "generic-service",
     host_name           =>  "${::certname}",
-    check_command       => "${hostname}_check_http_json!checks[1].ok!true!2!4",
+    check_command       => "${hostname}_check_http_json!checks[1].ok,True",
     check_interval      => 1,
     action_url          => $action_url,
     notes_url           => $action_url,
