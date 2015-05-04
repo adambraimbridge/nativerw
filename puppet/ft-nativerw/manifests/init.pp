@@ -36,7 +36,7 @@ class nativerw {
 
   exec { 'restart_nativerw':
     command => "supervisorctl restart $binary_name",
-    path    => "usr/bin:/usr/sbin:/bin"
+    path    => "/usr/bin:/usr/sbin:/bin"
   }
 
   File[$binary_file]
