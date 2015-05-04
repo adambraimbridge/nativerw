@@ -9,7 +9,7 @@ class nativerw::monitoring {
   file { '/usr/lib64/nagios/plugins/check_http_json.rb':
     ensure          => 'present',
     mode            => 0755,
-    source          => 'puppet:///modules/content_store_api_mongo/check_mongodb.py',
+    source          => 'puppet:///modules/nativerw/check_http_json.rb',
   }
 
   file { '/etc/nrpe.d/check_http_json.cfg':
