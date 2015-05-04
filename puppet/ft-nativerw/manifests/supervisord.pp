@@ -23,12 +23,12 @@ class nativerw::supervisord {
   file {
     $supervisord_init_file:
       mode      => "0755",
-      content    => template("$module_name/supervisord.init.erb"),
+      content   => template("$module_name/supervisord.init.erb"),
       require   => Package['supervisor'];
 
     $supervisord_config_file:
       mode      => "0664",
-      content    => template("$module_name/supervisord.conf.erb"),
+      content   => template("$module_name/supervisord.conf.erb"),
       require   => Package['supervisor'];
 
     $supervisord_log_dir:
