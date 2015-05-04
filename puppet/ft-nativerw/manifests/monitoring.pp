@@ -1,7 +1,7 @@
 class nativerw::monitoring {
 
   $port = "8082"
-  $cmd_check_http_json = "/usr/lib64/nagios/plugins/check_http_json.py --host http://$hostname:$port --path /__health --key_equals \"\$expression\$\""
+  $cmd_check_http_json = "/usr/lib64/nagios/plugins/check_http_json.py --host $hostname:$port --path /__health --key_equals \"\$expression\$\""
   $nrpe_cmd_check_http_json = '/usr/lib64/nagios/plugins/check_nrpe -H $HOSTNAME$ -c check_http_json -a "$expression$"'
   $action_url = 'https://sites.google.com/a/ft.com/technology/systems/dynamic-semantic-publishing/extra-publishing/native-store-reader-writer-run-book'
 
