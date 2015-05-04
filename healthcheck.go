@@ -1,7 +1,7 @@
 package main
 
 import (
-	"git.svc.ft.com/scm/cp/fthealth-go.git"
+	"git.svc.ft.com/scm/gl/fthealth.git"
 )
 
 const healthcheckColl = "healthcheck"
