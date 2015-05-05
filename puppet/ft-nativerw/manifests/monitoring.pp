@@ -4,6 +4,7 @@ class nativerw::monitoring {
   $cmd_check_http_json = "/usr/lib64/nagios/plugins/check_http_json.py --host $hostname:$port --path /__health --key_equals \"\$ARG1\$\""
   $nrpe_cmd_check_http_json = '/usr/lib64/nagios/plugins/check_nrpe -H $HOSTNAME$ -c check_http_json -a "$ARG1$"'
   $action_url = 'https://sites.google.com/a/ft.com/technology/systems/dynamic-semantic-publishing/extra-publishing/native-store-reader-writer-run-book'
+  $config_file = '/etc/nrpe.d/check_http_json.cfg'
 
   package {
     'argparse':
@@ -19,10 +20,16 @@ class nativerw::monitoring {
     source          => 'puppet:///modules/nativerw/check_http_json.py',
   }
 
-  file { '/etc/nrpe.d/check_http_json.cfg':
+  file { $config_file:
     ensure          => 'present',
     mode            => 0644,
     content         => "command[check_http_json]=${$cmd_check_http_json}\n"
+  }
+
+  exec { 'reload-nrpe':
+    command         => '/etc/init.d/nrpe reload',
+    refreshonly     => true,
+    require         => File[$config_file]
   }
 
   @@nagios_command { "${hostname}_check_http_json":
