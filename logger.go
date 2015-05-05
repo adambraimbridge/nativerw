@@ -3,6 +3,7 @@ package main
 import (
     "log"
     "os"
+    "fmt"
 )
 
 type CombinedLogger struct {
@@ -12,20 +13,20 @@ type CombinedLogger struct {
     Access  *log.Logger
 }
 
-func (l CombinedLogger) info(s string) {
-    l.Info.Println(s);
+func (l CombinedLogger) info(txId, msg string) {
+    l.Info.Println(fmt.Sprintf("transaction_id: %+v - %+v", txId, msg));
 }
 
-func (l CombinedLogger) warn(s string) {
-    l.Warning.Println(s);
+func (l CombinedLogger) warn(txId, msg string) {
+    l.Warning.Println(fmt.Sprintf("transaction_id: %+v - %+v", txId, msg));
 }
 
-func (l CombinedLogger) error(s string) {
-    l.Error.Println(s);
+func (l CombinedLogger) error(txId, msg string) {
+    l.Error.Println(fmt.Sprintf("transaction_id: %+v - %+v", txId, msg));
 }
 
-func (l CombinedLogger) access(s string) {
-    l.Access.Println(s);
+func (l CombinedLogger) access(msg string) {
+    l.Access.Println(msg);
 }
 
 var logger CombinedLogger
