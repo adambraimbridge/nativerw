@@ -44,8 +44,7 @@ type AccessWriter struct {
 }
 
 func (w AccessWriter) Write(p []byte) (int, error) {
-//    m := bytes.Index(p, []byte{0})
     msg := string(p[:])
-    w.logger.Println(msg)
+    w.logger.Print(msg)
     return len(msg), nil
 }
