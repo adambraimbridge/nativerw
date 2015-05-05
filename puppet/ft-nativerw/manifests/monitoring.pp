@@ -33,7 +33,7 @@ class nativerw::monitoring {
   @@nagios_service { "${hostname}_check_http_json_health_1":
     use                 => "generic-service",
     host_name           =>  "${::certname}",
-    check_command       => "${hostname}_check_http_json!checks[0].ok,True",
+    check_command       => "${hostname}_check_http_json!checks(0).ok,True",
     check_interval      => 1,
     action_url          => $action_url,
     notes_url           => $action_url,
@@ -46,7 +46,7 @@ class nativerw::monitoring {
   @@nagios_service { "${hostname}_check_http_json_health_2":
     use                 => "generic-service",
     host_name           =>  "${::certname}",
-    check_command       => "${hostname}_check_http_json!checks[1].ok,True",
+    check_command       => "${hostname}_check_http_json!checks(1).ok,True",
     check_interval      => 1,
     action_url          => $action_url,
     notes_url           => $action_url,
