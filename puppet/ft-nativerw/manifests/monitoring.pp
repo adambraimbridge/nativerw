@@ -1,8 +1,8 @@
 class nativerw::monitoring {
 
   $port = "8082"
-  $cmd_check_http_json = "/usr/lib64/nagios/plugins/check_http_json.py --host $hostname:$port --path /__health --key_equals \"\$expression\$\""
-  $nrpe_cmd_check_http_json = '/usr/lib64/nagios/plugins/check_nrpe -H $HOSTNAME$ -c check_http_json -a "$expression$"'
+  $cmd_check_http_json = "/usr/lib64/nagios/plugins/check_http_json.py --host $hostname:$port --path /__health --key_equals \"\$ARG1\$\""
+  $nrpe_cmd_check_http_json = '/usr/lib64/nagios/plugins/check_nrpe -H $HOSTNAME$ -c check_http_json -a "$ARG1$"'
   $action_url = 'https://sites.google.com/a/ft.com/technology/systems/dynamic-semantic-publishing/extra-publishing/native-store-reader-writer-run-book'
 
   package {
@@ -12,7 +12,7 @@ class nativerw::monitoring {
       require  => Package['python-pip'];
   }
 
-  # https://github.com/kovacshuni/nagios-http-json ; hash: 3b048f66c54e48607d195eef84e1746589492f39
+  # https://github.com/drewkerrigan/nagios-http-json ; hash: c678dfd518ebc760e42152c2323ccf17e92e5892
   file { '/usr/lib64/nagios/plugins/check_http_json.py':
     ensure          => 'present',
     mode            => 0755,
@@ -37,9 +37,9 @@ class nativerw::monitoring {
     check_interval      => 1,
     action_url          => $action_url,
     notes_url           => $action_url,
-    notes               => "See https://github.com/mzupan/nagios-plugin-mongodb#check-connection",
-    service_description => "Check each host that is listed in the Mongo Servers group",
-    display_name        => "${hostname}_check_mongodb",
+    notes               => "",
+    service_description => "Check that the app can write to mongoDB.",
+    display_name        => "${hostname}_check_http_json",
     tag                 => $content_platform_nagios::client::tags_to_apply,
   }
 
@@ -50,9 +50,9 @@ class nativerw::monitoring {
     check_interval      => 1,
     action_url          => $action_url,
     notes_url           => $action_url,
-    notes               => "See https://github.com/mzupan/nagios-plugin-mongodb#check-connection",
-    service_description => "Check each host that is listed in the Mongo Servers group",
-    display_name        => "${hostname}_check_mongodb",
+    notes               => "",
+    service_description => "Check that the app can read from mongoDB.",
+    display_name        => "${hostname}_check_http_json",
     tag                 => $content_platform_nagios::client::tags_to_apply,
   }
 
