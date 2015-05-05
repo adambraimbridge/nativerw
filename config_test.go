@@ -11,15 +11,9 @@ func TestPrepareMgoUrls(t *testing.T) {
 	}{
 		{
 			Configuration{
-				[]Mongo{
-					Mongo{
-						"localhost",
-						"1000",
-					},
-					Mongo{
-						"localhost",
-						"1001",
-					},
+				[]string{
+					"localhost:1000",
+					"localhost:1001",
 				},
 				"testdb",
 				Server{

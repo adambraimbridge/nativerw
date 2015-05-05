@@ -7,17 +7,12 @@ import (
 	"strings"
 )
 
-type Mongo struct {
-	Host string `json: host`
-	Port string `json: port`
-}
-
 type Server struct {
 	Port string `json: port`
 }
 
 type Configuration struct {
-	Mongos []Mongo `json: mongos`
+	Mongos []string `json: mongos`
 	DbName string  `json: dbName`
 	Server Server  `json: server`
 }
@@ -25,7 +20,7 @@ type Configuration struct {
 func (c *Configuration) prepareMgoUrls() string {
 	var hostsPorts string
 	for _, mongo := range c.Mongos {
-		hostsPorts += mongo.Host + ":" + mongo.Port + ","
+		hostsPorts += mongo + ","
 	}
 	return strings.TrimRight(hostsPorts, ",")
 }

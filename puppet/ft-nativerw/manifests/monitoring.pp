@@ -1,6 +1,6 @@
 class nativerw::monitoring {
 
-  $port = "8082"
+  $port = "8080"
   $cmd_check_http_json = "/usr/lib64/nagios/plugins/check_http_json.py --host $hostname:$port --path /__health --key_equals \"\$ARG1\$\""
   $nrpe_cmd_check_http_json = '/usr/lib64/nagios/plugins/check_nrpe -H $HOSTNAME$ -c check_http_json -a "$ARG1$"'
   $action_url = 'https://sites.google.com/a/ft.com/technology/systems/dynamic-semantic-publishing/extra-publishing/native-store-reader-writer-run-book'
@@ -66,7 +66,7 @@ class nativerw::monitoring {
   nagios::nrpe_checks::check_tcp {
     "${::certname}/1":
       host          => "localhost",
-      port          => 8082,
-      notes         => "check ${::certname} [$hostname] listening on HTTP port 8082 ";
+      port          => 8080,
+      notes         => "check ${::certname} [$hostname] listening on HTTP port 8080 ";
   }
 }

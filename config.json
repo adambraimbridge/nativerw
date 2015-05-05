@@ -1,10 +1,7 @@
 {
-	"mongos" : [{
-	  "host": "localhost",
-	  "port" : "27017"
-	}],
+	"mongos" : ["localhost:27017"],
     "server": {
-	  "port" : "8082"
+	  "port" : "8080"
 	},
 	"dbName" : "testdb"
 }
