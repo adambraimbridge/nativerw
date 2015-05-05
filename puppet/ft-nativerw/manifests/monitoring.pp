@@ -26,7 +26,7 @@ class nativerw::monitoring {
     content         => "command[check_http_json]=${$cmd_check_http_json}\n"
   }
 
-  exec { 'reload-nrpe':
+  exec { 'reload-nrpe-service':
     command         => '/etc/init.d/nrpe reload',
     refreshonly     => true,
     require         => File[$config_file]
