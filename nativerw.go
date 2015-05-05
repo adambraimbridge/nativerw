@@ -44,6 +44,7 @@ func main() {
 	router.HandleFunc("/__health", fthealth.Handler("Dependent services healthcheck",
 		"Checking connectivity and usability of dependent services: mongoDB.",
 		mgoApi.writeHealthCheck(), mgoApi.readHealthCheck()))
+	router.HandleFunc("/__gtg", mgoApi.goodToGo)
 	err := http.ListenAndServe(":"+config.Server.Port, nil)
 	if err != nil {
         logger.error(fmt.Sprintf("Couldn't set up HTTP listener: %+v\n", err))
