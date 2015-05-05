@@ -34,6 +34,8 @@ func (ma *MgoApi) Write(collection string, resource Resource) error {
 	newSession := ma.session.Copy()
 	defer newSession.Close()
 
+	ma.ensureIndex(collection)
+
 	coll := newSession.DB(ma.dbName).C(collection)
 
 	bsonUUID := bson.Binary{Kind: 0x04, Data: []byte(uuid.Parse(resource.UUID))}
@@ -74,4 +76,13 @@ func (ma *MgoApi) Read(collection string, uuidString string) (found bool, resour
 	}
 
 	return true, resource, nil
+}
+
+func (ma *MgoApi) ensureIndex(collection string) error {
+	index := mgo.Index{
+		Key: []string{"uuid"},
+		Background: true,
+	}
+
+	return ma.session.DB(ma.dbName).C(collection).EnsureIndex(index)
 }
