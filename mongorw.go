@@ -30,11 +30,23 @@ func NewMgoApi(urls, dbName string) (*MgoApi, error) {
 	return &MgoApi{dbName, session}, nil
 }
 
-func (ma *MgoApi) Write(collection string, resource Resource) error {
+func (ma *MgoApi) EnsureIndex(collections []string) {
 	newSession := ma.session.Copy()
 	defer newSession.Close()
 
-	ma.ensureIndex(collection)
+	index := mgo.Index{
+		Key: []string{"uuid"},
+		Background: true,
+	}
+
+	for _, coll := range collections {
+		newSession.DB(ma.dbName).C(coll).EnsureIndex(index)
+	}
+}
+
+func (ma *MgoApi) Write(collection string, resource Resource) error {
+	newSession := ma.session.Copy()
+	defer newSession.Close()
 
 	coll := newSession.DB(ma.dbName).C(collection)
 
@@ -76,13 +88,4 @@ func (ma *MgoApi) Read(collection string, uuidString string) (found bool, resour
 	}
 
 	return true, resource, nil
-}
-
-func (ma *MgoApi) ensureIndex(collection string) error {
-	index := mgo.Index{
-		Key: []string{"uuid"},
-		Background: true,
-	}
-
-	return ma.session.DB(ma.dbName).C(collection).EnsureIndex(index)
 }

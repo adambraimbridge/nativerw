@@ -37,6 +37,7 @@ func main() {
         logger.error(noTxId, fmt.Sprintf("Couldn't establish connection to mongoDB: %+v\n", mgoApiCreationErr.Error()))
 		return
 	}
+	mgoApi.EnsureIndex(config.Collections)
 
 	router := mux.NewRouter()
 	http.Handle("/", handlers.CombinedLoggingHandler(AccessWriter{logger.Access}, router))

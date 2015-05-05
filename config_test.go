@@ -19,6 +19,9 @@ func TestPrepareMgoUrls(t *testing.T) {
 				Server{
 					"9999",
 				},
+				[]string{
+					"methode",
+				},
 			},
 			"localhost:1000,localhost:1001",
 		},

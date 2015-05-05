@@ -12,9 +12,10 @@ type Server struct {
 }
 
 type Configuration struct {
-	Mongos []string `json: mongos`
-	DbName string  `json: dbName`
-	Server Server  `json: server`
+	Mongos 		[]string `json: mongos`
+	DbName 		string  `json: dbName`
+	Server 		Server  `json: server`
+	Collections	[]string `json: collections`
 }
 
 func (c *Configuration) prepareMgoUrls() string {
