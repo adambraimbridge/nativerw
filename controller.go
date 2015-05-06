@@ -26,7 +26,7 @@ func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
 	found, resource, err := ma.Read(collection, resourceId)
 	if err != nil {
 		msg := fmt.Sprintf("Reading from mongoDB failed.\n%v\n", err.Error())
-		logger.warn(msg)
+        ctxlogger.warn(msg)
 		http.Error(writer, msg, http.StatusInternalServerError)
 		return
 	}
