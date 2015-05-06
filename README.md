@@ -1,44 +1,40 @@
 # Native Store Reader Writer (nativerw)
 
-- backed by mongoDB
-- mapping from idiomatic json representations into bson/mongodb types (e.g., converting RFC3339 dates to bson date types)
+Writes any kind of content/data from native CMS in mongoDB by wrapping it under a minimal JSON structure.
 
 ## Installation
 
-	go get git.svc.ft.com/scm/cp/nativerw.git
+`go get git.svc.ft.com/scm/cp/nativerw.git`
 	
-	go install git.svc.ft.com/scm/cp/nativerw.git
+`go install git.svc.ft.com/scm/cp/nativerw.git`
 
 ## Running
 
-    $GOPATH/bin/nativerw.git $GOPATH/src/git.svc.ft.com/scm/cp/nativerw.git/config.json
+`$GOPATH/bin/nativerw.git $GOPATH/src/git.svc.ft.com/scm/cp/nativerw.git/config.json`
 
 ## Try it!
 
-    curl localhost:8080/__health
+`curl -XPUT -H "X-Request-Id: 123" localhost:8080/methode/221da02e-c853-48ed-8753-3d1540fa190f --data '{"uuid":"221da02e-c853-48ed-8753-3d1540fa190f","publishedDate":"2014-11-12T20:05:47.000Z", "foo":"bar","child":{"child2":{"uuid":"bfa8e9c9-1b53-46ac-a786-7cd296d5cbd4"}}, "num":135}'`
 
-	curl -XPUT -H "X-Request-Id: 123" localhost:8080/content/221da02e-c853-48ed-8753-3d1540fa190f --data '{"uuid":"221da02e-c853-48ed-8753-3d1540fa190f","publishedDate":"2014-11-12T20:05:47.000Z", "foo":"bar","child":{"child2":{"uuid":"bfa8e9c9-1b53-46ac-a786-7cd296d5cbd4"}}, "num":135}'
+`curl -H "X-Request-Id: 123" localhost:8080/methode/221da02e-c853-48ed-8753-3d1540fa190f`
 
-	curl -H "X-Request-Id: 123" localhost:8080/content/221da02e-c853-48ed-8753-3d1540fa190f
+### Healthchecks
+
+`url localhost:8080/__health`
 
 Look in your mongodb for database "testdb" and collection "content" and notice things with nice bson types.
 
----
-## Manage the app with supervisord
+## Managing the app
 
-The following commands are useful to manage the application on the FT hosts (deployed with puppet):
+You can easily start or stop the app and see the logs on this page:
+[hostname:9001/](http://ftapp08074-lvpr-uk-int:9001/)
 
-1. check status:
+The following commands are useful to manage the application on the FT hosts:
 
-        a. supervisorctl status nativerw
-        b. service supervisord status nativerw
+### Check the app's status:
 
+`sudo supervisorctl status nativerw`
 
-2. stop / start / restart (without making conf changes available)
+### Starting or stopping the app
 
-        supervisorctl stop/start/restart nativerw
-
-
-3. restart applying conf changes
-
-        supervisorctl update
+`sudo supervisorctl stop/start/restart nativerw`
