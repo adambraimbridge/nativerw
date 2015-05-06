@@ -26,11 +26,9 @@ Look in your mongoDB for database _native-store_ and collection _methode_ and no
     use native-store
     methode.find({"uuid": "221da02e-c853-48ed-8753-3d1540fa190f"})
 
-Healthchecks:
-[http://localhost:8080/__health](http://localhost:8080/__health)
+Healthchecks: [http://localhost:8080/__health](http://localhost:8080/__health)
 
-Good-to-go:
-[http://localhost:8080/__gtg](http://localhost:8080/__gtg)
+Good-to-go: [http://localhost:8080/__gtg](http://localhost:8080/__gtg)
 
 
 ## Managing the app
@@ -39,8 +37,6 @@ You can easily start or stop the app and see the logs on this page: [http://remo
 
 The following commands are useful to manage the application on the FT hosts:
 
-Check the app's status:
-`sudo supervisorctl status nativerw`
+Check the app's status: `sudo supervisorctl status nativerw`
 
-Starting or stopping the app:
-`sudo supervisorctl stop/start/restart nativerw`
+Starting or stopping the app: `sudo supervisorctl stop/start/restart nativerw`
