@@ -23,7 +23,7 @@
 
 Look in your mongodb for database "testdb" and collection "content" and notice things with nice bson types.
 
----
+----
 ## Manage the app with supervisord
 
 The following commands are useful to manage the application on the FT hosts (deployed with puppet):
@@ -32,13 +32,12 @@ The following commands are useful to manage the application on the FT hosts (dep
 
         a. supervisorctl status nativerw
         b. service supervisord status nativerw
-
-
+        
 2. stop / start / restart (without making conf changes available)
 
         supervisorctl stop/start/restart nativerw
-
-
+        
 3. restart applying conf changes
 
         supervisorctl update
+        
