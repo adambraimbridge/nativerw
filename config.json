@@ -3,6 +3,6 @@
     "server": {
 	  "port" : "8080"
 	},
-	"dbName" : "nativeStore",
+	"dbName" : "native-store",
   	"collections" : ["methode"]
 }
