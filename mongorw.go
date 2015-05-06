@@ -35,7 +35,7 @@ func (ma *MgoApi) EnsureIndex(collections []string) {
 	defer newSession.Close()
 
 	index := mgo.Index{
-		Key: []string{"uuid"},
+		Key:        []string{"uuid"},
 		Background: true,
 	}
 

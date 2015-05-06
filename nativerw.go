@@ -18,23 +18,23 @@ func createMgoApi(config *Configuration) (*MgoApi, error) {
 }
 
 func main() {
-    initLoggers()
-    logger.info(noTxId, "Starting nativerw app.")
+	initLoggers()
+	logger.info(noTxId, "Starting nativerw app.")
 
 	if len(os.Args) < 2 {
-        logger.error(noTxId, "Missing parameter. Usage: <pathToExecutable>/nativerw <pathToConfigurationFile>\n")
+		logger.error(noTxId, "Missing parameter. Usage: <pathToExecutable>/nativerw <pathToConfigurationFile>\n")
 		return
 	}
 
 	config, configErr := readConfig(os.Args[1])
 	if configErr != nil {
-        logger.error(noTxId, fmt.Sprintf("Error reading the configuration: %+v\n", configErr.Error()))
+		logger.error(noTxId, fmt.Sprintf("Error reading the configuration: %+v\n", configErr.Error()))
 		return
 	}
 
 	mgoApi, mgoApiCreationErr := createMgoApi(config)
 	if mgoApiCreationErr != nil {
-        logger.error(noTxId, fmt.Sprintf("Couldn't establish connection to mongoDB: %+v\n", mgoApiCreationErr.Error()))
+		logger.error(noTxId, fmt.Sprintf("Couldn't establish connection to mongoDB: %+v\n", mgoApiCreationErr.Error()))
 		return
 	}
 	mgoApi.EnsureIndex(config.Collections)
@@ -49,6 +49,6 @@ func main() {
 	router.HandleFunc("/__gtg", mgoApi.goodToGo)
 	err := http.ListenAndServe(":"+config.Server.Port, nil)
 	if err != nil {
-        logger.error(noTxId, fmt.Sprintf("Couldn't set up HTTP listener: %+v\n", err))
+		logger.error(noTxId, fmt.Sprintf("Couldn't set up HTTP listener: %+v\n", err))
 	}
 }
