@@ -23,9 +23,6 @@ The same data can then be read from here just like from the original CMS.__
 
 Look in your mongoDB for database _native-store_ and collection _methode_ and notice the things you've written.
 
-    use native-store
-    methode.find({"uuid": "221da02e-c853-48ed-8753-3d1540fa190f"})
-
 Healthchecks: [http://localhost:8080/__health](http://localhost:8080/__health)
 
 Good-to-go: [http://localhost:8080/__gtg](http://localhost:8080/__gtg)
