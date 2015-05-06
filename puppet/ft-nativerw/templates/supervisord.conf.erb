@@ -24,10 +24,10 @@ serverurl=unix:///var/run/supervisor.sock ; use a unix:// URL  for a unix socket
 command=<%=binary_file%> <%=config_file%>
 autorestart=true
 startsecs=20
-stdout_logfile=<%=log_dir%>/<%=binary_name%>.log
+stdout_logfile=<%=log_dir%>/<%=binary_name%>-go-app.log
 stdout_logfile_maxbytes=5MB
 stdout_logfile_backups=30
 redirect_stderr=true
-stderr_logfile=<%=log_dir%>/<%=binary_name%>.err
+stderr_logfile=<%=log_dir%>/<%=binary_name%>-go-app.err
 stderr_logfile_maxbytes=5MB
 stderr_logfile_backups=30

@@ -3,7 +3,7 @@ class nativerw {
   $binary_name = "nativerw"
   $install_dir = "/usr/local/$binary_name"
   $binary_file = "$install_dir/$binary_name"
-  $log_dir = "/var/log/apps/$binary_name"
+  $log_dir = "/var/log/apps"
   $config_file = "/etc/$binary_name.json"
 
   class { 'common_pp_up': }
