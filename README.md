@@ -9,9 +9,11 @@ The same data can then be read from here just like from the original CMS.__
 	
 `go install git.svc.ft.com/scm/cp/nativerw.git`
 
+
 ## Running
 
 `$GOPATH/bin/nativerw.git $GOPATH/src/git.svc.ft.com/scm/cp/nativerw.git/config.json`
+
 
 ## Try it!
 
@@ -19,11 +21,19 @@ The same data can then be read from here just like from the original CMS.__
 
 `curl -H "X-Request-Id: 123" localhost:8080/methode/221da02e-c853-48ed-8753-3d1540fa190f`
 
+Look in your mongoDB for database _native-store_ and collection _methode_ and notice the things you've written.
+
+    use native-store
+    methode.find({"uuid": "221da02e-c853-48ed-8753-3d1540fa190f"})
+
 ### Healthchecks
 
-`url localhost:8080/__health`
+[http://localhost:8080/__health](http://localhost:8080/__health)
 
-Look in your mongodb for database "testdb" and collection "content" and notice things with nice bson types.
+### Good-to-go
+
+[http://localhost:8080/__gtg](http://localhost:8080/__gtg)
+
 
 ## Managing the app
 
