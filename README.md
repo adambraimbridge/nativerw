@@ -1,6 +1,6 @@
 # Native Store Reader Writer (nativerw)
 
-Writes any kind of content/data from native CMS in mongoDB by wrapping it under a minimal JSON structure.
+__Writes any raw content/data from native CMS in mongoDB without transformation but wrapping it under a minimal JSON structure.__
 
 ## Installation
 
