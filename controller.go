@@ -21,18 +21,18 @@ func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	resourceId := vars["resource"]
 	collection := vars["collection"]
-	txId := obtainTxId(req)
+	ctxlogger := TxCombinedLogger{logger, obtainTxId(req)}
 
 	found, resource, err := ma.Read(collection, resourceId)
 	if err != nil {
 		msg := fmt.Sprintf("Reading from mongoDB failed.\n%v\n", err.Error())
-		logger.warn(txId, msg)
+		logger.warn(msg)
 		http.Error(writer, msg, http.StatusInternalServerError)
 		return
 	}
 	if !found {
 		msg := fmt.Sprintf("Resource not found. collection: %v, id: %v\n", collection, resourceId)
-		logger.warn(txId, msg)
+		ctxlogger.warn(msg)
 		http.Error(writer, msg, http.StatusNotFound)
 		return
 	}
@@ -42,17 +42,17 @@ func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
 	om := outMappers[resource.ContentType]
 	if om == nil {
 		msg := fmt.Sprintf("Unable to handle resource of type %T. resourceId: %v, resource: %v\n", resource, resourceId, resource)
-		logger.warn(txId, msg)
+		ctxlogger.warn(msg)
 		http.Error(writer, msg, http.StatusNotImplemented)
 		return
 	}
 	err = om(writer, resource)
 	if err != nil {
 		msg := fmt.Sprintf("Unable to extract native content from resource with id %v. %v\n", resourceId, err.Error())
-		logger.warn(txId, msg)
+		ctxlogger.warn(msg)
 		http.Error(writer, msg, http.StatusInternalServerError)
 	} else {
-		logger.info(txId, fmt.Sprintf("Read native content. resource_id: %+v", resourceId))
+		ctxlogger.info(fmt.Sprintf("Read native content. resource_id: %+v", resourceId))
 	}
 }
 
@@ -74,7 +74,7 @@ func (mgoApi *MgoApi) writeContent(writer http.ResponseWriter, req *http.Request
 	defer req.Body.Close()
 	collectionId := mux.Vars(req)["collection"]
 	resourceId := mux.Vars(req)["resource"]
-	txId := obtainTxId(req)
+	ctxlogger := TxCombinedLogger{logger, obtainTxId(req)}
 
 	contentType := req.Header.Get("Content-Type")
 	mapper := inMappers[contentType]
@@ -88,7 +88,7 @@ func (mgoApi *MgoApi) writeContent(writer http.ResponseWriter, req *http.Request
 	if err != nil {
 		// TODO: this could be a server error too?
 		msg := fmt.Sprintf("Extracting content from HTTP body failed:\n%v\n", err)
-		logger.warn(txId, msg)
+		ctxlogger.warn(msg)
 		http.Error(writer, msg, http.StatusBadRequest)
 		return
 	}
@@ -97,11 +97,11 @@ func (mgoApi *MgoApi) writeContent(writer http.ResponseWriter, req *http.Request
 
 	if err := mgoApi.Write(collectionId, wrappedContent); err != nil {
 		msg := fmt.Sprintf("Writing to mongoDB failed:\n%v\n", err)
-		logger.warn(txId, msg)
+		ctxlogger.warn(msg)
 		http.Error(writer, msg, http.StatusInternalServerError)
 		return
 	} else {
-		logger.info(txId, fmt.Sprintf("Written native content. resource_id: %+v", resourceId))
+		ctxlogger.info(fmt.Sprintf("Written native content. resource_id: %+v", resourceId))
 	}
 }
 
