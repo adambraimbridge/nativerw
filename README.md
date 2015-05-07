@@ -30,11 +30,11 @@ Healthchecks: [http://localhost:8080/__health](http://localhost:8080/__health)
 Good-to-go: [http://localhost:8080/__gtg](http://localhost:8080/__gtg)
 
 
-## Managing the app
+## Managing the app on the FT remote hosts
 
 You can easily start or stop the app and see the logs on this page: [http://remote-hostname:9001/](http://ftapp08074-lvpr-uk-int:9001/)
 
-The following commands are useful to manage the application on the FT hosts:
+The following commands are also useful:
 
 Check the app's status: `sudo supervisorctl status nativerw`
 
