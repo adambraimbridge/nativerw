@@ -5,7 +5,9 @@ The same data can then be read from here just like from the original CMS.__
 
 ## Installation
 
-for first time: `go get git.svc.ft.com/scm/cp/nativerw.git` or update: `go get -u git.svc.ft.com/scm/cp/nativerw.git`
+You need [Go to be installed](https://golang.org/doc/install).
+
+for the first time: `go get git.svc.ft.com/scm/cp/nativerw.git` or update: `go get -u git.svc.ft.com/scm/cp/nativerw.git`
 	
 `go install git.svc.ft.com/scm/cp/nativerw.git`
 
