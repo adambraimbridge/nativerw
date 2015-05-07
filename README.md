@@ -6,6 +6,10 @@ The same data can then be read from here just like from the original CMS.__
 ## Installation
 
 `go get git.svc.ft.com/scm/cp/nativerw.git`
+
+or update
+
+`go get -u git.svc.ft.com/scm/cp/nativerw.git`
 	
 `go install git.svc.ft.com/scm/cp/nativerw.git`
 
@@ -17,7 +21,7 @@ The same data can then be read from here just like from the original CMS.__
 
 ## Try it!
 
-`curl -XPUT -H "X-Request-Id: 123" localhost:8080/methode/221da02e-c853-48ed-8753-3d1540fa190f --data '{"uuid":"221da02e-c853-48ed-8753-3d1540fa190f","publishedDate":"2014-11-12T20:05:47.000Z", "foo":"bar","child":{"child2":{"uuid":"bfa8e9c9-1b53-46ac-a786-7cd296d5cbd4"}}, "num":135}'`
+`curl -XPUT -H "X-Request-Id: 123" -H "Content-Type: application/json" localhost:8080/methode/221da02e-c853-48ed-8753-3d1540fa190f --data '{"uuid":"221da02e-c853-48ed-8753-3d1540fa190f", "test": "test" }'`
 
 `curl -H "X-Request-Id: 123" localhost:8080/methode/221da02e-c853-48ed-8753-3d1540fa190f`
 
