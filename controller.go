@@ -26,7 +26,7 @@ func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
 	found, resource, err := ma.Read(collection, resourceId)
 	if err != nil {
 		msg := fmt.Sprintf("Reading from mongoDB failed.\n%v\n", err.Error())
-        ctxlogger.warn(msg)
+        ctxlogger.error(msg)
 		http.Error(writer, msg, http.StatusInternalServerError)
 		return
 	}
@@ -79,14 +79,14 @@ func (mgoApi *MgoApi) writeContent(writer http.ResponseWriter, req *http.Request
 	contentType := req.Header.Get("Content-Type")
 	mapper := inMappers[contentType]
 	if mapper == nil {
-		// default to binary
+		msg := fmt.Sprintf("Content-Type header missing. Default value ('application/octet-stream') is used.")
+		ctxlogger.info(msg)
 		contentType = "application/octet-stream"
 		mapper = inMappers[contentType]
 	}
 
 	content, err := mapper(req.Body)
 	if err != nil {
-		// TODO: this could be a server error too?
 		msg := fmt.Sprintf("Extracting content from HTTP body failed:\n%v\n", err)
 		ctxlogger.warn(msg)
 		http.Error(writer, msg, http.StatusBadRequest)
@@ -97,7 +97,7 @@ func (mgoApi *MgoApi) writeContent(writer http.ResponseWriter, req *http.Request
 
 	if err := mgoApi.Write(collectionId, wrappedContent); err != nil {
 		msg := fmt.Sprintf("Writing to mongoDB failed:\n%v\n", err)
-		ctxlogger.warn(msg)
+		ctxlogger.error(msg)
 		http.Error(writer, msg, http.StatusInternalServerError)
 		return
 	} else {
