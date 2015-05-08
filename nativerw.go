@@ -9,12 +9,6 @@ import (
 	"os"
 )
 
-func createMgoApi(config *Configuration) (*MgoApi, error) {
-	mgoUrls := config.prepareMgoUrls()
-	mgoApi, err := NewMgoApi(mgoUrls, config.DbName)
-	return mgoApi, err
-}
-
 func main() {
 	initLoggers()
 	logger.info("Starting nativerw app.")
@@ -30,7 +24,7 @@ func main() {
 		return
 	}
 
-	mgoApi, mgoApiCreationErr := createMgoApi(config)
+	mgoApi, mgoApiCreationErr := NewMgoApi(config.prepareMgoUrls(), config.DbName)
 	if mgoApiCreationErr != nil {
 		logger.error(fmt.Sprintf("Couldn't establish connection to mongoDB: %+v\n", mgoApiCreationErr.Error()))
 		return
