@@ -16,7 +16,7 @@ func (m *MgoApi) writeHealthCheck() fthealth.Check {
 	return fthealth.Check{
 		BusinessImpact:   "Publishing won't work. Writing content to native store is broken.",
 		Name:             "CanWriteToMongoDB",
-		PanicGuide:       "https://sites.google.com/a/ft.com/technology/systems/dynamic-semantic-publishing/extra-publishing/nativerw-runbook",
+		PanicGuide:       "https://sites.google.com/a/ft.com/technology/systems/dynamic-semantic-publishing/extra-publishing/native-store-reader-writer-run-book",
 		Severity:         1,
 		TechnicalSummary: "Writing to mongoDB is broken. Check mongoDB is up, its disk space, ports, network.",
 		Checker:          m.checkWritable,
@@ -33,7 +33,7 @@ func (m *MgoApi) readHealthCheck() fthealth.Check {
 	return fthealth.Check{
 		BusinessImpact:   "Reading content from native store is broken.",
 		Name:             "CanReadFromMongoDB",
-		PanicGuide:       "https://sites.google.com/a/ft.com/technology/systems/dynamic-semantic-publishing/extra-publishing/nativerw-runbook",
+		PanicGuide:       "https://sites.google.com/a/ft.com/technology/systems/dynamic-semantic-publishing/extra-publishing/native-store-reader-writer-run-book",
 		Severity:         1,
 		TechnicalSummary: "Reading from mongoDB is broken. Check mongoDB is up, its disk space, ports, network.",
 		Checker:          m.checkReadable,
