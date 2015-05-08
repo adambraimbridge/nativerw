@@ -24,10 +24,7 @@ func (m *MgoApi) writeHealthCheck() fthealth.Check {
 }
 
 func (m *MgoApi) checkWritable() error {
-	if err := m.Write(healthcheckColl, sampleResource); err != nil {
-		return err
-	}
-	return nil
+	return m.Write(healthcheckColl, sampleResource)
 }
 
 var sampleUUID = "cda5d6a9-cd25-4d76-8bad-9eaa35e85f4a"
@@ -45,8 +42,5 @@ func (m *MgoApi) readHealthCheck() fthealth.Check {
 
 func (m *MgoApi) checkReadable() error {
 	_, _, err := m.Read(healthcheckColl, sampleUUID)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
