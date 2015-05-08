@@ -15,7 +15,7 @@ var sampleResource = Resource{
 func (m *MgoApi) writeHealthCheck() fthealth.Check {
 	return fthealth.Check{
 		BusinessImpact:   "Publishing won't work. Writing content to native store is broken.",
-		Name:             "CanWriteToMongoDB",
+		Name:             "Write to mongoDB",
 		PanicGuide:       "https://sites.google.com/a/ft.com/technology/systems/dynamic-semantic-publishing/extra-publishing/native-store-reader-writer-run-book",
 		Severity:         1,
 		TechnicalSummary: "Writing to mongoDB is broken. Check mongoDB is up, its disk space, ports, network.",
@@ -32,7 +32,7 @@ var sampleUUID = "cda5d6a9-cd25-4d76-8bad-9eaa35e85f4a"
 func (m *MgoApi) readHealthCheck() fthealth.Check {
 	return fthealth.Check{
 		BusinessImpact:   "Reading content from native store is broken.",
-		Name:             "CanReadFromMongoDB",
+		Name:             "Read from mongoDB",
 		PanicGuide:       "https://sites.google.com/a/ft.com/technology/systems/dynamic-semantic-publishing/extra-publishing/native-store-reader-writer-run-book",
 		Severity:         1,
 		TechnicalSummary: "Reading from mongoDB is broken. Check mongoDB is up, its disk space, ports, network.",
