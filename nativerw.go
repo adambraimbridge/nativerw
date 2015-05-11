@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"git.svc.ft.com/scm/gl/fthealth.git"
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"net/http"
 	"os"
@@ -32,7 +31,7 @@ func main() {
 	mgoApi.EnsureIndex()
 
 	router := mux.NewRouter()
-	http.Handle("/", handlers.CombinedLoggingHandler(logger, router))
+	http.Handle("/", accessLoggingHandler{router})
 	router.HandleFunc("/{collection}/{resource}", mgoApi.readContent).Methods("GET")
 	router.HandleFunc("/{collection}/{resource}", mgoApi.writeContent).Methods("PUT")
 	router.HandleFunc("/__health", fthealth.Handler("Dependent services healthcheck",
