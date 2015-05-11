@@ -24,12 +24,12 @@ func main() {
 		return
 	}
 
-	mgoApi, mgoApiCreationErr := NewMgoApi(config.prepareMgoUrls(), config.DbName)
+	mgoApi, mgoApiCreationErr := NewMgoApi(config)
 	if mgoApiCreationErr != nil {
 		logger.error(fmt.Sprintf("Couldn't establish connection to mongoDB: %+v\n", mgoApiCreationErr.Error()))
 		return
 	}
-	mgoApi.EnsureIndex(config.Collections)
+	mgoApi.EnsureIndex()
 
 	router := mux.NewRouter()
 	http.Handle("/", handlers.CombinedLoggingHandler(logger, router))

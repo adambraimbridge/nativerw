@@ -9,6 +9,8 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"regexp"
+	"errors"
 )
 
 const txHeaderKey = "X-Request-Id"
@@ -16,12 +18,20 @@ const txHeaderKey = "X-Request-Id"
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 const txHeaderLength = 20
+var uuidRegexp = regexp.MustCompile("^[a-z0-9]{8}-[a-z0-9]{4}-[1-5][a-z0-9]{3}-[a-z0-9]{4}-[a-z0-9]{12}$")
 
 func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	resourceId := vars["resource"]
 	collection := vars["collection"]
 	ctxlogger := TxCombinedLogger{logger, obtainTxId(req)}
+
+	if err := ma.validateAccess(collection, resourceId); err != nil {
+		msg := fmt.Sprintf("Invalid collectionId (%v) or resourceId (%v).\n%v", collection, resourceId, err)
+		ctxlogger.info(msg)
+		http.Error(writer, msg, http.StatusBadRequest)
+		return
+	}
 
 	found, resource, err := ma.Read(collection, resourceId)
 	if err != nil {
@@ -31,7 +41,7 @@ func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 	if !found {
-		msg := fmt.Sprintf("Resource not found. collection: %v, id: %v\n", collection, resourceId)
+		msg := fmt.Sprintf("Resource not found. collection: %v, id: %v", collection, resourceId)
 		ctxlogger.warn(msg)
 		http.Error(writer, msg, http.StatusNotFound)
 		return
@@ -41,14 +51,14 @@ func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
 
 	om := outMappers[resource.ContentType]
 	if om == nil {
-		msg := fmt.Sprintf("Unable to handle resource of type %T. resourceId: %v, resource: %v\n", resource, resourceId, resource)
+		msg := fmt.Sprintf("Unable to handle resource of type %T. resourceId: %v, resource: %v", resource, resourceId, resource)
 		ctxlogger.warn(msg)
 		http.Error(writer, msg, http.StatusNotImplemented)
 		return
 	}
 	err = om(writer, resource)
 	if err != nil {
-		msg := fmt.Sprintf("Unable to extract native content from resource with id %v. %v\n", resourceId, err.Error())
+		msg := fmt.Sprintf("Unable to extract native content from resource with id %v. %v", resourceId, err.Error())
 		ctxlogger.warn(msg)
 		http.Error(writer, msg, http.StatusInternalServerError)
 	} else {
@@ -75,6 +85,13 @@ func (mgoApi *MgoApi) writeContent(writer http.ResponseWriter, req *http.Request
 	collectionId := mux.Vars(req)["collection"]
 	resourceId := mux.Vars(req)["resource"]
 	ctxlogger := TxCombinedLogger{logger, obtainTxId(req)}
+
+	if err := mgoApi.validateAccess(collectionId, resourceId); err != nil {
+		msg := fmt.Sprintf("Invalid collectionId (%v) or resourceId (%v).\n%v", collectionId, resourceId, err)
+		ctxlogger.info(msg)
+		http.Error(writer, msg, http.StatusBadRequest)
+		return
+	}
 
 	contentType := req.Header.Get("Content-Type")
 	mapper := inMappers[contentType]
@@ -103,6 +120,13 @@ func (mgoApi *MgoApi) writeContent(writer http.ResponseWriter, req *http.Request
 	} else {
 		ctxlogger.info(fmt.Sprintf("Written native content. resource_id: %+v", resourceId))
 	}
+}
+
+func (mgoApi *MgoApi) validateAccess(collectionId, resourceId string) error {
+	if mgoApi.collections[collectionId] && uuidRegexp.MatchString(resourceId) {
+		return nil
+	}
+	return errors.New("Collection not supported or resourceId not a valid uuid.")
 }
 
 type inMapper func(io.Reader) (interface{}, error)

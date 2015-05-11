@@ -16,21 +16,26 @@ type Resource struct {
 }
 
 type MgoApi struct {
-	dbName  string
-	session *mgo.Session
+	dbName      string
+	session     *mgo.Session
+	collections map[string]bool
 }
 
-func NewMgoApi(urls, dbName string) (*MgoApi, error) {
-	session, err := mgo.DialWithTimeout(urls, time.Duration(3*time.Second))
+func NewMgoApi(config *Configuration) (*MgoApi, error) {
+	session, err := mgo.DialWithTimeout(config.prepareMgoUrls(), time.Duration(3*time.Second))
 	if err != nil {
 		return nil, err
 	}
 	session.SetMode(mgo.Monotonic, true)
 
-	return &MgoApi{dbName, session}, nil
+	var collections = make(map[string]bool)
+	for _, coll := range config.Collections {
+		collections[coll] = true
+	}
+	return &MgoApi{config.DbName, session, collections}, nil
 }
 
-func (ma *MgoApi) EnsureIndex(collections []string) {
+func (ma *MgoApi) EnsureIndex() {
 	newSession := ma.session.Copy()
 	defer newSession.Close()
 
@@ -39,7 +44,7 @@ func (ma *MgoApi) EnsureIndex(collections []string) {
 		Background: true,
 	}
 
-	for _, coll := range collections {
+	for coll, _ := range ma.collections {
 		newSession.DB(ma.dbName).C(coll).EnsureIndex(index)
 	}
 }
