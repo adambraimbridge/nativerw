@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"net/http"
 )
 
 type CombinedLogger interface {
@@ -81,4 +82,22 @@ func (l TxCombinedLogger) Write(p []byte) (int, error) {
 	msg := string(p)
 	l.access(msg)
 	return len(msg), nil
+}
+
+func logDummyInfo(writer http.ResponseWriter, req *http.Request) {
+	defer req.Body.Close()
+	ctxlogger := TxCombinedLogger{logger, obtainTxId(req)}
+	ctxlogger.info("dummy log")
+}
+
+func logDummyWarn(writer http.ResponseWriter, req *http.Request) {
+	defer req.Body.Close()
+	ctxlogger := TxCombinedLogger{logger, obtainTxId(req)}
+	ctxlogger.warn("dummy log")
+}
+
+func logDummyError(writer http.ResponseWriter, req *http.Request) {
+	defer req.Body.Close()
+	ctxlogger := TxCombinedLogger{logger, obtainTxId(req)}
+	ctxlogger.error("dummy log")
 }

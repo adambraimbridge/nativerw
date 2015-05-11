@@ -39,6 +39,9 @@ func main() {
 		"Checking connectivity and usability of dependent services: mongoDB.",
 		mgoApi.writeHealthCheck(), mgoApi.readHealthCheck()))
 	router.HandleFunc("/__gtg", mgoApi.goodToGo)
+	router.HandleFunc("/__test/log/info", logDummyInfo).Methods("POST")
+	router.HandleFunc("/__test/log/warning", logDummyWarn).Methods("POST")
+	router.HandleFunc("/__test/log/error", logDummyError).Methods("POST")
 	err := http.ListenAndServe(":"+config.Server.Port, nil)
 	if err != nil {
 		logger.error(fmt.Sprintf("Couldn't set up HTTP listener: %+v\n", err))
