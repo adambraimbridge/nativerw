@@ -41,6 +41,7 @@ func main() {
 	router.HandleFunc("/__test/log/info", logDummyInfo).Methods("POST")
 	router.HandleFunc("/__test/log/warning", logDummyWarn).Methods("POST")
 	router.HandleFunc("/__test/log/error", logDummyError).Methods("POST")
+	router.HandleFunc("/__test/slow", testSlowRequest).Methods("POST")
 	err := http.ListenAndServe(":"+config.Server.Port, nil)
 	if err != nil {
 		logger.error(fmt.Sprintf("Couldn't set up HTTP listener: %+v\n", err))

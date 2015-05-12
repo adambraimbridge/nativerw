@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"regexp"
 	"errors"
+	"time"
 )
 
 const txHeaderKey = "X-Request-Id"
@@ -164,4 +165,8 @@ func randSeq(n int) string {
 		b[i] = letters[rand.Intn(len(letters))]
 	}
 	return string(b)
+}
+
+func testSlowRequest(writer http.ResponseWriter, req *http.Request) {
+	time.Sleep(time.Millisecond * 1100)
 }
