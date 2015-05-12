@@ -17,8 +17,9 @@ func (h accessLoggingHandler) ServeHTTP(w http.ResponseWriter, req *http.Request
 
 	h.underlyingHandler.ServeHTTP(loggingWriter, req)
 
-	ctxlogger.access(fmt.Sprintf("status=%v ; url=%v ; response_time=%v ; response_size=%v",
+	ctxlogger.access(fmt.Sprintf("status=%v ; method=%v ; url=%v ; response_time=%v ; response_size=%v",
 		loggingWriter.Status(),
+		req.Method,
 		req.URL.String(),
 		time.Now().Sub(t1).Nanoseconds() / 1000,
 		loggingWriter.Size()))
