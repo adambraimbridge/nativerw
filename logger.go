@@ -50,10 +50,10 @@ var logger CombinedLogger
 
 func initLoggers() {
 	logger = simpleCombinedLogger{
-		log.New(os.Stdout, "INFO    - ", log.Ldate|log.Ltime|log.Lshortfile),
-		log.New(os.Stdout, "WARNING - ", log.Ldate|log.Ltime|log.Lshortfile),
-		log.New(os.Stderr, "ERROR   - ", log.Ldate|log.Ltime|log.Lshortfile),
-		log.New(os.Stdout, "ACCESS  - ", log.Ldate|log.Ltime|log.Lshortfile),
+		log.New(os.Stdout, "INFO    - ", log.Ldate|log.Ltime),
+		log.New(os.Stdout, "WARNING - ", log.Ldate|log.Ltime),
+		log.New(os.Stderr, "ERROR   - ", log.Ldate|log.Ltime),
+		log.New(os.Stdout, "ACCESS  - ", log.Ldate|log.Ltime),
 	}
 }
 
