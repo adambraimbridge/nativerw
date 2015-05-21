@@ -22,7 +22,7 @@ type MgoApi struct {
 }
 
 func NewMgoApi(config *Configuration) (*MgoApi, error) {
-	session, err := mgo.DialWithTimeout(config.prepareMgoUrls(), time.Duration(3*time.Second))
+	session, err := mgo.DialWithTimeout(config.prepareMgoUrls(), time.Duration(5*time.Second))
 	if err != nil {
 		return nil, err
 	}
