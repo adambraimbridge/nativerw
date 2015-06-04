@@ -26,7 +26,7 @@ func NewMgoApi(config *Configuration) (*MgoApi, error) {
 	if err != nil {
 		return nil, err
 	}
-	session.SetMode(mgo.Monotonic, true)
+	session.SetMode(mgo.Strong, true)
 
 	var collections = make(map[string]bool)
 	for _, coll := range config.Collections {
