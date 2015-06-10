@@ -35,14 +35,14 @@ class nativerw {
   }
 
   exec { 'restart_nativerw':
-    command => "supervisorctl restart $binary_name",
-    path    => "/usr/bin:/usr/sbin:/bin"
+    command     => "supervisorctl restart $binary_name",
+    path        => "/usr/bin:/usr/sbin:/bin",
+    subscribe   => [
+      File[$binary_file],
+      File[$config_file],
+      Class["${module_name}::supervisord"]
+    ],
+    before      => Class["${module_name}::monitoring"],
+    refreshonly => true
   }
-
-  File[$binary_file]
-  -> File[$config_file]
-  -> File[$log_dir]
-  -> Class["${module_name}::supervisord"]
-  -> Exec['restart_nativerw']
-  -> Class["${module_name}::monitoring"]
 }
