@@ -16,6 +16,9 @@ for the first time: `go get git.svc.ft.com/scm/cp/nativerw.git` or update: `go g
 
 `$GOPATH/bin/nativerw.git $GOPATH/src/git.svc.ft.com/scm/cp/nativerw.git/config.json`
 
+You can override the mongos with -mongos flag, e.g.
+
+`$GOPATH/bin/nativerw.git -mongos=mongo1:port,mongo2:port $GOPATH/src/git.svc.ft.com/scm/cp/nativerw.git/config.json`
 
 ## Try it!
 
