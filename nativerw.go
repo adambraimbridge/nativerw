@@ -1,26 +1,32 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"git.svc.ft.com/scm/gl/fthealth.git"
 	"github.com/gorilla/mux"
 	"net/http"
-	"os"
 )
 
 func main() {
 	initLoggers()
 	logger.info("Starting nativerw app.")
 
-	if len(os.Args) < 2 {
+	mongos := flag.String("mongos", "", "Mongo addresses to connect to in format: host1[:port1][,host2[:port2],...]")
+	flag.Parse()
+
+	if len(flag.Args()) == 0 {
 		logger.error("Missing parameter. Usage: <pathToExecutable>/nativerw <pathToConfigurationFile>\n")
 		return
 	}
 
-	config, configErr := readConfig(os.Args[1])
+	config, configErr := readConfig(flag.Arg(0))
 	if configErr != nil {
 		logger.error(fmt.Sprintf("Error reading the configuration: %+v\n", configErr.Error()))
 		return
+	}
+	if (len(*mongos) != 0) {
+		config.Mongos = *mongos;
 	}
 
 	mgoApi, mgoApiCreationErr := NewMgoApi(config)
