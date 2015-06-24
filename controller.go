@@ -44,7 +44,11 @@ func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
 	if !found {
 		msg := fmt.Sprintf("Resource not found. collection: %v, id: %v", collection, resourceId)
 		ctxlogger.warn(msg)
-		http.Error(writer, msg, http.StatusNotFound)
+
+		writer.Header().Add("Content-Type", "application/json")
+		respBody, _ := json.Marshal(map[string]string{"msg": msg})
+		writer.WriteHeader(http.StatusNotFound)
+		fmt.Fprint(writer, string(respBody))
 		return
 	}
 
