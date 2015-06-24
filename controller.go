@@ -46,7 +46,7 @@ func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
 		ctxlogger.warn(msg)
 
 		writer.Header().Add("Content-Type", "application/json")
-		respBody, _ := json.Marshal(map[string]string{"msg": msg})
+		respBody, _ := json.Marshal(map[string]string{"message": msg})
 		writer.WriteHeader(http.StatusNotFound)
 		fmt.Fprint(writer, string(respBody))
 		return
