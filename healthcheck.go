@@ -1,8 +1,6 @@
 package main
 
-import (
-	"git.svc.ft.com/scm/gl/fthealth.git"
-)
+import fthealth "github.com/Financial-Times/go-fthealth"
 
 const healthcheckColl = "healthcheck"
 

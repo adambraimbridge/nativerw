@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"git.svc.ft.com/scm/gl/fthealth.git"
+        fthealth "github.com/Financial-Times/go-fthealth"
 	"github.com/gorilla/mux"
 	"net/http"
 )
