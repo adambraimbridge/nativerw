@@ -11,6 +11,12 @@ for the first time: `go get git.svc.ft.com/scm/cp/nativerw.git` or update: `go g
 	
 `go install git.svc.ft.com/scm/cp/nativerw.git`
 
+###Building docker
+
+```bash
+CGO_ENABLED=0 go build -a -installsuffix cgo -o nativerw .
+docker build -t coco/nativerw .
+```
 
 ## Running
 
