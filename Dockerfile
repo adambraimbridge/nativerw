@@ -1,11 +1,6 @@
-FROM fedora
-
-ENV GOPATH /usr/local
-
-RUN dnf -y install git bzr mercurial golang
-RUN go get git.svc.ft.com/cp/nativerw
-
+FROM gliderlabs/alpine:3.2
+ADD nativerw config.json /
 EXPOSE 8080
 
-CMD $GOPATH/bin/nativerw -mongos=$MONGO_ADDRESSES $GOPATH/src/git.svc.ft.com/cp/nativerw/config.json
+CMD /nativerw -mongos=$MONGO_ADDRESSES config.json
 
