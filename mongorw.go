@@ -5,6 +5,8 @@ import (
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"time"
+	"net"
+	"strings"
 )
 
 const uuidName = "uuid"
@@ -21,8 +23,27 @@ type MgoApi struct {
 	collections map[string]bool
 }
 
+func tcpDialServer(addr *mgo.ServerAddr) (net.Conn, error) {
+	ra, err := net.ResolveTCPAddr("tcp", addr.String())
+	if err != nil {
+		return nil, err
+	}
+	conn, error := net.DialTCP("tcp", nil, ra)
+	if error != nil {
+		return nil, error
+	}
+
+	conn.SetKeepAlive(true)
+	return conn, nil
+}
+
 func NewMgoApi(config *Configuration) (*MgoApi, error) {
-	session, err := mgo.DialWithTimeout(config.Mongos, time.Duration(5*time.Second))
+	info := mgo.DialInfo{
+		Timeout: 5*time.Second,
+		Addrs: strings.Split(config.Mongos, ","),
+		DialServer: tcpDialServer,
+	}
+	session, err := mgo.DialWithInfo(&info);
 	if err != nil {
 		return nil, err
 	}
