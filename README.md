@@ -7,9 +7,9 @@ The same data can then be read from here just like from the original CMS.__
 
 You need [Go to be installed](https://golang.org/doc/install). Please read about Go and about [How to Write Go Code](https://golang.org/doc/code.html) before jumping right in. For example you will need Git, Mercurial, Bazaar installed and working, so that Go can use them to retrieve dependencies. For this additionally you will also need a computer etc. Hope this helps.
 
-for the first time: `go get git.svc.ft.com/scm/cp/nativerw.git` or update: `go get -u git.svc.ft.com/scm/cp/nativerw.git`
+for the first time: `go get github.com/Financial-Times/nativerw` or update: `go get -u github.com/Financial-Times/nativerw`
 	
-`go install git.svc.ft.com/scm/cp/nativerw.git`
+`go install github.com/Financial-Times/nativerw`
 
 ###Building docker
 
@@ -20,11 +20,11 @@ docker build -t coco/nativerw .
 
 ## Running
 
-`$GOPATH/bin/nativerw.git $GOPATH/src/git.svc.ft.com/scm/cp/nativerw.git/config.json`
+`$GOPATH/bin/nativerw.git $GOPATH/src/github.com/Financial-Times/nativerw/config.json`
 
 You can override the mongos with -mongos flag, e.g.
 
-`$GOPATH/bin/nativerw.git -mongos=mongo1:port,mongo2:port $GOPATH/src/git.svc.ft.com/scm/cp/nativerw.git/config.json`
+`$GOPATH/bin/nativerw.git -mongos=mongo1:port,mongo2:port $GOPATH/src/github.com/Financial-Times/nativerw/config.json`
 
 ## Try it!
 
