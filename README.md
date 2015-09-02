@@ -20,11 +20,11 @@ docker build -t coco/nativerw .
 
 ## Running
 
-`$GOPATH/bin/nativerw.git $GOPATH/src/github.com/Financial-Times/nativerw/config.json`
+`$GOPATH/bin/nativerw $GOPATH/src/github.com/Financial-Times/nativerw/config.json`
 
 You can override the mongos with -mongos flag, e.g.
 
-`$GOPATH/bin/nativerw.git -mongos=mongo1:port,mongo2:port $GOPATH/src/github.com/Financial-Times/nativerw/config.json`
+`$GOPATH/bin/nativerw -mongos=mongo1:port,mongo2:port $GOPATH/src/github.com/Financial-Times/nativerw/config.json`
 
 ## Try it!
 
