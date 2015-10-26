@@ -1,12 +1,12 @@
 package main
 
 import (
-	"code.google.com/p/go-uuid/uuid"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
-	"time"
+	"github.com/pborman/uuid"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 	"net"
 	"strings"
+	"time"
 )
 
 const uuidName = "uuid"
@@ -33,17 +33,17 @@ func tcpDialServer(addr *mgo.ServerAddr) (net.Conn, error) {
 		return nil, error
 	}
 	conn.SetKeepAlive(true)
-	conn.SetKeepAlivePeriod(30*time.Second)
+	conn.SetKeepAlivePeriod(30 * time.Second)
 	return conn, nil
 }
 
 func NewMgoApi(config *Configuration) (*MgoApi, error) {
 	info := mgo.DialInfo{
-		Timeout: 5*time.Second,
-		Addrs: strings.Split(config.Mongos, ","),
+		Timeout:    5 * time.Second,
+		Addrs:      strings.Split(config.Mongos, ","),
 		DialServer: tcpDialServer,
 	}
-	session, err := mgo.DialWithInfo(&info);
+	session, err := mgo.DialWithInfo(&info)
 	if err != nil {
 		return nil, err
 	}
