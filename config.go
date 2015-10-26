@@ -7,14 +7,14 @@ import (
 )
 
 type Server struct {
-	Port string `json: port`
+	Port string `json:"port"`
 }
 
 type Configuration struct {
-	Mongos      string	 `json: mongos`
-	DbName      string   `json: dbName`
-	Server      Server   `json: server`
-	Collections []string `json: collections`
+	Mongos      string   `json:"mongos"`
+	DbName      string   `json:"dbName"`
+	Server      Server   `json:"server"`
+	Collections []string `json:"collections"`
 }
 
 func readConfigFromReader(r io.Reader) (c *Configuration, e error) {
