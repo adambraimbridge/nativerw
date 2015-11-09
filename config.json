@@ -4,5 +4,5 @@
 	  "port" : "8080"
 	},
 	"dbName" : "native-store",
-  	"collections" : ["methode"]
+  	"collections" : ["methode","wordpress"]
 }
