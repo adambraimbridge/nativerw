@@ -48,12 +48,17 @@ func NewMgoApi(config *Configuration) (*MgoApi, error) {
 		return nil, err
 	}
 	session.SetMode(mgo.Strong, true)
+	collections := createMapWithAllowedCollections(config.Collections)
 
-	var collections = make(map[string]bool)
-	for _, coll := range config.Collections {
-		collections[coll] = true
-	}
 	return &MgoApi{config.DbName, session, collections}, nil
+}
+
+func createMapWithAllowedCollections(collections []string) (map[string]bool){
+	var collectionMap = make(map[string]bool)
+	for _, coll := range collections {
+		collectionMap[coll] = true
+	}
+	return collectionMap
 }
 
 func (ma *MgoApi) EnsureIndex() {

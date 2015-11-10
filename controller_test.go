@@ -8,13 +8,8 @@ import (
 
 func TestValidateAccess(t *testing.T) {
 
-	config := Configuration{
-		Collections:[]string{"methode", "wordpress"},
-		Mongos: "localhost:27017",
-		DbName: "dbname",
-		Server: Server{Port:"port"},
-	}
-	api, _ := NewMgoApi(&config)
+	collectionMappings := createMapWithAllowedCollections([]string{"methode", "wordpress"})
+	api := &MgoApi{"", nil, collectionMappings}
 
 	var tests = []struct {
 		collectionId  string
