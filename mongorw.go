@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/pborman/uuid"
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 	"net"
 	"strings"
 	"time"
+
+	"github.com/pborman/uuid"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 const uuidName = "uuid"
@@ -53,7 +54,7 @@ func NewMgoApi(config *Configuration) (*MgoApi, error) {
 	return &MgoApi{config.DbName, session, collections}, nil
 }
 
-func createMapWithAllowedCollections(collections []string) (map[string]bool){
+func createMapWithAllowedCollections(collections []string) map[string]bool {
 	var collectionMap = make(map[string]bool)
 	for _, coll := range collections {
 		collectionMap[coll] = true
@@ -119,4 +120,29 @@ func (ma *MgoApi) Read(collection string, uuidString string) (found bool, resour
 	}
 
 	return true, resource, nil
+}
+
+func (ma *MgoApi) Ids(collection string, stopChan chan struct{}) (chan string, error) {
+	ids := make(chan string)
+	go func() {
+		defer close(ids)
+		newSession := ma.session.Copy()
+		defer newSession.Close()
+
+		coll := newSession.DB(ma.dbName).C(collection)
+
+		iter := coll.Find(nil).Select(bson.M{uuidName: true}).Iter()
+		var result map[string]interface{}
+		for iter.Next(&result) {
+			select {
+			case <-stopChan:
+				break
+			case ids <- uuid.UUID(result["uuid"].(bson.Binary).Data).String():
+			}
+		}
+		if err := iter.Close(); err != nil {
+			panic(err)
+		}
+	}()
+	return ids, nil
 }

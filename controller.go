@@ -3,15 +3,16 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"regexp"
-	"errors"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 const txHeaderKey = "X-Request-Id"
@@ -19,6 +20,7 @@ const txHeaderKey = "X-Request-Id"
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 const txHeaderLength = 20
+
 var uuidRegexp = regexp.MustCompile("^[a-z0-9]{8}-[a-z0-9]{4}-[1-5][a-z0-9]{3}-[a-z0-9]{4}-[a-z0-9]{12}$")
 
 func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
@@ -37,7 +39,7 @@ func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
 	found, resource, err := ma.Read(collection, resourceId)
 	if err != nil {
 		msg := fmt.Sprintf("Reading from mongoDB failed.\n%v\n", err.Error())
-        ctxlogger.error(msg)
+		ctxlogger.error(msg)
 		http.Error(writer, msg, http.StatusInternalServerError)
 		return
 	}
@@ -68,6 +70,35 @@ func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
 		http.Error(writer, msg, http.StatusInternalServerError)
 	} else {
 		ctxlogger.info(fmt.Sprintf("Read native content. resource_id: %+v", resourceId))
+	}
+}
+
+func (ma *MgoApi) getIds(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	coll := vars["collection"]
+	ctxLogger := TxCombinedLogger{logger, obtainTxId(r)}
+
+	if err := ma.validateAccessForCollection(coll); err != nil {
+		msg := fmt.Sprintf("Invalid collectionId (%v).\n%v", coll, err)
+		ctxLogger.info(msg)
+		http.Error(w, msg, http.StatusBadRequest)
+		return
+	}
+
+	enc := json.NewEncoder(w)
+	stop := make(chan struct{})
+	defer close(stop)
+	all, err := ma.Ids(coll, stop)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	id := struct {
+		ID string `json:"id"`
+	}{}
+	for docId := range all {
+		id.ID = docId
+		enc.Encode(id)
 	}
 }
 
@@ -132,6 +163,13 @@ func (mgoApi *MgoApi) validateAccess(collectionId, resourceId string) error {
 		return nil
 	}
 	return errors.New("Collection not supported or resourceId not a valid uuid.")
+}
+
+func (mgoApi *MgoApi) validateAccessForCollection(collectionId string) error {
+	if mgoApi.collections[collectionId] {
+		return nil
+	}
+	return errors.New("Collection not supported.")
 }
 
 type inMapper func(io.Reader) (interface{}, error)

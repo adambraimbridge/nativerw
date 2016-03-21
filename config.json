@@ -1,7 +1,7 @@
 {
 	"mongos" : "localhost:27017",
     "server": {
-	  "port" : "8080"
+	  "port" : "9090"
 	},
 	"dbName" : "native-store",
   	"collections" : ["methode","wordpress","v1-metadata"]
