@@ -3,9 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-        fthealth "github.com/Financial-Times/go-fthealth"
-	"github.com/gorilla/mux"
 	"net/http"
+
+	fthealth "github.com/Financial-Times/go-fthealth"
+	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -25,8 +26,8 @@ func main() {
 		logger.error(fmt.Sprintf("Error reading the configuration: %+v\n", configErr.Error()))
 		return
 	}
-	if (len(*mongos) != 0) {
-		config.Mongos = *mongos;
+	if len(*mongos) != 0 {
+		config.Mongos = *mongos
 	}
 
 	mgoApi, mgoApiCreationErr := NewMgoApi(config)
@@ -38,6 +39,7 @@ func main() {
 
 	router := mux.NewRouter()
 	http.Handle("/", accessLoggingHandler{router})
+	router.HandleFunc("/{collection}/__ids", mgoApi.getIds).Methods("GET")
 	router.HandleFunc("/{collection}/{resource}", mgoApi.readContent).Methods("GET")
 	router.HandleFunc("/{collection}/{resource}", mgoApi.writeContent).Methods("PUT")
 	router.HandleFunc("/__health", fthealth.Handler("Dependent services healthcheck",
