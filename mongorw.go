@@ -69,6 +69,7 @@ func (ma *MgoApi) EnsureIndex() {
 	index := mgo.Index{
 		Key:        []string{"uuid"},
 		Background: true,
+		Unique:     true,
 	}
 
 	for coll, _ := range ma.collections {
