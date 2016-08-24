@@ -13,6 +13,7 @@ RUN apk add --update bash \
   && go get -t ./... \
   && go build \
   && mv nativerw /nativerw-app \
+  && mv config.json /config.json \
   && apk del go git bzr \
   && rm -rf $GOPATH /var/cache/apk/*
 
