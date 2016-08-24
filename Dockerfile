@@ -1,6 +1,7 @@
 FROM alpine:3.3
 
 ADD *.go /nativerw/
+ADD config.json /nativerw/
 
 RUN apk add --update bash \
   && apk --update add git bzr \
