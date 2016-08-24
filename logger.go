@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"net/http"
 )
 
 type CombinedLogger interface {
@@ -25,8 +24,6 @@ type simpleCombinedLogger struct {
 func (l simpleCombinedLogger) info(msg string) {
 	l.Info.Println(msg)
 }
-
-//l.Info.Println(fmt.Sprintf("transaction_id: %+v - %+v", txId, msg));
 
 func (l simpleCombinedLogger) warn(msg string) {
 	l.Warning.Println(msg)
@@ -82,22 +79,4 @@ func (l TxCombinedLogger) Write(p []byte) (int, error) {
 	msg := string(p)
 	l.access(msg)
 	return len(msg), nil
-}
-
-func logDummyInfo(writer http.ResponseWriter, req *http.Request) {
-	defer req.Body.Close()
-	ctxlogger := TxCombinedLogger{logger, obtainTxId(req)}
-	ctxlogger.info("dummy log")
-}
-
-func logDummyWarn(writer http.ResponseWriter, req *http.Request) {
-	defer req.Body.Close()
-	ctxlogger := TxCombinedLogger{logger, obtainTxId(req)}
-	ctxlogger.warn("dummy log")
-}
-
-func logDummyError(writer http.ResponseWriter, req *http.Request) {
-	defer req.Body.Close()
-	ctxlogger := TxCombinedLogger{logger, obtainTxId(req)}
-	ctxlogger.error("dummy log")
 }
