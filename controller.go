@@ -21,20 +21,20 @@ const txHeaderLength = 20
 
 var uuidRegexp = regexp.MustCompile("^[a-z0-9]{8}-[a-z0-9]{4}-[1-5][a-z0-9]{3}-[a-z0-9]{4}-[a-z0-9]{12}$")
 
-func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
+func (ma *mgoAPI) readContent(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
-	resourceId := vars["resource"]
+	resourceID := vars["resource"]
 	collection := vars["collection"]
-	ctxlogger := TxCombinedLogger{logger, obtainTxId(req)}
+	ctxlogger := txCombinedLogger{logger, obtainTxID(req)}
 
-	if err := ma.validateAccess(collection, resourceId); err != nil {
-		msg := fmt.Sprintf("Invalid collectionId (%v) or resourceId (%v).\n%v", collection, resourceId, err)
+	if err := ma.validateAccess(collection, resourceID); err != nil {
+		msg := fmt.Sprintf("Invalid collectionId (%v) or resourceId (%v).\n%v", collection, resourceID, err)
 		ctxlogger.info(msg)
 		http.Error(writer, msg, http.StatusBadRequest)
 		return
 	}
 
-	found, resource, err := ma.Read(collection, resourceId)
+	found, resource, err := ma.Read(collection, resourceID)
 	if err != nil {
 		msg := fmt.Sprintf("Reading from mongoDB failed.\n%v\n", err.Error())
 		ctxlogger.error(msg)
@@ -42,7 +42,7 @@ func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 	if !found {
-		msg := fmt.Sprintf("Resource not found. collection: %v, id: %v", collection, resourceId)
+		msg := fmt.Sprintf("Resource not found. collection: %v, id: %v", collection, resourceID)
 		ctxlogger.warn(msg)
 
 		writer.Header().Add("Content-Type", "application/json")
@@ -56,25 +56,25 @@ func (ma *MgoApi) readContent(writer http.ResponseWriter, req *http.Request) {
 
 	om := outMappers[resource.ContentType]
 	if om == nil {
-		msg := fmt.Sprintf("Unable to handle resource of type %T. resourceId: %v, resource: %v", resource, resourceId, resource)
+		msg := fmt.Sprintf("Unable to handle resource of type %T. resourceId: %v, resource: %v", resource, resourceID, resource)
 		ctxlogger.warn(msg)
 		http.Error(writer, msg, http.StatusNotImplemented)
 		return
 	}
 	err = om(writer, resource)
 	if err != nil {
-		msg := fmt.Sprintf("Unable to extract native content from resource with id %v. %v", resourceId, err.Error())
+		msg := fmt.Sprintf("Unable to extract native content from resource with id %v. %v", resourceID, err.Error())
 		ctxlogger.warn(msg)
 		http.Error(writer, msg, http.StatusInternalServerError)
 	} else {
-		ctxlogger.info(fmt.Sprintf("Read native content. resource_id: %+v", resourceId))
+		ctxlogger.info(fmt.Sprintf("Read native content. resource_id: %+v", resourceID))
 	}
 }
 
-func (ma *MgoApi) getIds(w http.ResponseWriter, r *http.Request) {
+func (ma *mgoAPI) getIds(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	coll := vars["collection"]
-	ctxLogger := TxCombinedLogger{logger, obtainTxId(r)}
+	ctxLogger := txCombinedLogger{logger, obtainTxID(r)}
 
 	if err := ma.validateAccessForCollection(coll); err != nil {
 		msg := fmt.Sprintf("Invalid collectionId (%v).\n%v", coll, err)
@@ -94,34 +94,34 @@ func (ma *MgoApi) getIds(w http.ResponseWriter, r *http.Request) {
 	id := struct {
 		ID string `json:"id"`
 	}{}
-	for docId := range all {
-		id.ID = docId
+	for docID := range all {
+		id.ID = docID
 		enc.Encode(id)
 	}
 }
 
-type outMapper func(io.Writer, Resource) error
+type outMapper func(io.Writer, resource) error
 
 var outMappers = map[string]outMapper{
-	"application/json": func(w io.Writer, resource Resource) error {
+	"application/json": func(w io.Writer, resource resource) error {
 		encoder := json.NewEncoder(w)
 		return encoder.Encode(resource.Content)
 	},
-	"application/octet-stream": func(w io.Writer, resource Resource) error {
+	"application/octet-stream": func(w io.Writer, resource resource) error {
 		data := resource.Content.([]byte)
 		_, err := io.Copy(w, bytes.NewReader(data))
 		return err
 	},
 }
 
-func (mgoApi *MgoApi) writeContent(writer http.ResponseWriter, req *http.Request) {
+func (ma *mgoAPI) writeContent(writer http.ResponseWriter, req *http.Request) {
 	defer req.Body.Close()
-	collectionId := mux.Vars(req)["collection"]
-	resourceId := mux.Vars(req)["resource"]
-	ctxlogger := TxCombinedLogger{logger, obtainTxId(req)}
+	collectionID := mux.Vars(req)["collection"]
+	resourceID := mux.Vars(req)["resource"]
+	ctxlogger := txCombinedLogger{logger, obtainTxID(req)}
 
-	if err := mgoApi.validateAccess(collectionId, resourceId); err != nil {
-		msg := fmt.Sprintf("Invalid collectionId (%v) or resourceId (%v).\n%v", collectionId, resourceId, err)
+	if err := ma.validateAccess(collectionID, resourceID); err != nil {
+		msg := fmt.Sprintf("Invalid collectionId (%v) or resourceId (%v).\n%v", collectionID, resourceID, err)
 		ctxlogger.info(msg)
 		http.Error(writer, msg, http.StatusBadRequest)
 		return
@@ -144,27 +144,27 @@ func (mgoApi *MgoApi) writeContent(writer http.ResponseWriter, req *http.Request
 		return
 	}
 
-	wrappedContent := wrap(content, resourceId, contentType)
+	wrappedContent := wrap(content, resourceID, contentType)
 
-	if err := mgoApi.Write(collectionId, wrappedContent); err != nil {
+	if err := ma.Write(collectionID, wrappedContent); err != nil {
 		msg := fmt.Sprintf("Writing to mongoDB failed:\n%v\n", err)
 		ctxlogger.error(msg)
 		http.Error(writer, msg, http.StatusInternalServerError)
 		return
-	} else {
-		ctxlogger.info(fmt.Sprintf("Written native content. resource_id: %+v", resourceId))
 	}
+
+	ctxlogger.info(fmt.Sprintf("Written native content. resource_id: %+v", resourceID))
 }
 
-func (mgoApi *MgoApi) validateAccess(collectionId, resourceId string) error {
-	if mgoApi.collections[collectionId] && uuidRegexp.MatchString(resourceId) {
+func (ma *mgoAPI) validateAccess(collectionID, resourceID string) error {
+	if ma.collections[collectionID] && uuidRegexp.MatchString(resourceID) {
 		return nil
 	}
 	return errors.New("Collection not supported or resourceId not a valid uuid.")
 }
 
-func (mgoApi *MgoApi) validateAccessForCollection(collectionId string) error {
-	if mgoApi.collections[collectionId] {
+func (ma *mgoAPI) validateAccessForCollection(collectionID string) error {
+	if ma.collections[collectionID] {
 		return nil
 	}
 	return errors.New("Collection not supported.")
@@ -183,20 +183,20 @@ var inMappers = map[string]inMapper{
 	},
 }
 
-func wrap(content interface{}, resourceId, contentType string) Resource {
-	return Resource{
-		UUID:        resourceId,
+func wrap(content interface{}, resourceID, contentType string) resource {
+	return resource{
+		UUID:        resourceID,
 		Content:     content,
 		ContentType: contentType,
 	}
 }
 
-func obtainTxId(req *http.Request) string {
-	txId := req.Header.Get(txHeaderKey)
-	if txId == "" {
+func obtainTxID(req *http.Request) string {
+	txID := req.Header.Get(txHeaderKey)
+	if txID == "" {
 		return randSeq(txHeaderLength)
 	}
-	return txId
+	return txID
 }
 
 func randSeq(n int) string {

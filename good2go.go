@@ -2,7 +2,7 @@ package main
 
 import "net/http"
 
-func (ma *MgoApi) goodToGo(writer http.ResponseWriter, req *http.Request) {
+func (ma *mgoAPI) goodToGo(writer http.ResponseWriter, req *http.Request) {
 	healthChecks := []func() error{ma.checkReadable, ma.checkWritable}
 
 	for _, hCheck := range healthChecks {

@@ -4,13 +4,13 @@ import fthealth "github.com/Financial-Times/go-fthealth"
 
 const healthcheckColl = "healthcheck"
 
-var sampleResource = Resource{
+var sampleResource = resource{
 	UUID:        "cda5d6a9-cd25-4d76-8bad-9eaa35e85f4a",
 	ContentType: "application/json",
 	Content:     "{\"foo\": [\"a\",\"b\"], \"bar\": 10.4}",
 }
 
-func (m *MgoApi) writeHealthCheck() fthealth.Check {
+func (m *mgoAPI) writeHealthCheck() fthealth.Check {
 	return fthealth.Check{
 		BusinessImpact:   "Publishing won't work. Writing content to native store is broken.",
 		Name:             "Write to mongoDB",
@@ -21,13 +21,13 @@ func (m *MgoApi) writeHealthCheck() fthealth.Check {
 	}
 }
 
-func (m *MgoApi) checkWritable() error {
+func (m *mgoAPI) checkWritable() error {
 	return m.Write(healthcheckColl, sampleResource)
 }
 
 var sampleUUID = "cda5d6a9-cd25-4d76-8bad-9eaa35e85f4a"
 
-func (m *MgoApi) readHealthCheck() fthealth.Check {
+func (m *mgoAPI) readHealthCheck() fthealth.Check {
 	return fthealth.Check{
 		BusinessImpact:   "Reading content from native store is broken.",
 		Name:             "Read from mongoDB",
@@ -38,7 +38,7 @@ func (m *MgoApi) readHealthCheck() fthealth.Check {
 	}
 }
 
-func (m *MgoApi) checkReadable() error {
+func (m *mgoAPI) checkReadable() error {
 	_, _, err := m.Read(healthcheckColl, sampleUUID)
 	return err
 }

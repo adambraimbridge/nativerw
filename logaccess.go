@@ -1,9 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"time"
-	"fmt"
 )
 
 type accessLoggingHandler struct {
@@ -12,7 +12,7 @@ type accessLoggingHandler struct {
 
 func (h accessLoggingHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	t1 := time.Now()
-	ctxlogger := TxCombinedLogger{logger, obtainTxId(req)}
+	ctxlogger := txCombinedLogger{logger, obtainTxID(req)}
 	var loggingWriter = &responseLogger{w: w}
 
 	h.underlyingHandler.ServeHTTP(loggingWriter, req)

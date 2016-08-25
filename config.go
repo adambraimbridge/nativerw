@@ -6,19 +6,19 @@ import (
 	"os"
 )
 
-type Server struct {
+type server struct {
 	Port string `json:"port"`
 }
 
-type Configuration struct {
+type configuration struct {
 	Mongos      string   `json:"mongos"`
 	DbName      string   `json:"dbName"`
-	Server      Server   `json:"server"`
+	Server      server   `json:"server"`
 	Collections []string `json:"collections"`
 }
 
-func readConfigFromReader(r io.Reader) (c *Configuration, e error) {
-	c = new(Configuration)
+func readConfigFromReader(r io.Reader) (c *configuration, e error) {
+	c = new(configuration)
 
 	decoder := json.NewDecoder(r)
 	e = decoder.Decode(c)
@@ -29,7 +29,7 @@ func readConfigFromReader(r io.Reader) (c *Configuration, e error) {
 	return
 }
 
-func readConfig(confPath string) (c *Configuration, e error) {
+func readConfig(confPath string) (c *configuration, e error) {
 	file, fErr := os.Open(confPath)
 	defer file.Close()
 	if fErr != nil {
