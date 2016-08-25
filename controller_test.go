@@ -1,19 +1,19 @@
 package main
 
 import (
+	"errors"
 	"reflect"
 	"testing"
-	"errors"
 )
 
 func TestValidateAccess(t *testing.T) {
 
 	collectionMappings := createMapWithAllowedCollections([]string{"methode", "wordpress"})
-	api := &MgoApi{"", nil, collectionMappings}
+	api := &mgoAPI{"", nil, collectionMappings}
 
 	var tests = []struct {
-		collectionId  string
-		resourceId    string
+		collectionID  string
+		resourceID    string
 		expectedError error
 	}{
 		{
@@ -34,9 +34,9 @@ func TestValidateAccess(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actual_err := api.validateAccess(test.collectionId, test.resourceId)
-		if (actual_err != test.expectedError && actual_err.Error() != test.expectedError.Error()) {
-			t.Errorf("Expected: %v\n, Actual: %v", test.expectedError, actual_err)
+		actualError := api.validateAccess(test.collectionID, test.resourceID)
+		if actualError != test.expectedError && actualError.Error() != test.expectedError.Error() {
+			t.Errorf("Expected: %v\n, Actual: %v", test.expectedError, actualError)
 		}
 	}
 }
@@ -47,7 +47,7 @@ func TestWrap(t *testing.T) {
 		resource     map[string]interface{}
 		uuid         string
 		contentType  string
-		wantResource Resource
+		wantResource resource
 	}{
 		{
 			map[string]interface{}{
@@ -57,7 +57,7 @@ func TestWrap(t *testing.T) {
 			},
 			"9694733e-163a-4393-801f-000ab7de5041",
 			"application/json",
-			Resource{
+			resource{
 				UUID: "9694733e-163a-4393-801f-000ab7de5041",
 				Content: map[string]interface{}{
 					"title":  "Title",
