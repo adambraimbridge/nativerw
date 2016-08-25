@@ -12,13 +12,13 @@ import (
 
 const uuidName = "uuid"
 
-type Resource struct {
+type resource struct {
 	UUID        string
 	Content     interface{}
 	ContentType string
 }
 
-type MgoApi struct {
+type mgoAPI struct {
 	dbName      string
 	session     *mgo.Session
 	collections map[string]bool
@@ -38,7 +38,7 @@ func tcpDialServer(addr *mgo.ServerAddr) (net.Conn, error) {
 	return conn, nil
 }
 
-func NewMgoApi(config *Configuration) (*MgoApi, error) {
+func newMgoAPI(config *configuration) (*mgoAPI, error) {
 	info := mgo.DialInfo{
 		Timeout:    5 * time.Second,
 		Addrs:      strings.Split(config.Mongos, ","),
@@ -51,7 +51,7 @@ func NewMgoApi(config *Configuration) (*MgoApi, error) {
 	session.SetMode(mgo.Strong, true)
 	collections := createMapWithAllowedCollections(config.Collections)
 
-	return &MgoApi{config.DbName, session, collections}, nil
+	return &mgoAPI{config.DbName, session, collections}, nil
 }
 
 func createMapWithAllowedCollections(collections []string) map[string]bool {
@@ -62,7 +62,7 @@ func createMapWithAllowedCollections(collections []string) map[string]bool {
 	return collectionMap
 }
 
-func (ma *MgoApi) EnsureIndex() {
+func (ma *mgoAPI) EnsureIndex() {
 	newSession := ma.session.Copy()
 	defer newSession.Close()
 
@@ -72,12 +72,12 @@ func (ma *MgoApi) EnsureIndex() {
 		Unique:     true,
 	}
 
-	for coll, _ := range ma.collections {
+	for coll := range ma.collections {
 		newSession.DB(ma.dbName).C(coll).EnsureIndex(index)
 	}
 }
 
-func (ma *MgoApi) Write(collection string, resource Resource) error {
+func (ma *mgoAPI) Write(collection string, resource resource) error {
 	newSession := ma.session.Copy()
 	defer newSession.Close()
 
@@ -95,7 +95,7 @@ func (ma *MgoApi) Write(collection string, resource Resource) error {
 	return err
 }
 
-func (ma *MgoApi) Read(collection string, uuidString string) (found bool, resource Resource, err error) {
+func (ma *mgoAPI) Read(collection string, uuidString string) (found bool, res resource, err error) {
 	newSession := ma.session.Copy()
 	defer newSession.Close()
 
@@ -107,23 +107,23 @@ func (ma *MgoApi) Read(collection string, uuidString string) (found bool, resour
 
 	if err = coll.Find(bson.M{uuidName: bsonUUID}).One(&bsonResource); err != nil {
 		if err == mgo.ErrNotFound {
-			return false, resource, nil
+			return false, res, nil
 		}
-		return false, resource, err
+		return false, res, err
 	}
 
 	uuidData := bsonResource["uuid"].(bson.Binary).Data
 
-	resource = Resource{
+	res = resource{
 		UUID:        uuid.UUID(uuidData).String(),
 		Content:     bsonResource["content"],
 		ContentType: bsonResource["content-type"].(string),
 	}
 
-	return true, resource, nil
+	return true, res, nil
 }
 
-func (ma *MgoApi) Ids(collection string, stopChan chan struct{}) (chan string, error) {
+func (ma *mgoAPI) Ids(collection string, stopChan chan struct{}) (chan string, error) {
 	ids := make(chan string)
 	go func() {
 		defer close(ids)

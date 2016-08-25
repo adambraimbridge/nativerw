@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 	"net/http"
+	"os"
 )
 
-type CombinedLogger interface {
+type combinedLogger interface {
 	info(msg string)
 	warn(msg string)
 	error(msg string)
@@ -46,7 +46,7 @@ func (l simpleCombinedLogger) Write(p []byte) (int, error) {
 	return len(msg), nil
 }
 
-var logger CombinedLogger
+var logger combinedLogger
 
 func initLoggers() {
 	logger = simpleCombinedLogger{
@@ -57,28 +57,28 @@ func initLoggers() {
 	}
 }
 
-type TxCombinedLogger struct {
-	wrapped CombinedLogger
-	txId    string
+type txCombinedLogger struct {
+	wrapped combinedLogger
+	txID    string
 }
 
-func (l TxCombinedLogger) info(msg string) {
-	l.wrapped.info(fmt.Sprintf("transaction_id=%+v - %+v", l.txId, msg))
+func (l txCombinedLogger) info(msg string) {
+	l.wrapped.info(fmt.Sprintf("transaction_id=%+v - %+v", l.txID, msg))
 }
 
-func (l TxCombinedLogger) warn(msg string) {
-	l.wrapped.warn(fmt.Sprintf("transaction_id=%+v - %+v", l.txId, msg))
+func (l txCombinedLogger) warn(msg string) {
+	l.wrapped.warn(fmt.Sprintf("transaction_id=%+v - %+v", l.txID, msg))
 }
 
-func (l TxCombinedLogger) error(msg string) {
-	l.wrapped.error(fmt.Sprintf("transaction_id=%+v - %+v", l.txId, msg))
+func (l txCombinedLogger) error(msg string) {
+	l.wrapped.error(fmt.Sprintf("transaction_id=%+v - %+v", l.txID, msg))
 }
 
-func (l TxCombinedLogger) access(msg string) {
-	l.wrapped.access(fmt.Sprintf("transaction_id=%+v - %+v", l.txId, msg))
+func (l txCombinedLogger) access(msg string) {
+	l.wrapped.access(fmt.Sprintf("transaction_id=%+v - %+v", l.txID, msg))
 }
 
-func (l TxCombinedLogger) Write(p []byte) (int, error) {
+func (l txCombinedLogger) Write(p []byte) (int, error) {
 	msg := string(p)
 	l.access(msg)
 	return len(msg), nil
@@ -86,18 +86,18 @@ func (l TxCombinedLogger) Write(p []byte) (int, error) {
 
 func logDummyInfo(writer http.ResponseWriter, req *http.Request) {
 	defer req.Body.Close()
-	ctxlogger := TxCombinedLogger{logger, obtainTxId(req)}
+	ctxlogger := txCombinedLogger{logger, obtainTxID(req)}
 	ctxlogger.info("dummy log")
 }
 
 func logDummyWarn(writer http.ResponseWriter, req *http.Request) {
 	defer req.Body.Close()
-	ctxlogger := TxCombinedLogger{logger, obtainTxId(req)}
+	ctxlogger := txCombinedLogger{logger, obtainTxID(req)}
 	ctxlogger.warn("dummy log")
 }
 
 func logDummyError(writer http.ResponseWriter, req *http.Request) {
 	defer req.Body.Close()
-	ctxlogger := TxCombinedLogger{logger, obtainTxId(req)}
+	ctxlogger := txCombinedLogger{logger, obtainTxID(req)}
 	ctxlogger.error("dummy log")
 }
