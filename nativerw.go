@@ -33,16 +33,12 @@ func main() {
 	}
 
 	mgoAPI, mgoAPICreationErr := newMgoAPI(config)
-	for {
-		if mgoAPICreationErr != nil {
-			logger.error(fmt.Sprintf("Couldn't establish connection to mongoDB: %+v", mgoAPICreationErr.Error()))
-			time.Sleep(5 * time.Second)
-			mgoAPI, mgoAPICreationErr = newMgoAPI(config)
-		} else {
-			logger.info("Established connection to mongoDB.")
-			break
-		}
+	for mgoAPICreationErr != nil {
+		logger.error(fmt.Sprintf("Couldn't establish connection to mongoDB: %+v", mgoAPICreationErr.Error()))
+		time.Sleep(5 * time.Second)
+		mgoAPI, mgoAPICreationErr = newMgoAPI(config)
 	}
+	logger.info("Established connection to mongoDB.")
 
 	mgoAPI.EnsureIndex()
 
