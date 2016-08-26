@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"os"
+	"time"
 
 	fthealth "github.com/Financial-Times/go-fthealth"
 	"github.com/gorilla/mux"
@@ -18,23 +20,30 @@ func main() {
 
 	if len(flag.Args()) == 0 {
 		logger.error("Missing parameter. Usage: <pathToExecutable>/nativerw <pathToConfigurationFile>\n")
-		return
+		os.Exit(1)
 	}
 
 	config, configErr := readConfig(flag.Arg(0))
 	if configErr != nil {
 		logger.error(fmt.Sprintf("Error reading the configuration: %+v\n", configErr.Error()))
-		return
+		os.Exit(1)
 	}
 	if len(*mongos) != 0 {
 		config.Mongos = *mongos
 	}
 
 	mgoAPI, mgoAPICreationErr := newMgoAPI(config)
-	if mgoAPICreationErr != nil {
-		logger.error(fmt.Sprintf("Couldn't establish connection to mongoDB: %+v\n", mgoAPICreationErr.Error()))
-		return
+	for {
+		if mgoAPICreationErr != nil {
+			logger.error(fmt.Sprintf("Couldn't establish connection to mongoDB: %+v", mgoAPICreationErr.Error()))
+			time.Sleep(5 * time.Second)
+			mgoAPI, mgoAPICreationErr = newMgoAPI(config)
+		} else {
+			logger.info("Established connection to mongoDB.")
+			break
+		}
 	}
+
 	mgoAPI.EnsureIndex()
 
 	router := mux.NewRouter()
