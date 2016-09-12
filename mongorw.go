@@ -29,9 +29,9 @@ func tcpDialServer(addr *mgo.ServerAddr) (net.Conn, error) {
 	if err != nil {
 		return nil, err
 	}
-	conn, error := net.DialTCP("tcp", nil, ra)
-	if error != nil {
-		return nil, error
+	conn, err := net.DialTCP("tcp", nil, ra)
+	if err != nil {
+		return nil, err
 	}
 	conn.SetKeepAlive(true)
 	conn.SetKeepAlivePeriod(30 * time.Second)
