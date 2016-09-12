@@ -61,7 +61,6 @@ func main() {
 		}
 	}
 	err := cliApp.Run(os.Args)
-
 	if err != nil {
 		println(err)
 	}
