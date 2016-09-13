@@ -3,10 +3,13 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
+	"time"
+
 	fthealth "github.com/Financial-Times/go-fthealth"
 	"github.com/gorilla/mux"
 	"github.com/jawher/mow.cli"
-	"os"
+	"github.com/kr/pretty"
 )
 
 func main() {
@@ -29,17 +32,20 @@ func main() {
 		config, configErr := readConfig(*config)
 		if configErr != nil {
 			logger.error(fmt.Sprintf("Error reading the configuration: %+v\n", configErr.Error()))
-			return
+			os.Exit(1)
 		}
 		if len(*mongos) != 0 {
 			config.Mongos = *mongos
 		}
 
+		logger.info(fmt.Sprintf("Using configuration %# v \n", pretty.Formatter(config)))
 		mgoAPI, mgoAPICreationErr := newMgoAPI(config)
-		if mgoAPICreationErr != nil {
-			logger.error(fmt.Sprintf("Couldn't establish connection to mongoDB: %+v\n", mgoAPICreationErr.Error()))
-			return
+		for mgoAPICreationErr != nil {
+			logger.error(fmt.Sprintf("Couldn't establish connection to mongoDB: %+v", mgoAPICreationErr.Error()))
+			time.Sleep(5 * time.Second)
+			mgoAPI, mgoAPICreationErr = newMgoAPI(config)
 		}
+		logger.info("Established connection to mongoDB.")
 		mgoAPI.EnsureIndex()
 
 		router := mux.NewRouter()
