@@ -9,6 +9,7 @@ import (
 	fthealth "github.com/Financial-Times/go-fthealth"
 	"github.com/gorilla/mux"
 	"github.com/jawher/mow.cli"
+	"github.com/kr/pretty"
 )
 
 func main() {
@@ -37,6 +38,7 @@ func main() {
 			config.Mongos = *mongos
 		}
 
+		logger.info(fmt.Sprintf("Using configuration %# v \n", pretty.Formatter(config)))
 		mgoAPI, mgoAPICreationErr := newMgoAPI(config)
 		for mgoAPICreationErr != nil {
 			logger.error(fmt.Sprintf("Couldn't establish connection to mongoDB: %+v", mgoAPICreationErr.Error()))
