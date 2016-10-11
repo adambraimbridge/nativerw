@@ -76,6 +76,16 @@ func (ma *mgoAPI) EnsureIndex() {
 	}
 }
 
+func (ma *mgoAPI) Delete(collection string, uuidString string) error {
+	newSession := ma.session.Copy()
+	defer newSession.Close()
+
+	coll := newSession.DB(ma.dbName).C(collection)
+	bsonUUID := bson.Binary{Kind: 0x04, Data: []byte(uuid.Parse(uuidString))}
+
+	return coll.Remove(bson.D{{uuidName, bsonUUID}})
+}
+
 func (ma *mgoAPI) Write(collection string, resource resource) error {
 	newSession := ma.session.Copy()
 	defer newSession.Close()

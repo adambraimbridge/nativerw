@@ -53,6 +53,7 @@ func main() {
 		router.HandleFunc("/{collection}/__ids", mgoAPI.getIds).Methods("GET")
 		router.HandleFunc("/{collection}/{resource}", mgoAPI.readContent).Methods("GET")
 		router.HandleFunc("/{collection}/{resource}", mgoAPI.writeContent).Methods("PUT")
+		router.HandleFunc("/{collection}/{resource}", mgoAPI.deleteContent).Methods("DELETE")
 		router.HandleFunc("/__health", fthealth.Handler("Dependent services healthcheck",
 			"Checking connectivity and usability of dependent services: mongoDB.",
 			mgoAPI.writeHealthCheck(), mgoAPI.readHealthCheck()))

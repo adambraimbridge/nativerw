@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"net/http"
 	"regexp"
+
 	"github.com/gorilla/mux"
 )
 
@@ -112,6 +113,22 @@ var outMappers = map[string]outMapper{
 		_, err := io.Copy(w, bytes.NewReader(data))
 		return err
 	},
+}
+
+func (ma *mgoAPI) deleteContent(writer http.ResponseWriter, req *http.Request) {
+	defer req.Body.Close()
+	collectionID := mux.Vars(req)["collection"]
+	resourceID := mux.Vars(req)["resource"]
+	ctxlogger := txCombinedLogger{logger, obtainTxID(req)}
+
+	if err := ma.Delete(collectionID, resourceID); err != nil {
+		msg := fmt.Sprintf("Deleting from mongoDB failed:\n%v\n", err)
+		ctxlogger.error(msg)
+		http.Error(writer, msg, http.StatusInternalServerError)
+		return
+	}
+
+	ctxlogger.info(fmt.Sprintf("Delete native content successful. resource_id: %+v", resourceID))
 }
 
 func (ma *mgoAPI) writeContent(writer http.ResponseWriter, req *http.Request) {
