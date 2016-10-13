@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 
@@ -70,10 +69,11 @@ func main() {
 	cliApp := cli.App("nativerw", "Writes any raw content/data from native CMS into S3 without transformation.")
 	s3Bucket := cliApp.String(cli.StringOpt{
 		Name:   "s3bucket",
-		Value:  "com.ft.coco-native-store.prod-uk",
+		Value:  "com.ft.coco-native-store.semantic",
 		Desc:   "S3 bucket of the native store content",
 		EnvVar: "S3_BUCKET",
 	})
+
 	cliApp.Action = func() {
 		initLoggers()
 		logger.info("Starting nativerw app")
@@ -86,7 +86,10 @@ func main() {
 
 		router := mux.NewRouter()
 		http.Handle("/", accessLoggingHandler{router})
-		router.HandleFunc("/__ids", s3api.getIds).Methods("GET")
+		router.HandleFunc("/{collection}/__ids", s3api.getIds).Methods("GET")
+		router.HandleFunc("/{collection}/{uuid}", s3api.readContent).Methods("GET")
+		router.HandleFunc("/{collection}/{uuid}", s3api.writeContent).Methods("PUT")
+		router.HandleFunc("/{collection}/{uuid}", s3api.deleteContent).Methods("DELETE")
 		err = http.ListenAndServe(":8082", nil)
 		if err != nil {
 			logger.error(fmt.Sprintf("Couldn't set up HTTP listener: %+v\n", err))
@@ -97,8 +100,4 @@ func main() {
 	if err != nil {
 		println(err)
 	}
-}
-
-func HelloServer(w http.ResponseWriter, req *http.Request) {
-	io.WriteString(w, "hello, world!\n")
 }
