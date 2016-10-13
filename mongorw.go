@@ -138,7 +138,7 @@ func (ma *mgoAPI) Ids(collection string, stopChan chan struct{}) (chan string, e
 		defer close(ids)
 		newSession := ma.session.Copy()
 		defer newSession.Close()
-
+		newSession.SetSocketTimeout(30 * time.Second)
 		coll := newSession.DB(ma.dbName).C(collection)
 
 		iter := coll.Find(nil).Select(bson.M{uuidName: true}).Iter()
