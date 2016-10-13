@@ -132,7 +132,7 @@ func (ma *mgoAPI) Read(collection string, uuidString string) (found bool, res re
 	return true, res, nil
 }
 
-func (ma *mgoAPI) Ids(collection string, stopChan chan struct{}) (chan string, error) {
+func (ma *mgoAPI) Ids(collection string, stopChan chan struct{}, errChan chan error) chan string {
 	ids := make(chan string)
 	go func() {
 		defer close(ids)
@@ -151,8 +151,8 @@ func (ma *mgoAPI) Ids(collection string, stopChan chan struct{}) (chan string, e
 			}
 		}
 		if err := iter.Close(); err != nil {
-			panic(err)
+			errChan <- err
 		}
 	}()
-	return ids, nil
+	return ids
 }

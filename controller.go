@@ -86,18 +86,28 @@ func (ma *mgoAPI) getIds(w http.ResponseWriter, r *http.Request) {
 
 	enc := json.NewEncoder(w)
 	stop := make(chan struct{})
+	errChan := make(chan error)
 	defer close(stop)
-	all, err := ma.Ids(coll, stop)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	defer close(errChan)
+	all := ma.Ids(coll, stop, errChan)
 	id := struct {
 		ID string `json:"id"`
 	}{}
-	for docID := range all {
-		id.ID = docID
-		enc.Encode(id)
+	for {
+		select {
+		case err := <-errChan:
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+		case docID, ok := <-all:
+		if !ok {
+			return
+		}
+			id.ID = docID
+			enc.Encode(id)
+		}
 	}
 }
 
