@@ -40,7 +40,7 @@ func tcpDialServer(addr *mgo.ServerAddr) (net.Conn, error) {
 
 func newMgoAPI(config *configuration) (*mgoAPI, error) {
 	info := mgo.DialInfo{
-		Timeout:    5 * time.Second,
+		Timeout:    30 * time.Second,
 		Addrs:      strings.Split(config.Mongos, ","),
 		DialServer: tcpDialServer,
 	}
@@ -88,8 +88,6 @@ func (ma *mgoAPI) Delete(collection string, uuidString string) error {
 
 func (ma *mgoAPI) Write(collection string, resource resource) error {
 	newSession := ma.session.Copy()
-	newSession.SetSocketTimeout(30 * time.Second)
-	newSession.SetSyncTimeout(30 * time.Second)
 	defer newSession.Close()
 
 	coll := newSession.DB(ma.dbName).C(collection)
@@ -140,7 +138,6 @@ func (ma *mgoAPI) Ids(collection string, stopChan chan struct{}, errChan chan er
 		defer close(ids)
 		newSession := ma.session.Copy()
 		defer newSession.Close()
-		newSession.SetSocketTimeout(1 * time.Minute)
 		coll := newSession.DB(ma.dbName).C(collection)
 
 		iter := coll.Find(nil).Select(bson.M{uuidName: true}).Iter()
