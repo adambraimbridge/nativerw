@@ -89,6 +89,7 @@ func (ma *mgoAPI) Delete(collection string, uuidString string) error {
 func (ma *mgoAPI) Write(collection string, resource resource) error {
 	newSession := ma.session.Copy()
 	newSession.SetSocketTimeout(30 * time.Second)
+	newSession.SetSyncTimeout(30 * time.Second)
 	defer newSession.Close()
 
 	coll := newSession.DB(ma.dbName).C(collection)
