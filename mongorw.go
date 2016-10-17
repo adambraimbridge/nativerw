@@ -8,6 +8,8 @@ import (
 	"github.com/pborman/uuid"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"reflect"
+	"log"
 )
 
 const uuidName = "uuid"
@@ -89,6 +91,12 @@ func (ma *mgoAPI) Delete(collection string, uuidString string) error {
 func (ma *mgoAPI) Write(collection string, resource resource) error {
 	newSession := ma.session.Copy()
 	defer newSession.Close()
+
+	session := reflect.ValueOf(newSession)
+	syncTimeout := session.FieldByName("syncTimeout")
+	sockTimeout := session.FieldByName("sockTimeout")
+	log.Printf("syncTimeout=%v", syncTimeout)
+	log.Printf("sockTimeout=%v", sockTimeout)
 
 	coll := newSession.DB(ma.dbName).C(collection)
 
