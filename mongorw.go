@@ -92,7 +92,7 @@ func (ma *mgoAPI) Write(collection string, resource resource) error {
 	newSession := ma.session.Copy()
 	defer newSession.Close()
 
-	session := reflect.ValueOf(newSession)
+	session := reflect.ValueOf(*newSession)
 	syncTimeout := session.FieldByName("syncTimeout")
 	sockTimeout := session.FieldByName("sockTimeout")
 	log.Printf("syncTimeout=%v", syncTimeout)
