@@ -8,8 +8,6 @@ import (
 	"github.com/pborman/uuid"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"reflect"
-	"log"
 )
 
 const uuidName = "uuid"
@@ -42,7 +40,7 @@ func tcpDialServer(addr *mgo.ServerAddr) (net.Conn, error) {
 
 func newMgoAPI(config *configuration) (*mgoAPI, error) {
 	info := mgo.DialInfo{
-		Timeout:    30 * time.Second,
+		Timeout:    5 * time.Second,
 		Addrs:      strings.Split(config.Mongos, ","),
 		DialServer: tcpDialServer,
 	}
@@ -90,13 +88,8 @@ func (ma *mgoAPI) Delete(collection string, uuidString string) error {
 
 func (ma *mgoAPI) Write(collection string, resource resource) error {
 	newSession := ma.session.Copy()
+	newSession.SetSocketTimeout(15 * time.Second)
 	defer newSession.Close()
-
-	session := reflect.ValueOf(*newSession)
-	syncTimeout := session.FieldByName("syncTimeout")
-	sockTimeout := session.FieldByName("sockTimeout")
-	log.Printf("syncTimeout=%v", syncTimeout)
-	log.Printf("sockTimeout=%v", sockTimeout)
 
 	coll := newSession.DB(ma.dbName).C(collection)
 
@@ -145,6 +138,7 @@ func (ma *mgoAPI) Ids(collection string, stopChan chan struct{}, errChan chan er
 	go func() {
 		defer close(ids)
 		newSession := ma.session.Copy()
+		newSession.SetSocketTimeout(30 * time.Second)
 		defer newSession.Close()
 		coll := newSession.DB(ma.dbName).C(collection)
 
