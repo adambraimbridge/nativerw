@@ -138,7 +138,7 @@ func (ma *mgoAPI) Ids(collection string, stopChan chan struct{}, errChan chan er
 	go func() {
 		defer close(ids)
 		newSession := ma.session.Copy()
-		newSession.SetSocketTimeout(30 * time.Second)
+		newSession.SetSocketTimeout(2 * time.Minute)
 		defer newSession.Close()
 		coll := newSession.DB(ma.dbName).C(collection)
 
