@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,7 +10,9 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"regexp"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -72,6 +75,12 @@ func (ma *mgoAPI) readContent(writer http.ResponseWriter, req *http.Request) {
 	}
 }
 
+type pagination struct {
+	paginate bool
+	limit    int
+	lastId   string
+}
+
 func (ma *mgoAPI) getIds(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	coll := vars["collection"]
@@ -87,7 +96,16 @@ func (ma *mgoAPI) getIds(w http.ResponseWriter, r *http.Request) {
 	enc := json.NewEncoder(w)
 	stop := make(chan struct{})
 	defer close(stop)
-	all, err := ma.Ids(coll, stop)
+
+	pagination, err := checkPaginationQueryParams(r.URL.Query())
+	if err != nil {
+		msg := fmt.Sprintf("%s.\n", err)
+		ctxLogger.info(msg)
+		http.Error(w, msg, http.StatusBadRequest)
+		return
+	}
+
+	ids, err := ma.Ids(coll, pagination, stop)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -95,10 +113,33 @@ func (ma *mgoAPI) getIds(w http.ResponseWriter, r *http.Request) {
 	id := struct {
 		ID string `json:"id"`
 	}{}
-	for docID := range all {
+	for docID := range ids {
 		id.ID = docID
 		enc.Encode(id)
 	}
+}
+
+func checkPaginationQueryParams(params url.Values) (*pagination, error) {
+	limitAsString := params.Get("limit")
+	lastId := params.Get("lastId")
+
+	if limitAsString != "" {
+		limit, err := strconv.Atoi(limitAsString)
+		if err != nil {
+			return nil, fmt.Errorf("Invalid query parameter limit=%s.\n", limitAsString)
+		}
+		if _, err := hex.DecodeString(lastId); err != nil {
+			return nil, fmt.Errorf("Invalid query parameter lastId=%s.\n", lastId)
+		}
+		return &pagination{
+			paginate: true,
+			limit:    limit,
+			lastId:   lastId,
+		}, nil
+	}
+	return &pagination{
+		paginate: false,
+	}, nil
 }
 
 type outMapper func(io.Writer, resource) error

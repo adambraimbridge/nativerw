@@ -132,16 +132,26 @@ func (ma *mgoAPI) Read(collection string, uuidString string) (found bool, res re
 	return true, res, nil
 }
 
-func (ma *mgoAPI) Ids(collection string, stopChan chan struct{}) (chan string, error) {
+func (ma *mgoAPI) Ids(collection string, pag *pagination, stopChan chan struct{}) (chan string, error) {
 	ids := make(chan string)
 	go func() {
 		defer close(ids)
 		newSession := ma.session.Copy()
+		newSession.SetSocketTimeout(30 * time.Second)
 		defer newSession.Close()
-
 		coll := newSession.DB(ma.dbName).C(collection)
 
-		iter := coll.Find(nil).Select(bson.M{uuidName: true}).Iter()
+		var iter *mgo.Iter
+		if pag.paginate {
+			if pag.lastId != "" {
+				iter = coll.Find(bson.M{"_ids": bson.M{"$gt": pag.lastId}}).Limit(pag.limit).Select(bson.M{uuidName: true}).Iter()
+			} else {
+				iter = coll.Find(nil).Limit(pag.limit).Select(bson.M{uuidName: true}).Iter()
+			}
+		} else {
+			iter = coll.Find(nil).Select(bson.M{uuidName: true}).Iter()
+		}
+
 		var result map[string]interface{}
 		for iter.Next(&result) {
 			select {
