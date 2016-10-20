@@ -102,9 +102,9 @@ func (ma *mgoAPI) getIds(w http.ResponseWriter, r *http.Request) {
 			}
 
 		case docID, ok := <-all:
-		if !ok {
-			return
-		}
+			if !ok {
+				return
+			}
 			id.ID = docID
 			enc.Encode(id)
 		}
