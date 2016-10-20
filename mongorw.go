@@ -88,6 +88,7 @@ func (ma *mgoAPI) Delete(collection string, uuidString string) error {
 
 func (ma *mgoAPI) Write(collection string, resource resource) error {
 	newSession := ma.session.Copy()
+	newSession.SetSocketTimeout(15 * time.Second)
 	defer newSession.Close()
 
 	coll := newSession.DB(ma.dbName).C(collection)
@@ -137,8 +138,8 @@ func (ma *mgoAPI) Ids(collection string, stopChan chan struct{}, errChan chan er
 	go func() {
 		defer close(ids)
 		newSession := ma.session.Copy()
+		newSession.SetSocketTimeout(5 * time.Minute)
 		defer newSession.Close()
-		newSession.SetSocketTimeout(30 * time.Second)
 		coll := newSession.DB(ma.dbName).C(collection)
 
 		iter := coll.Find(nil).Select(bson.M{uuidName: true}).Iter()
