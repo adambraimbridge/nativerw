@@ -62,6 +62,7 @@ func (ma *mgoAPI) readContent(writer http.ResponseWriter, req *http.Request) {
 		http.Error(writer, msg, http.StatusNotImplemented)
 		return
 	}
+
 	err = om(writer, resource)
 	if err != nil {
 		msg := fmt.Sprintf("Unable to extract native content from resource with id %v. %v", resourceID, err.Error())
@@ -115,8 +116,11 @@ type outMapper func(io.Writer, resource) error
 
 var outMappers = map[string]outMapper{
 	"application/json": func(w io.Writer, resource resource) error {
+		mapped := resource.Content.(map[string]interface{})
+		mapped["publishReference"] = resource.PublishReference
+
 		encoder := json.NewEncoder(w)
-		return encoder.Encode(resource.Content)
+		return encoder.Encode(mapped)
 	},
 	"application/octet-stream": func(w io.Writer, resource resource) error {
 		data := resource.Content.([]byte)
@@ -147,6 +151,8 @@ func (ma *mgoAPI) writeContent(writer http.ResponseWriter, req *http.Request) {
 	resourceID := mux.Vars(req)["resource"]
 	ctxlogger := txCombinedLogger{logger, obtainTxID(req)}
 
+	txid := req.Header.Get(txHeaderKey)
+
 	if err := ma.validateAccess(collectionID, resourceID); err != nil {
 		msg := fmt.Sprintf("Invalid collectionId (%v) or resourceId (%v).\n%v", collectionID, resourceID, err)
 		ctxlogger.info(msg)
@@ -171,7 +177,7 @@ func (ma *mgoAPI) writeContent(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	wrappedContent := wrap(content, resourceID, contentType)
+	wrappedContent := wrap(content, resourceID, contentType, txid)
 
 	if err := ma.Write(collectionID, wrappedContent); err != nil {
 		msg := fmt.Sprintf("Writing to mongoDB failed:\n%v\n", err)
@@ -210,11 +216,12 @@ var inMappers = map[string]inMapper{
 	},
 }
 
-func wrap(content interface{}, resourceID, contentType string) resource {
+func wrap(content interface{}, resourceID, contentType string, txid string) resource {
 	return resource{
-		UUID:        resourceID,
-		Content:     content,
-		ContentType: contentType,
+		UUID:             resourceID,
+		Content:          content,
+		ContentType:      contentType,
+		PublishReference: txid,
 	}
 }
 

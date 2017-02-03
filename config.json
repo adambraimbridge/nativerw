@@ -1,8 +1,13 @@
 {
-	"mongos" : "localhost:27017",
-    "server": {
-	  "port" : "8080"
-	},
-	"dbName" : "native-store",
-  	"collections" : ["brightcove", "methode","wordpress","v1-metadata"]
+   "mongos": "192.168.99.100:27017",
+   "server": {
+      "port": "8080"
+   },
+   "dbName": "native-store",
+   "collections": [
+      "brightcove",
+      "methode",
+      "wordpress",
+      "v1-metadata"
+   ]
 }

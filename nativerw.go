@@ -45,19 +45,11 @@ func main() {
 			time.Sleep(5 * time.Second)
 			mgoAPI, mgoAPICreationErr = newMgoAPI(config)
 		}
+
 		logger.info("Established connection to mongoDB.")
 		mgoAPI.EnsureIndex()
 
-		router := mux.NewRouter()
-		http.Handle("/", accessLoggingHandler{router})
-		router.HandleFunc("/{collection}/__ids", mgoAPI.getIds).Methods("GET")
-		router.HandleFunc("/{collection}/{resource}", mgoAPI.readContent).Methods("GET")
-		router.HandleFunc("/{collection}/{resource}", mgoAPI.writeContent).Methods("PUT")
-		router.HandleFunc("/{collection}/{resource}", mgoAPI.deleteContent).Methods("DELETE")
-		router.HandleFunc("/__health", fthealth.Handler("Dependent services healthcheck",
-			"Checking connectivity and usability of dependent services: mongoDB.",
-			mgoAPI.writeHealthCheck(), mgoAPI.readHealthCheck()))
-		router.HandleFunc("/__gtg", mgoAPI.goodToGo)
+		router(mgoAPI)
 		err := http.ListenAndServe(":"+config.Server.Port, nil)
 		if err != nil {
 			logger.error(fmt.Sprintf("Couldn't set up HTTP listener: %+v\n", err))
@@ -67,4 +59,16 @@ func main() {
 	if err != nil {
 		println(err)
 	}
+}
+
+func router(mgoAPI *mgoAPI) *mux.Router {
+	router := mux.NewRouter()
+	http.Handle("/", accessLoggingHandler{router})
+	router.HandleFunc("/{collection}/__ids", mgoAPI.getIds).Methods("GET")
+	router.HandleFunc("/{collection}/{resource}", mgoAPI.readContent).Methods("GET")
+	router.HandleFunc("/{collection}/{resource}", mgoAPI.writeContent).Methods("PUT")
+	router.HandleFunc("/{collection}/{resource}", mgoAPI.deleteContent).Methods("DELETE")
+	router.HandleFunc("/__health", fthealth.Handler("Dependent services healthcheck", "Checking connectivity and usability of dependent services: mongoDB.", mgoAPI.writeHealthCheck(), mgoAPI.readHealthCheck()))
+	router.HandleFunc("/__gtg", mgoAPI.goodToGo)
+	return router
 }
