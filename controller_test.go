@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"errors"
+	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"strings"
@@ -112,7 +113,7 @@ func TestWrite(t *testing.T) {
 	router := router(mongo)
 
 	resp := httptest.NewRecorder()
-	req := httptest.NewRequest("PUT", "/methode/163ccf41-0134-4abc-95cc-7d419591edd6", strings.NewReader(`{"uuid":"163ccf41-0134-4abc-95cc-7d419591edd6", "title": "Donald: In His Own Words"}`))
+	req, _ := http.NewRequest("PUT", "/methode/163ccf41-0134-4abc-95cc-7d419591edd6", strings.NewReader(`{"uuid":"163ccf41-0134-4abc-95cc-7d419591edd6", "title": "Donald: In His Own Words"}`))
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("X-Request-Id", "tid_my-fake-tid")
 
