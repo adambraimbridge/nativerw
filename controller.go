@@ -148,8 +148,6 @@ func (ma *mgoAPI) writeContent(writer http.ResponseWriter, req *http.Request) {
 	resourceID := mux.Vars(req)["resource"]
 	ctxlogger := txCombinedLogger{logger, obtainTxID(req)}
 
-	txid := req.Header.Get(txHeaderKey)
-
 	if err := ma.validateAccess(collectionID, resourceID); err != nil {
 		msg := fmt.Sprintf("Invalid collectionId (%v) or resourceId (%v).\n%v", collectionID, resourceID, err)
 		ctxlogger.info(msg)
@@ -174,7 +172,7 @@ func (ma *mgoAPI) writeContent(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	wrappedContent := wrap(content, resourceID, contentType, txid)
+	wrappedContent := wrap(content, resourceID, contentType)
 
 	if err := ma.Write(collectionID, wrappedContent); err != nil {
 		msg := fmt.Sprintf("Writing to mongoDB failed:\n%v\n", err)
@@ -213,7 +211,7 @@ var inMappers = map[string]inMapper{
 	},
 }
 
-func wrap(content interface{}, resourceID, contentType string, txid string) resource {
+func wrap(content interface{}, resourceID, contentType string) resource {
 	return resource{
 		UUID:        resourceID,
 		Content:     content,
