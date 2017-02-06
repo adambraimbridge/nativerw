@@ -116,11 +116,8 @@ type outMapper func(io.Writer, resource) error
 
 var outMappers = map[string]outMapper{
 	"application/json": func(w io.Writer, resource resource) error {
-		mapped := resource.Content.(map[string]interface{})
-		mapped["publishReference"] = resource.PublishReference
-
 		encoder := json.NewEncoder(w)
-		return encoder.Encode(mapped)
+		return encoder.Encode(resource.Content)
 	},
 	"application/octet-stream": func(w io.Writer, resource resource) error {
 		data := resource.Content.([]byte)
@@ -218,10 +215,9 @@ var inMappers = map[string]inMapper{
 
 func wrap(content interface{}, resourceID, contentType string, txid string) resource {
 	return resource{
-		UUID:             resourceID,
-		Content:          content,
-		ContentType:      contentType,
-		PublishReference: txid,
+		UUID:        resourceID,
+		Content:     content,
+		ContentType: contentType,
 	}
 }
 

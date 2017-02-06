@@ -70,8 +70,7 @@ func TestWrap(t *testing.T) {
 					"body":   "This is a body.",
 					"brands": []string{"Lex", "Markets"},
 				},
-				ContentType:      "application/json",
-				PublishReference: "tid_blahblahblah",
+				ContentType: "application/json",
 			},
 		},
 	}
@@ -92,8 +91,7 @@ func TestJsonOutMapper(t *testing.T) {
 			"body":   "This is a body.",
 			"brands": []string{"Lex", "Markets"},
 		},
-		ContentType:      "application/json",
-		PublishReference: "tid_blahblahblah",
+		ContentType: "application/json",
 	}
 
 	var writer = bytes.NewBuffer([]byte{})
@@ -102,7 +100,7 @@ func TestJsonOutMapper(t *testing.T) {
 	err := jsonMapper(writer, testResource)
 
 	assert.NoError(t, err, "Shouldn't error")
-	assert.Equal(t, `{"body":"This is a body.","brands":["Lex","Markets"],"publishReference":"tid_blahblahblah","title":"Title"}`, strings.TrimSpace(writer.String()), "Json should match")
+	assert.Equal(t, `{"body":"This is a body.","brands":["Lex","Markets"],"title":"Title"}`, strings.TrimSpace(writer.String()), "Json should match")
 }
 
 func TestWrite(t *testing.T) {
@@ -123,7 +121,6 @@ func TestWrite(t *testing.T) {
 
 	assert.True(t, found, "Should be found")
 	assert.NoError(t, err, "Should not error")
-	assert.Equal(t, "tid_my-fake-tid", res.PublishReference, "Should match")
 	assert.Equal(t, "application/json", res.ContentType, "Should match")
 	assert.Equal(t, "163ccf41-0134-4abc-95cc-7d419591edd6", res.UUID, "Should match")
 }

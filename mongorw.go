@@ -13,10 +13,9 @@ import (
 const uuidName = "uuid"
 
 type resource struct {
-	UUID             string
-	Content          interface{}
-	ContentType      string
-	PublishReference string
+	UUID        string
+	Content     interface{}
+	ContentType string
 }
 
 type mgoAPI struct {
@@ -96,10 +95,9 @@ func (ma *mgoAPI) Write(collection string, resource resource) error {
 
 	bsonUUID := bson.Binary{Kind: 0x04, Data: []byte(uuid.Parse(resource.UUID))}
 	bsonResource := map[string]interface{}{
-		"uuid":             bsonUUID,
-		"content":          resource.Content,
-		"content-type":     resource.ContentType,
-		"publishReference": resource.PublishReference,
+		"uuid":         bsonUUID,
+		"content":      resource.Content,
+		"content-type": resource.ContentType,
 	}
 
 	_, err := coll.Upsert(bson.D{{uuidName, bsonUUID}}, bsonResource)
@@ -127,10 +125,9 @@ func (ma *mgoAPI) Read(collection string, uuidString string) (found bool, res re
 	uuidData := bsonResource["uuid"].(bson.Binary).Data
 
 	res = resource{
-		UUID:             uuid.UUID(uuidData).String(),
-		Content:          bsonResource["content"],
-		ContentType:      bsonResource["content-type"].(string),
-		PublishReference: bsonResource["publishReference"].(string),
+		UUID:        uuid.UUID(uuidData).String(),
+		Content:     bsonResource["content"],
+		ContentType: bsonResource["content-type"].(string),
 	}
 
 	return true, res, nil
