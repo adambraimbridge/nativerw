@@ -24,19 +24,19 @@ func TestGetIDs(t *testing.T) {
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/methode/__ids", nil)
 
-	go router.ServeHTTP(w, req)
+	go func() {
+		time.Sleep(250 * time.Millisecond)
+		channel <- "i am a real id"
+		time.Sleep(10 * time.Millisecond)
+		close(channel)
+	}()
 
-	time.Sleep(250 * time.Millisecond)
-
-	channel <- "i am a real id"
-	time.Sleep(10 * time.Millisecond)
-	close(channel)
+	router.ServeHTTP(w, req)
 
 	mongo.AssertExpectations(t)
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	responseBody := strings.Split(w.Body.String(), "\n")
-
 	assert.Equal(t, `{"id":"i am a real id"}`, strings.TrimSpace(responseBody[0]))
 }
 
@@ -51,14 +51,16 @@ func TestGetIDsFail(t *testing.T) {
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/methode/__ids", nil)
 
-	go router.ServeHTTP(w, req)
+	go func() {
+		time.Sleep(250 * time.Millisecond)
 
-	time.Sleep(250 * time.Millisecond)
+		channel <- "i am a real id"
 
-	channel <- "i am a real id"
+		stop := mongo.CallArgs[2].(chan error)
+		stop <- errors.New("stop now pls")
+	}()
 
-	stop := mongo.CallArgs[2].(chan error)
-	stop <- errors.New("stop now pls")
+	router.ServeHTTP(w, req)
 
 	mongo.AssertExpectations(t)
 	assert.Equal(t, http.StatusOK, w.Code)
