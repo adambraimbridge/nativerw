@@ -1,10 +1,12 @@
-package main
+package db
 
 import (
 	"net"
 	"strings"
 	"time"
 
+	"github.com/Financial-Times/nativerw/config"
+	"github.com/Financial-Times/nativerw/mapper"
 	"github.com/pborman/uuid"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -12,16 +14,20 @@ import (
 
 const uuidName = "uuid"
 
-type resource struct {
-	UUID        string
-	Content     interface{}
-	ContentType string
-}
-
-type mgoAPI struct {
+type mongoDb struct {
 	dbName      string
 	session     *mgo.Session
 	collections map[string]bool
+}
+
+type DB interface {
+	EnsureIndex()
+	GetSupportedCollections() map[string]bool
+	Delete(collection string, uuidString string) error
+	Ids(collection string, stopChan chan struct{}, errChan chan error) chan string
+	Write(collection string, resource mapper.Resource) error
+	Read(collection string, uuidString string) (found bool, res mapper.Resource, err error)
+	Close()
 }
 
 func tcpDialServer(addr *mgo.ServerAddr) (net.Conn, error) {
@@ -29,29 +35,41 @@ func tcpDialServer(addr *mgo.ServerAddr) (net.Conn, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	conn, err := net.DialTCP("tcp", nil, ra)
 	if err != nil {
 		return nil, err
 	}
+
 	conn.SetKeepAlive(true)
 	conn.SetKeepAlivePeriod(30 * time.Second)
 	return conn, nil
 }
 
-func newMgoAPI(config *configuration) (*mgoAPI, error) {
+func NewDatabase(config *config.Configuration) (DB, error) {
 	info := mgo.DialInfo{
 		Timeout:    5 * time.Second,
 		Addrs:      strings.Split(config.Mongos, ","),
 		DialServer: tcpDialServer,
 	}
+
 	session, err := mgo.DialWithInfo(&info)
 	if err != nil {
 		return nil, err
 	}
+
 	session.SetMode(mgo.Strong, true)
 	collections := createMapWithAllowedCollections(config.Collections)
 
-	return &mgoAPI{config.DbName, session, collections}, nil
+	return &mongoDb{config.DbName, session, collections}, nil
+}
+
+func (ma *mongoDb) GetSupportedCollections() map[string]bool {
+	return ma.collections
+}
+
+func (ma *mongoDb) Close() {
+	ma.session.Close()
 }
 
 func createMapWithAllowedCollections(collections []string) map[string]bool {
@@ -62,7 +80,7 @@ func createMapWithAllowedCollections(collections []string) map[string]bool {
 	return collectionMap
 }
 
-func (ma *mgoAPI) EnsureIndex() {
+func (ma *mongoDb) EnsureIndex() {
 	newSession := ma.session.Copy()
 	defer newSession.Close()
 
@@ -77,7 +95,7 @@ func (ma *mgoAPI) EnsureIndex() {
 	}
 }
 
-func (ma *mgoAPI) Delete(collection string, uuidString string) error {
+func (ma *mongoDb) Delete(collection string, uuidString string) error {
 	newSession := ma.session.Copy()
 	defer newSession.Close()
 
@@ -87,7 +105,7 @@ func (ma *mgoAPI) Delete(collection string, uuidString string) error {
 	return coll.Remove(bson.D{{uuidName, bsonUUID}})
 }
 
-func (ma *mgoAPI) Write(collection string, resource resource) error {
+func (ma *mongoDb) Write(collection string, resource mapper.Resource) error {
 	newSession := ma.session.Copy()
 	defer newSession.Close()
 
@@ -105,7 +123,7 @@ func (ma *mgoAPI) Write(collection string, resource resource) error {
 	return err
 }
 
-func (ma *mgoAPI) Read(collection string, uuidString string) (found bool, res resource, err error) {
+func (ma *mongoDb) Read(collection string, uuidString string) (found bool, res mapper.Resource, err error) {
 	newSession := ma.session.Copy()
 	defer newSession.Close()
 
@@ -124,7 +142,7 @@ func (ma *mgoAPI) Read(collection string, uuidString string) (found bool, res re
 
 	uuidData := bsonResource["uuid"].(bson.Binary).Data
 
-	res = resource{
+	res = mapper.Resource{
 		UUID:        uuid.UUID(uuidData).String(),
 		Content:     bsonResource["content"],
 		ContentType: bsonResource["content-type"].(string),
@@ -133,16 +151,18 @@ func (ma *mgoAPI) Read(collection string, uuidString string) (found bool, res re
 	return true, res, nil
 }
 
-func (ma *mgoAPI) Ids(collection string, stopChan chan struct{}, errChan chan error) chan string {
+func (ma *mongoDb) Ids(collection string, stopChan chan struct{}, errChan chan error) chan string {
 	ids := make(chan string)
 	go func() {
 		defer close(ids)
+
 		newSession := ma.session.Copy()
 		newSession.SetSocketTimeout(30 * time.Second)
 		defer newSession.Close()
-		coll := newSession.DB(ma.dbName).C(collection)
 
+		coll := newSession.DB(ma.dbName).C(collection)
 		iter := coll.Find(nil).Select(bson.M{uuidName: true}).Iter()
+
 		var result map[string]interface{}
 		for iter.Next(&result) {
 			select {
@@ -151,6 +171,7 @@ func (ma *mgoAPI) Ids(collection string, stopChan chan struct{}, errChan chan er
 			case ids <- uuid.UUID(result["uuid"].(bson.Binary).Data).String():
 			}
 		}
+
 		if err := iter.Close(); err != nil {
 			errChan <- err
 		}
