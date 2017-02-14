@@ -11,7 +11,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var uuidRegexp = regexp.MustCompile("^[a-z0-9]{8}-[a-z0-9]{4}-[1-5][a-z0-9]{3}-[a-z0-9]{4}-[a-z0-9]{12}$")
+var uuidRegexp = regexp.MustCompile("^[a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[a-f0-9]{4}-[a-f0-9]{12}$")
 
 func validateAccess(mongo db.DB, collectionID, resourceID string) error {
 	if mongo.GetSupportedCollections()[collectionID] && uuidRegexp.MatchString(resourceID) {

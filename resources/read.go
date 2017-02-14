@@ -29,7 +29,7 @@ func ReadContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 
 		if !found {
 			msg := fmt.Sprintf("Resource not found. collection: %v, id: %v", collection, resourceID)
-			ctxlogger.Warn(msg)
+			ctxlogger.Info(msg)
 
 			w.Header().Add("Content-Type", "application/json")
 			respBody, _ := json.Marshal(map[string]string{"message": msg})
