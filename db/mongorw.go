@@ -25,7 +25,6 @@ type DB interface {
 	EnsureIndex()
 	GetSupportedCollections() map[string]bool
 	Delete(collection string, uuidString string) error
-	Ids(collection string, stopChan chan struct{}, errChan chan error) chan string
 	Write(collection string, resource mapper.Resource) error
 	Read(collection string, uuidString string) (res mapper.Resource, found bool, err error)
 	Close()
@@ -152,32 +151,4 @@ func (ma *mongoDb) Read(collection string, uuidString string) (res mapper.Resour
 	}
 
 	return res, true, nil
-}
-
-func (ma *mongoDb) Ids(collection string, stopChan chan struct{}, errChan chan error) chan string {
-	ids := make(chan string)
-	go func() {
-		defer close(ids)
-
-		newSession := ma.session.Copy()
-		newSession.SetSocketTimeout(30 * time.Second)
-		defer newSession.Close()
-
-		coll := newSession.DB(ma.dbName).C(collection)
-		iter := coll.Find(nil).Select(bson.M{uuidName: true}).Iter()
-
-		var result map[string]interface{}
-		for iter.Next(&result) {
-			select {
-			case <-stopChan:
-				break
-			case ids <- uuid.UUID(result["uuid"].(bson.Binary).Data).String():
-			}
-		}
-
-		if err := iter.Close(); err != nil {
-			errChan <- err
-		}
-	}()
-	return ids
 }
