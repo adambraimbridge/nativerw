@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/Financial-Times/nativerw/mapper"
@@ -41,10 +42,10 @@ func TestHashCheckMatches(t *testing.T) {
 	mongo.On("Read", "methode", "a-real-uuid").Return(expectedResource, true, nil)
 
 	router := mux.NewRouter()
-	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("GET")
+	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("PUT")
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/methode/a-real-uuid", nil)
+	req, _ := http.NewRequest("PUT", "/methode/a-real-uuid", strings.NewReader(`{}`))
 	req.Header.Add("X-Native-Hash", "e6e2ddb24efd029a44b7c2117d172c2e89e88992eb453b3807b693c4")
 
 	router.ServeHTTP(w, req)
@@ -72,10 +73,10 @@ func TestHashCheckDoesntMatch(t *testing.T) {
 	mongo.On("Read", "methode", "a-real-uuid").Return(expectedResource, true, nil)
 
 	router := mux.NewRouter()
-	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("GET")
+	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("PUT")
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/methode/a-real-uuid", nil)
+	req, _ := http.NewRequest("PUT", "/methode/a-real-uuid", strings.NewReader(`{}`))
 	req.Header.Add("X-Native-Hash", "any-other-value")
 
 	router.ServeHTTP(w, req)
@@ -94,10 +95,10 @@ func TestNoContentFound(t *testing.T) {
 	mongo.On("Read", "methode", "a-real-uuid").Return(mapper.Resource{}, false, nil)
 
 	router := mux.NewRouter()
-	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("GET")
+	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("PUT")
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/methode/a-real-uuid", nil)
+	req, _ := http.NewRequest("PUT", "/methode/a-real-uuid", strings.NewReader(`{}`))
 	req.Header.Add("X-Native-Hash", "e6e2ddb24efd029a44b7c2117d172c2e89e88992eb453b3807b693c4")
 
 	router.ServeHTTP(w, req)
@@ -116,10 +117,10 @@ func TestHashCheckContentReadFails(t *testing.T) {
 	mongo.On("Read", "methode", "a-real-uuid").Return(mapper.Resource{}, false, errors.New("i failed"))
 
 	router := mux.NewRouter()
-	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("GET")
+	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("PUT")
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/methode/a-real-uuid", nil)
+	req, _ := http.NewRequest("PUT", "/methode/a-real-uuid", strings.NewReader(`{}`))
 	req.Header.Add("X-Native-Hash", "e6e2ddb24efd029a44b7c2117d172c2e89e88992eb453b3807b693c4")
 
 	router.ServeHTTP(w, req)
@@ -144,10 +145,10 @@ func TestHashCheckJsonMarshalFails(t *testing.T) {
 	mongo.On("Read", "methode", "a-real-uuid").Return(expectedResource, true, nil)
 
 	router := mux.NewRouter()
-	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("GET")
+	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("PUT")
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/methode/a-real-uuid", nil)
+	req, _ := http.NewRequest("PUT", "/methode/a-real-uuid", strings.NewReader(`{}`))
 	req.Header.Add("X-Native-Hash", "e6e2ddb24efd029a44b7c2117d172c2e89e88992eb453b3807b693c4")
 
 	router.ServeHTTP(w, req)
@@ -165,10 +166,10 @@ func TestNoHashCheckIfNoHeader(t *testing.T) {
 	mongo := new(MockDB)
 
 	router := mux.NewRouter()
-	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("GET")
+	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("PUT")
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/methode/a-real-uuid", nil)
+	req, _ := http.NewRequest("PUT", "/methode/a-real-uuid", strings.NewReader(`{}`))
 
 	router.ServeHTTP(w, req)
 	mongo.AssertExpectations(t)
