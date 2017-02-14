@@ -16,6 +16,12 @@ func TestObtainTxID(t *testing.T) {
 	assert.Equal(t, "tid_blahblah", txid)
 }
 
+func TestObtainTxIDGeneratesANewOneIfNoneAvailable(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/doesnt/matter", nil)
+	txid := obtainTxID(req)
+	assert.Contains(t, txid, "tid_")
+}
+
 func TestAccessLogWillForwardRequest(t *testing.T) {
 	passed := false
 	next := func(w http.ResponseWriter, r *http.Request) {

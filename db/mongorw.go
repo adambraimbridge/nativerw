@@ -20,13 +20,14 @@ type mongoDb struct {
 	collections map[string]bool
 }
 
+// DB contains all mongo request logic, including reads, writes and deletes.
 type DB interface {
 	EnsureIndex()
 	GetSupportedCollections() map[string]bool
 	Delete(collection string, uuidString string) error
 	Ids(collection string, stopChan chan struct{}, errChan chan error) chan string
 	Write(collection string, resource mapper.Resource) error
-	Read(collection string, uuidString string) (found bool, res mapper.Resource, err error)
+	Read(collection string, uuidString string) (res mapper.Resource, found bool, err error)
 	Close()
 }
 
@@ -46,7 +47,8 @@ func tcpDialServer(addr *mgo.ServerAddr) (net.Conn, error) {
 	return conn, nil
 }
 
-func NewDatabase(config *config.Configuration) (DB, error) {
+// NewDBConnection dials the mongo cluster, and returns a new handler DB instance
+func NewDBConnection(config *config.Configuration) (DB, error) {
 	info := mgo.DialInfo{
 		Timeout:    5 * time.Second,
 		Addrs:      strings.Split(config.Mongos, ","),
@@ -85,6 +87,7 @@ func (ma *mongoDb) EnsureIndex() {
 	defer newSession.Close()
 
 	index := mgo.Index{
+		Name:       "uuid-index",
 		Key:        []string{"uuid"},
 		Background: true,
 		Unique:     true,
@@ -123,7 +126,7 @@ func (ma *mongoDb) Write(collection string, resource mapper.Resource) error {
 	return err
 }
 
-func (ma *mongoDb) Read(collection string, uuidString string) (found bool, res mapper.Resource, err error) {
+func (ma *mongoDb) Read(collection string, uuidString string) (res mapper.Resource, found bool, err error) {
 	newSession := ma.session.Copy()
 	defer newSession.Close()
 
@@ -135,9 +138,9 @@ func (ma *mongoDb) Read(collection string, uuidString string) (found bool, res m
 
 	if err = coll.Find(bson.M{uuidName: bsonUUID}).One(&bsonResource); err != nil {
 		if err == mgo.ErrNotFound {
-			return false, res, nil
+			return res, false, nil
 		}
-		return false, res, err
+		return res, false, err
 	}
 
 	uuidData := bsonResource["uuid"].(bson.Binary).Data
@@ -148,7 +151,7 @@ func (ma *mongoDb) Read(collection string, uuidString string) (found bool, res m
 		ContentType: bsonResource["content-type"].(string),
 	}
 
-	return true, res, nil
+	return res, true, nil
 }
 
 func (ma *mongoDb) Ids(collection string, stopChan chan struct{}, errChan chan error) chan string {

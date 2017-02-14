@@ -9,9 +9,9 @@ import (
 )
 
 func startMongo(t *testing.T) DB {
-	//if testing.Short() {
-	//	t.Skip("Mongo integration for long tests only.")
-	//}
+	if testing.Short() {
+		t.Skip("Mongo integration for long tests only.")
+	}
 
 	mongoURL := os.Getenv("MONGO_TEST_URL")
 	if strings.TrimSpace(mongoURL) == "" {
@@ -24,7 +24,7 @@ func startMongo(t *testing.T) DB {
 		Collections: []string{"methode"},
 	}
 
-	mgo, err := NewDatabase(&conf)
+	mgo, err := NewDBConnection(&conf)
 	if err != nil {
 		t.Fatal("Failed to connect to mongo! Please ensure your testing instance is up and running.")
 	}

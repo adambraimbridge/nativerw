@@ -38,7 +38,7 @@ func TestHashCheckMatches(t *testing.T) {
 	}
 
 	mongo := new(MockDB)
-	mongo.On("Read", "methode", "a-real-uuid").Return(true, expectedResource, nil)
+	mongo.On("Read", "methode", "a-real-uuid").Return(expectedResource, true, nil)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("GET")
@@ -69,7 +69,7 @@ func TestHashCheckDoesntMatch(t *testing.T) {
 	}
 
 	mongo := new(MockDB)
-	mongo.On("Read", "methode", "a-real-uuid").Return(true, expectedResource, nil)
+	mongo.On("Read", "methode", "a-real-uuid").Return(expectedResource, true, nil)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("GET")
@@ -91,7 +91,7 @@ func TestNoContentFound(t *testing.T) {
 	}
 
 	mongo := new(MockDB)
-	mongo.On("Read", "methode", "a-real-uuid").Return(false, mapper.Resource{}, nil)
+	mongo.On("Read", "methode", "a-real-uuid").Return(mapper.Resource{}, false, nil)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("GET")
@@ -113,7 +113,7 @@ func TestHashCheckContentReadFails(t *testing.T) {
 	}
 
 	mongo := new(MockDB)
-	mongo.On("Read", "methode", "a-real-uuid").Return(false, mapper.Resource{}, errors.New("i failed"))
+	mongo.On("Read", "methode", "a-real-uuid").Return(mapper.Resource{}, false, errors.New("i failed"))
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("GET")
@@ -141,7 +141,7 @@ func TestHashCheckJsonMarshalFails(t *testing.T) {
 	}
 
 	mongo := new(MockDB)
-	mongo.On("Read", "methode", "a-real-uuid").Return(true, expectedResource, nil)
+	mongo.On("Read", "methode", "a-real-uuid").Return(expectedResource, true, nil)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("GET")

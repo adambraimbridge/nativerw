@@ -19,7 +19,7 @@ func ReadContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 		collection := vars["collection"]
 		ctxlogger := logging.NewTransactionLogger(obtainTxID(r))
 
-		found, resource, err := mongo.Read(collection, resourceID)
+		resource, found, err := mongo.Read(collection, resourceID)
 		if err != nil {
 			msg := fmt.Sprintf("Reading from mongoDB failed.\n%v\n", err.Error())
 			ctxlogger.Error(msg)

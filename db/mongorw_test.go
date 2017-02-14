@@ -25,7 +25,7 @@ func TestReadWriteDelete(t *testing.T) {
 	err := mongo.Write("methode", expectedResource)
 	assert.NoError(t, err)
 
-	found, res, err := mongo.Read("methode", expectedResource.UUID)
+	res, found, err := mongo.Read("methode", expectedResource.UUID)
 
 	assert.True(t, found)
 	assert.NoError(t, err)
@@ -36,7 +36,7 @@ func TestReadWriteDelete(t *testing.T) {
 	err = mongo.Delete("methode", expectedResource.UUID)
 	assert.NoError(t, err)
 
-	found, res, err = mongo.Read("methode", expectedResource.UUID)
+	res, found, err = mongo.Read("methode", expectedResource.UUID)
 	assert.False(t, found)
 	assert.NoError(t, err)
 }
@@ -58,13 +58,17 @@ func TestEnsureIndexes(t *testing.T) {
 	indexes, err := mongo.(*mongoDb).session.DB("native-store").C("methode").Indexes()
 
 	assert.NoError(t, err)
+	count := 0
 	for _, index := range indexes {
-		if index.Name == "uuid" {
+		if index.Name == "uuid-index" {
 			assert.True(t, index.Background)
 			assert.True(t, index.Unique)
 			assert.Equal(t, []string{"uuid"}, index.Key)
+			count = count + 1
 		}
 	}
+
+	assert.Equal(t, 1, count)
 }
 
 func TestGetIds(t *testing.T) {

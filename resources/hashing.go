@@ -57,7 +57,7 @@ func (f *Filters) CheckNativeHash(mongo db.DB) *Filters {
 }
 
 func checkNativeHash(mongo db.DB, hash string, collection string, id string) (bool, error) {
-	found, resource, err := mongo.Read(collection, id)
+	resource, found, err := mongo.Read(collection, id)
 	if err != nil {
 		return false, err
 	}

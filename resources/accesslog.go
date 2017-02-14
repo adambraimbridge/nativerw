@@ -35,7 +35,7 @@ func AccessLogging(next http.Handler) func(w http.ResponseWriter, r *http.Reques
 func obtainTxID(req *http.Request) string {
 	txID := req.Header.Get(txHeaderKey)
 	if txID == "" {
-		return randSeq(txHeaderLength)
+		return "tid_" + randSeq(txHeaderLength)
 	}
 	return txID
 }

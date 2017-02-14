@@ -39,7 +39,7 @@ func (m *MockDB) Write(collection string, resource mapper.Resource) error {
 	return args.Error(0)
 }
 
-func (m *MockDB) Read(collection string, uuidString string) (found bool, res mapper.Resource, err error) {
+func (m *MockDB) Read(collection string, uuidString string) (res mapper.Resource, found bool, err error) {
 	args := m.Called(collection, uuidString)
-	return args.Bool(0), args.Get(1).(mapper.Resource), args.Error(2)
+	return args.Get(0).(mapper.Resource), args.Bool(1), args.Error(2)
 }

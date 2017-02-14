@@ -46,13 +46,13 @@ func main() {
 
 		logging.Info(fmt.Sprintf("Using configuration %# v \n", pretty.Formatter(conf)))
 
-		mongo, err := db.NewDatabase(conf)
+		mongo, err := db.NewDBConnection(conf)
 		for err != nil {
 			logging.Error(fmt.Sprintf("Couldn't establish connection to mongoDB: %+v", err.Error()))
 
 			time.Sleep(5 * time.Second)
 
-			mongo, err = db.NewDatabase(conf)
+			mongo, err = db.NewDBConnection(conf)
 		}
 
 		logging.Info("Established connection to mongoDB.")
@@ -77,7 +77,7 @@ func router(mongo db.DB) *mux.Router {
 	router.HandleFunc("/{collection}/__ids", resources.Filter(resources.GetIDs(mongo)).ValidateAccessForCollection(mongo).Build()).Methods("GET")
 	router.HandleFunc("/{collection}/{resource}", resources.Filter(resources.ReadContent(mongo)).ValidateAccess(mongo).Build()).Methods("GET")
 	router.HandleFunc("/{collection}/{resource}", resources.Filter(resources.WriteContent(mongo)).ValidateAccess(mongo).CheckNativeHash(mongo).Build()).Methods("PUT")
-	router.HandleFunc("/{collection}/{resource}", resources.DeleteContent(mongo)).Methods("DELETE")
+	router.HandleFunc("/{collection}/{resource}", resources.Filter(resources.DeleteContent(mongo)).ValidateAccess(mongo).Build()).Methods("DELETE")
 	router.HandleFunc("/__health", resources.Healthchecks(mongo))
 	router.HandleFunc("/__gtg", resources.GoodToGo(mongo))
 	return router

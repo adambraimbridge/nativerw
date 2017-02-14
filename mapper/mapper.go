@@ -15,7 +15,7 @@ type Resource struct {
 }
 
 // Wrap creates a new resource
-func Wrap(content interface{}, resourceID, contentType string) Resource {
+func Wrap(content interface{}, resourceID string, contentType string) Resource {
 	return Resource{
 		UUID:        resourceID,
 		Content:     content,
