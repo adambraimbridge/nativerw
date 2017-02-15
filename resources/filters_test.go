@@ -100,3 +100,41 @@ func TestValidateAccessForCollection(t *testing.T) {
 		}
 	}
 }
+
+func TestFailedMongoDuringAccessValidation(t *testing.T) {
+	next := func(w http.ResponseWriter, r *http.Request) {
+		t.Fail()
+	}
+
+	mongo := new(MockDB)
+	mongo.On("Open").Return(nil, errors.New("no data 4 u"))
+
+	router := mux.NewRouter()
+	router.HandleFunc("/{collection}/{resource}", Filter(next).ValidateAccess(mongo).Build()).Methods("GET")
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/methode/9694733e-163a-4393-801f-000ab7de5041", nil)
+
+	router.ServeHTTP(w, req)
+	mongo.AssertExpectations(t)
+	assert.Equal(t, http.StatusServiceUnavailable, w.Code)
+}
+
+func TestFailedMongoDuringCollectionValidation(t *testing.T) {
+	next := func(w http.ResponseWriter, r *http.Request) {
+		t.Fail()
+	}
+
+	mongo := new(MockDB)
+	mongo.On("Open").Return(nil, errors.New("no data 4 u"))
+
+	router := mux.NewRouter()
+	router.HandleFunc("/{collection}/{resource}", Filter(next).ValidateAccessForCollection(mongo).Build()).Methods("GET")
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/methode/9694733e-163a-4393-801f-000ab7de5041", nil)
+
+	router.ServeHTTP(w, req)
+	mongo.AssertExpectations(t)
+	assert.Equal(t, http.StatusServiceUnavailable, w.Code)
+}

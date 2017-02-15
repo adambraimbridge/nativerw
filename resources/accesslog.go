@@ -39,8 +39,8 @@ func writeMessage(w http.ResponseWriter, msg string, status int) {
 	}{msg})
 
 	w.Header().Add("Content-Type", "application/json")
-	w.Write(data)
 	w.WriteHeader(status)
+	w.Write(data)
 }
 
 func obtainTxID(req *http.Request) string {

@@ -17,7 +17,12 @@ type MockDB struct {
 
 func (m *MockDB) Open() (db.Connection, error) {
 	args := m.Called()
-	return args.Get(0).(*MockConnection), args.Error(1)
+	conn := args.Get(0)
+	if conn != nil {
+		return conn.(*MockConnection), args.Error(1)
+	}
+
+	return nil, args.Error(1)
 }
 
 func (m *MockDB) Await() (db.Connection, error) {

@@ -108,3 +108,33 @@ func TestG2GFailsOnWrite(t *testing.T) {
 	mongo.AssertExpectations(t)
 	assert.Equal(t, http.StatusServiceUnavailable, w.Code)
 }
+
+func TestFailedMongoDuringHealthcheck(t *testing.T) {
+	mongo := new(MockDB)
+	mongo.On("Open").Return(nil, errors.New("no data 4 u"))
+
+	router := mux.NewRouter()
+	router.HandleFunc("/__health", Healthchecks(mongo)).Methods("GET")
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/__health", nil)
+
+	router.ServeHTTP(w, req)
+	mongo.AssertExpectations(t)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestFailedMongoDuringGTG(t *testing.T) {
+	mongo := new(MockDB)
+	mongo.On("Open").Return(nil, errors.New("no data 4 u"))
+
+	router := mux.NewRouter()
+	router.HandleFunc("/__gtg", GoodToGo(mongo)).Methods("GET")
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/__gtg", nil)
+
+	router.ServeHTTP(w, req)
+	mongo.AssertExpectations(t)
+	assert.Equal(t, http.StatusServiceUnavailable, w.Code)
+}

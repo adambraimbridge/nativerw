@@ -104,3 +104,18 @@ func TestUnableToMap(t *testing.T) {
 	t.Log(w.Body.String())
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
+
+func TestFailedMongoOnRead(t *testing.T) {
+	mongo := new(MockDB)
+	mongo.On("Open").Return(nil, errors.New("no data 4 u"))
+
+	router := mux.NewRouter()
+	router.HandleFunc("/{collection}/{resource}", ReadContent(mongo)).Methods("GET")
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/methode/a-real-uuid", nil)
+
+	router.ServeHTTP(w, req)
+	mongo.AssertExpectations(t)
+	assert.Equal(t, http.StatusServiceUnavailable, w.Code)
+}

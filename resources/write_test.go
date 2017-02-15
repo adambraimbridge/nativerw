@@ -92,3 +92,19 @@ func TestFailedJSON(t *testing.T) {
 	mongo.AssertExpectations(t)
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
+
+func TestFailedMongoOnWrite(t *testing.T) {
+	mongo := new(MockDB)
+	mongo.On("Open").Return(nil, errors.New("no data 4 u"))
+
+	router := mux.NewRouter()
+	router.HandleFunc("/{collection}/{resource}", WriteContent(mongo)).Methods("PUT")
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("PUT", "/methode/a-real-uuid", strings.NewReader(`{}`))
+	req.Header.Add("Content-Type", "application/json")
+
+	router.ServeHTTP(w, req)
+	mongo.AssertExpectations(t)
+	assert.Equal(t, http.StatusServiceUnavailable, w.Code)
+}
