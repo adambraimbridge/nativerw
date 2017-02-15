@@ -14,7 +14,10 @@ import (
 
 func TestReadContent(t *testing.T) {
 	mongo := new(MockDB)
-	mongo.On("Read", "methode", "a-real-uuid").Return(mapper.Resource{ContentType: "application/json", Content: map[string]interface{}{"uuid": "fake-data"}}, true, nil)
+	connection := new(MockConnection)
+
+	mongo.On("Open").Return(connection, nil)
+	connection.On("Read", "methode", "a-real-uuid").Return(mapper.Resource{ContentType: "application/json", Content: map[string]interface{}{"uuid": "fake-data"}}, true, nil)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", ReadContent(mongo)).Methods("GET")
@@ -31,7 +34,10 @@ func TestReadContent(t *testing.T) {
 
 func TestReadFailed(t *testing.T) {
 	mongo := new(MockDB)
-	mongo.On("Read", "methode", "a-real-uuid").Return(mapper.Resource{}, false, errors.New("i failed"))
+	connection := new(MockConnection)
+
+	mongo.On("Open").Return(connection, nil)
+	connection.On("Read", "methode", "a-real-uuid").Return(mapper.Resource{}, false, errors.New("i failed"))
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", ReadContent(mongo)).Methods("GET")
@@ -46,7 +52,10 @@ func TestReadFailed(t *testing.T) {
 
 func TestIDNotFound(t *testing.T) {
 	mongo := new(MockDB)
-	mongo.On("Read", "methode", "a-real-uuid").Return(mapper.Resource{}, false, nil)
+	connection := new(MockConnection)
+
+	mongo.On("Open").Return(connection, nil)
+	connection.On("Read", "methode", "a-real-uuid").Return(mapper.Resource{}, false, nil)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", ReadContent(mongo)).Methods("GET")
@@ -61,7 +70,10 @@ func TestIDNotFound(t *testing.T) {
 
 func TestNoMapperImplemented(t *testing.T) {
 	mongo := new(MockDB)
-	mongo.On("Read", "methode", "a-real-uuid").Return(mapper.Resource{ContentType: "application/vnd.fake-mime-type"}, true, nil)
+	connection := new(MockConnection)
+
+	mongo.On("Open").Return(connection, nil)
+	connection.On("Read", "methode", "a-real-uuid").Return(mapper.Resource{ContentType: "application/vnd.fake-mime-type"}, true, nil)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", ReadContent(mongo)).Methods("GET")
@@ -76,7 +88,10 @@ func TestNoMapperImplemented(t *testing.T) {
 
 func TestUnableToMap(t *testing.T) {
 	mongo := new(MockDB)
-	mongo.On("Read", "methode", "a-real-uuid").Return(mapper.Resource{ContentType: "application/json", Content: func() {}}, true, nil)
+	connection := new(MockConnection)
+
+	mongo.On("Open").Return(connection, nil)
+	connection.On("Read", "methode", "a-real-uuid").Return(mapper.Resource{ContentType: "application/json", Content: func() {}}, true, nil)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", ReadContent(mongo)).Methods("GET")

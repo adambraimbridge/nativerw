@@ -13,14 +13,14 @@ import (
 
 var uuidRegexp = regexp.MustCompile("^[a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[a-f0-9]{4}-[a-f0-9]{12}$")
 
-func validateAccess(mongo db.DB, collectionID, resourceID string) error {
+func validateAccess(mongo db.Connection, collectionID, resourceID string) error {
 	if mongo.GetSupportedCollections()[collectionID] && uuidRegexp.MatchString(resourceID) {
 		return nil
 	}
 	return errors.New("Collection not supported or resourceId not a valid uuid.")
 }
 
-func validateAccessForCollection(mongo db.DB, collectionID string) error {
+func validateAccessForCollection(mongo db.Connection, collectionID string) error {
 	if mongo.GetSupportedCollections()[collectionID] {
 		return nil
 	}
@@ -31,10 +31,16 @@ func validateAccessForCollection(mongo db.DB, collectionID string) error {
 func (f *Filters) ValidateAccess(mongo db.DB) *Filters {
 	next := f.next
 	f.next = func(w http.ResponseWriter, r *http.Request) {
+		connection, err := mongo.Open()
+		if err != nil {
+			writeMessage(w, "Failed to connect to the database!", http.StatusServiceUnavailable)
+			return
+		}
+
 		collectionID := mux.Vars(r)["collection"]
 		resourceID := mux.Vars(r)["resource"]
 
-		if err := validateAccess(mongo, collectionID, resourceID); err != nil {
+		if err := validateAccess(connection, collectionID, resourceID); err != nil {
 			ctxlogger := logging.NewTransactionLogger(obtainTxID(r))
 			msg := fmt.Sprintf("Invalid collectionId (%v) or resourceId (%v).\n%v", collectionID, resourceID, err)
 			ctxlogger.Info(msg)
@@ -51,9 +57,15 @@ func (f *Filters) ValidateAccess(mongo db.DB) *Filters {
 func (f *Filters) ValidateAccessForCollection(mongo db.DB) *Filters {
 	next := f.next
 	f.next = func(w http.ResponseWriter, r *http.Request) {
+		connection, err := mongo.Open()
+		if err != nil {
+			writeMessage(w, "Failed to connect to the database!", http.StatusServiceUnavailable)
+			return
+		}
+
 		collection := mux.Vars(r)["collection"]
 
-		if err := validateAccessForCollection(mongo, collection); err != nil {
+		if err := validateAccessForCollection(connection, collection); err != nil {
 			ctxLogger := logging.NewTransactionLogger(obtainTxID(r))
 			msg := fmt.Sprintf("Invalid collectionId (%v).\n%v", collection, err)
 			ctxLogger.Info(msg)

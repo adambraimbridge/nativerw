@@ -14,12 +14,18 @@ import (
 // ReadContent reads the native data for the given id and collection
 func ReadContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		connection, err := mongo.Open()
+		if err != nil {
+			writeMessage(w, "Failed to connect to the database!", http.StatusServiceUnavailable)
+			return
+		}
+
 		vars := mux.Vars(r)
 		resourceID := vars["resource"]
 		collection := vars["collection"]
 		ctxlogger := logging.NewTransactionLogger(obtainTxID(r))
 
-		resource, found, err := mongo.Read(collection, resourceID)
+		resource, found, err := connection.Read(collection, resourceID)
 		if err != nil {
 			msg := fmt.Sprintf("Reading from mongoDB failed.\n%v\n", err.Error())
 			ctxlogger.Error(msg)

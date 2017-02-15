@@ -1,11 +1,15 @@
 package db
 
 import (
+	"errors"
+	"fmt"
 	"net"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Financial-Times/nativerw/config"
+	"github.com/Financial-Times/nativerw/logging"
 	"github.com/Financial-Times/nativerw/mapper"
 	"github.com/pborman/uuid"
 	"gopkg.in/mgo.v2"
@@ -14,14 +18,26 @@ import (
 
 const uuidName = "uuid"
 
-type mongoDb struct {
+type mongoDB struct {
+	config     *config.Configuration
+	connection *Optional
+	once       *sync.Once
+}
+
+type mongoConnection struct {
 	dbName      string
 	session     *mgo.Session
 	collections map[string]bool
 }
 
-// DB contains all mongo request logic, including reads, writes and deletes.
+// DB handles opening the initial connection to Mongo
 type DB interface {
+	Open() (Connection, error)
+	Await() (Connection, error)
+}
+
+// Connection contains all mongo request logic, including reads, writes and deletes.
+type Connection interface {
 	EnsureIndex()
 	GetSupportedCollections() map[string]bool
 	Delete(collection string, uuidString string) error
@@ -47,10 +63,57 @@ func tcpDialServer(addr *mgo.ServerAddr) (net.Conn, error) {
 }
 
 // NewDBConnection dials the mongo cluster, and returns a new handler DB instance
-func NewDBConnection(config *config.Configuration) (DB, error) {
+func NewDBConnection(config *config.Configuration) DB {
+	return &mongoDB{config: config}
+}
+
+func (m *mongoDB) Await() (Connection, error) {
+	if m.connection == nil {
+		return nil, errors.New("Please Open() a new connection before awaiting.")
+	}
+
+	if m.connection.Nil() {
+		connection, err := m.connection.Block()
+		if err != nil {
+			return nil, err
+		}
+		return connection.(*mongoConnection), err
+	}
+	return m.connection.Get().(*mongoConnection), nil
+}
+
+func (m *mongoDB) Open() (Connection, error) {
+	if m.connection == nil {
+		m.connection = NewOptional(func() (interface{}, error) {
+			connection, err := m.openMongoSession()
+			for err != nil {
+				logging.Error(fmt.Sprintf("Couldn't establish connection to mongoDB: %+v", err.Error()))
+				time.Sleep(5 * time.Second)
+
+				connection, err = m.openMongoSession()
+			}
+			return connection, err
+		})
+
+		connection, err := m.connection.Block()
+		if err != nil {
+			return nil, err
+		}
+
+		return connection.(*mongoConnection), err
+	}
+
+	if m.connection.Nil() {
+		return nil, errors.New("Mongo connection is not yet initialised!")
+	}
+
+	return m.connection.Get().(*mongoConnection), nil
+}
+
+func (m *mongoDB) openMongoSession() (*mongoConnection, error) {
 	info := mgo.DialInfo{
 		Timeout:    5 * time.Second,
-		Addrs:      strings.Split(config.Mongos, ","),
+		Addrs:      strings.Split(m.config.Mongos, ","),
 		DialServer: tcpDialServer,
 	}
 
@@ -60,16 +123,17 @@ func NewDBConnection(config *config.Configuration) (DB, error) {
 	}
 
 	session.SetMode(mgo.Strong, true)
-	collections := createMapWithAllowedCollections(config.Collections)
+	collections := createMapWithAllowedCollections(m.config.Collections)
+	connection := &mongoConnection{m.config.DbName, session, collections}
 
-	return &mongoDb{config.DbName, session, collections}, nil
+	return connection, nil
 }
 
-func (ma *mongoDb) GetSupportedCollections() map[string]bool {
+func (ma *mongoConnection) GetSupportedCollections() map[string]bool {
 	return ma.collections
 }
 
-func (ma *mongoDb) Close() {
+func (ma *mongoConnection) Close() {
 	ma.session.Close()
 }
 
@@ -81,7 +145,7 @@ func createMapWithAllowedCollections(collections []string) map[string]bool {
 	return collectionMap
 }
 
-func (ma *mongoDb) EnsureIndex() {
+func (ma *mongoConnection) EnsureIndex() {
 	newSession := ma.session.Copy()
 	defer newSession.Close()
 
@@ -97,7 +161,7 @@ func (ma *mongoDb) EnsureIndex() {
 	}
 }
 
-func (ma *mongoDb) Delete(collection string, uuidString string) error {
+func (ma *mongoConnection) Delete(collection string, uuidString string) error {
 	newSession := ma.session.Copy()
 	defer newSession.Close()
 
@@ -107,7 +171,7 @@ func (ma *mongoDb) Delete(collection string, uuidString string) error {
 	return coll.Remove(bson.D{{uuidName, bsonUUID}})
 }
 
-func (ma *mongoDb) Write(collection string, resource mapper.Resource) error {
+func (ma *mongoConnection) Write(collection string, resource mapper.Resource) error {
 	newSession := ma.session.Copy()
 	defer newSession.Close()
 
@@ -125,7 +189,7 @@ func (ma *mongoDb) Write(collection string, resource mapper.Resource) error {
 	return err
 }
 
-func (ma *mongoDb) Read(collection string, uuidString string) (res mapper.Resource, found bool, err error) {
+func (ma *mongoConnection) Read(collection string, uuidString string) (res mapper.Resource, found bool, err error) {
 	newSession := ma.session.Copy()
 	defer newSession.Close()
 

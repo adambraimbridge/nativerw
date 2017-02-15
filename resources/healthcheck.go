@@ -42,13 +42,23 @@ func Healthchecks(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 
 func checkWritable(mongo db.DB) func() error {
 	return func() error {
-		return mongo.Write(healthcheckColl, sampleResource)
+		connection, err := mongo.Open()
+		if err != nil {
+			return err
+		}
+
+		return connection.Write(healthcheckColl, sampleResource)
 	}
 }
 
 func checkReadable(mongo db.DB) func() error {
 	return func() error {
-		_, _, err := mongo.Read(healthcheckColl, sampleUUID)
+		connection, err := mongo.Open()
+		if err != nil {
+			return err
+		}
+
+		_, _, err = connection.Read(healthcheckColl, sampleUUID)
 		return err
 	}
 }

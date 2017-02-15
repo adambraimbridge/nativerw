@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/Financial-Times/nativerw/config"
 	"github.com/Financial-Times/nativerw/db"
@@ -46,19 +45,24 @@ func main() {
 
 		logging.Info(fmt.Sprintf("Using configuration %# v \n", pretty.Formatter(conf)))
 
-		mongo, err := db.NewDBConnection(conf)
-		for err != nil {
-			logging.Error(fmt.Sprintf("Couldn't establish connection to mongoDB: %+v", err.Error()))
-
-			time.Sleep(5 * time.Second)
-
-			mongo, err = db.NewDBConnection(conf)
-		}
-
-		logging.Info("Established connection to mongoDB.")
-		mongo.EnsureIndex()
-
+		mongo := db.NewDBConnection(conf)
 		router(mongo)
+
+		go func() {
+			connection, err := mongo.Open()
+			if err != nil {
+				logging.Error("Mongo connection not yet established, awaiting stable connection. Err: " + err.Error())
+				connection, err = mongo.Await()
+				if err != nil {
+					logging.Error(fmt.Sprintf("Unrecoverable error connecting to mongo! Message: %+v\n", err.Error()))
+					os.Exit(1)
+				}
+			}
+
+			logging.Info("Established connection to mongoDB.")
+			connection.EnsureIndex()
+		}()
+
 		err = http.ListenAndServe(":"+conf.Server.Port, nil)
 		if err != nil {
 			logging.Error(fmt.Sprintf("Couldn't set up HTTP listener: %+v\n", err))

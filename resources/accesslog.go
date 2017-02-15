@@ -1,6 +1,7 @@
 package resources
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -30,6 +31,16 @@ func AccessLogging(next http.Handler) func(w http.ResponseWriter, r *http.Reques
 			time.Now().Sub(t1).Seconds(),
 			loggingWriter.Size()))
 	}
+}
+
+func writeMessage(w http.ResponseWriter, msg string, status int) {
+	data, _ := json.Marshal(struct {
+		Message string `json:"message"`
+	}{msg})
+
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(data)
+	w.WriteHeader(status)
 }
 
 func obtainTxID(req *http.Request) string {

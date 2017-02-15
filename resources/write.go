@@ -13,6 +13,12 @@ import (
 // WriteContent writes a new native record
 func WriteContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		connection, err := mongo.Open()
+		if err != nil {
+			writeMessage(w, "Failed to connect to the database!", http.StatusServiceUnavailable)
+			return
+		}
+
 		defer r.Body.Close()
 
 		collectionID := mux.Vars(r)["collection"]
@@ -38,7 +44,7 @@ func WriteContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 
 		wrappedContent := mapper.Wrap(content, resourceID, contentType)
 
-		if err := mongo.Write(collectionID, wrappedContent); err != nil {
+		if err := connection.Write(collectionID, wrappedContent); err != nil {
 			msg := fmt.Sprintf("Writing to mongoDB failed:\n%v\n", err)
 			ctxlogger.Error(msg)
 			http.Error(w, msg, http.StatusInternalServerError)

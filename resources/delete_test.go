@@ -13,7 +13,10 @@ import (
 
 func TestDeleteContent(t *testing.T) {
 	mongo := new(MockDB)
-	mongo.On("Delete", "methode", "a-real-uuid").Return(nil)
+	connection := new(MockConnection)
+
+	connection.On("Delete", "methode", "a-real-uuid").Return(nil)
+	mongo.On("Open").Return(connection, nil)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", DeleteContent(mongo)).Methods("DELETE")
@@ -28,7 +31,10 @@ func TestDeleteContent(t *testing.T) {
 
 func TestFailedDelete(t *testing.T) {
 	mongo := new(MockDB)
-	mongo.On("Delete", "methode", "a-real-uuid").Return(errors.New("i failed"))
+	connection := new(MockConnection)
+
+	connection.On("Delete", "methode", "a-real-uuid").Return(errors.New("i failed"))
+	mongo.On("Open").Return(connection, nil)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", DeleteContent(mongo)).Methods("DELETE")

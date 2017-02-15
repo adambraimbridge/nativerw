@@ -29,12 +29,18 @@ func (f *Filters) CheckNativeHash(mongo db.DB) *Filters {
 	next := f.next
 
 	f.next = func(w http.ResponseWriter, r *http.Request) {
+		connection, err := mongo.Open()
+		if err != nil {
+			writeMessage(w, "Failed to connect to the database!", http.StatusServiceUnavailable)
+			return
+		}
+
 		nativeHash := r.Header.Get("X-Native-Hash")
 
 		if strings.TrimSpace(nativeHash) != "" {
 			log := logging.NewTransactionLogger(r.Header.Get(txHeaderKey))
 			vars := mux.Vars(r)
-			matches, err := checkNativeHash(mongo, nativeHash, vars["collection"], vars["resource"])
+			matches, err := checkNativeHash(connection, nativeHash, vars["collection"], vars["resource"])
 
 			if err != nil {
 				msg := fmt.Sprintf("Unexpected error occurred while checking the native hash! Message: %v", err.Error())
@@ -56,7 +62,7 @@ func (f *Filters) CheckNativeHash(mongo db.DB) *Filters {
 	return f
 }
 
-func checkNativeHash(mongo db.DB, hash string, collection string, id string) (bool, error) {
+func checkNativeHash(mongo db.Connection, hash string, collection string, id string) (bool, error) {
 	resource, found, err := mongo.Read(collection, id)
 	if err != nil {
 		return false, err

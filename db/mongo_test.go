@@ -24,10 +24,7 @@ func startMongo(t *testing.T) DB {
 		Collections: []string{"methode"},
 	}
 
-	mgo, err := NewDBConnection(&conf)
-	if err != nil {
-		t.Fatal("Failed to connect to mongo! Please ensure your testing instance is up and running.")
-	}
+	mgo := NewDBConnection(&conf)
 
 	return mgo
 }

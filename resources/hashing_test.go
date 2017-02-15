@@ -39,7 +39,10 @@ func TestHashCheckMatches(t *testing.T) {
 	}
 
 	mongo := new(MockDB)
-	mongo.On("Read", "methode", "a-real-uuid").Return(expectedResource, true, nil)
+	connection := new(MockConnection)
+
+	mongo.On("Open").Return(connection, nil)
+	connection.On("Read", "methode", "a-real-uuid").Return(expectedResource, true, nil)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("PUT")
@@ -70,7 +73,10 @@ func TestHashCheckDoesntMatch(t *testing.T) {
 	}
 
 	mongo := new(MockDB)
-	mongo.On("Read", "methode", "a-real-uuid").Return(expectedResource, true, nil)
+	connection := new(MockConnection)
+
+	mongo.On("Open").Return(connection, nil)
+	connection.On("Read", "methode", "a-real-uuid").Return(expectedResource, true, nil)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("PUT")
@@ -92,7 +98,10 @@ func TestNoContentFound(t *testing.T) {
 	}
 
 	mongo := new(MockDB)
-	mongo.On("Read", "methode", "a-real-uuid").Return(mapper.Resource{}, false, nil)
+	connection := new(MockConnection)
+
+	mongo.On("Open").Return(connection, nil)
+	connection.On("Read", "methode", "a-real-uuid").Return(mapper.Resource{}, false, nil)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("PUT")
@@ -114,7 +123,10 @@ func TestHashCheckContentReadFails(t *testing.T) {
 	}
 
 	mongo := new(MockDB)
-	mongo.On("Read", "methode", "a-real-uuid").Return(mapper.Resource{}, false, errors.New("i failed"))
+	connection := new(MockConnection)
+
+	mongo.On("Open").Return(connection, nil)
+	connection.On("Read", "methode", "a-real-uuid").Return(mapper.Resource{}, false, errors.New("i failed"))
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("PUT")
@@ -142,7 +154,10 @@ func TestHashCheckJsonMarshalFails(t *testing.T) {
 	}
 
 	mongo := new(MockDB)
-	mongo.On("Read", "methode", "a-real-uuid").Return(expectedResource, true, nil)
+	connection := new(MockConnection)
+
+	mongo.On("Open").Return(connection, nil)
+	connection.On("Read", "methode", "a-real-uuid").Return(expectedResource, true, nil)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("PUT")
@@ -164,6 +179,9 @@ func TestNoHashCheckIfNoHeader(t *testing.T) {
 	}
 
 	mongo := new(MockDB)
+	connection := new(MockConnection)
+
+	mongo.On("Open").Return(connection, nil)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("PUT")

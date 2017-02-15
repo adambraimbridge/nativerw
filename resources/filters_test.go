@@ -44,7 +44,10 @@ func TestValidateAccess(t *testing.T) {
 	}
 
 	mongo := new(MockDB)
-	mongo.On("GetSupportedCollections").Return(testCollections)
+	connection := new(MockConnection)
+
+	mongo.On("Open").Return(connection, nil)
+	connection.On("GetSupportedCollections").Return(testCollections)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", Filter(next).ValidateAccess(mongo).Build()).Methods("GET")
@@ -73,7 +76,10 @@ func TestValidateAccessForCollection(t *testing.T) {
 	}
 
 	mongo := new(MockDB)
-	mongo.On("GetSupportedCollections").Return(testCollections)
+	connection := new(MockConnection)
+
+	mongo.On("Open").Return(connection, nil)
+	connection.On("GetSupportedCollections").Return(testCollections)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", Filter(next).ValidateAccessForCollection(mongo).Build()).Methods("GET")

@@ -14,7 +14,10 @@ import (
 
 func TestWriteContent(t *testing.T) {
 	mongo := new(MockDB)
-	mongo.On("Write", "methode", mapper.Resource{UUID: "a-real-uuid", Content: map[string]interface{}{}, ContentType: "application/json"}).Return(nil)
+	connection := new(MockConnection)
+
+	mongo.On("Open").Return(connection, nil)
+	connection.On("Write", "methode", mapper.Resource{UUID: "a-real-uuid", Content: map[string]interface{}{}, ContentType: "application/json"}).Return(nil)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", WriteContent(mongo)).Methods("PUT")
@@ -31,7 +34,10 @@ func TestWriteContent(t *testing.T) {
 
 func TestWriteFailed(t *testing.T) {
 	mongo := new(MockDB)
-	mongo.On("Write", "methode", mapper.Resource{UUID: "a-real-uuid", Content: map[string]interface{}{}, ContentType: "application/json"}).Return(errors.New("i failed"))
+	connection := new(MockConnection)
+
+	mongo.On("Open").Return(connection, nil)
+	connection.On("Write", "methode", mapper.Resource{UUID: "a-real-uuid", Content: map[string]interface{}{}, ContentType: "application/json"}).Return(errors.New("i failed"))
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", WriteContent(mongo)).Methods("PUT")
@@ -48,9 +54,12 @@ func TestWriteFailed(t *testing.T) {
 
 func TestDefaultsToBinaryMapping(t *testing.T) {
 	mongo := new(MockDB)
+	connection := new(MockConnection)
+
+	mongo.On("Open").Return(connection, nil)
 	content, _ := mapper.InMappers["application/octet-stream"](strings.NewReader(`{}`))
 
-	mongo.On("Write", "methode", mapper.Resource{UUID: "a-real-uuid", Content: content, ContentType: "application/octet-stream"}).Return(errors.New("i failed"))
+	connection.On("Write", "methode", mapper.Resource{UUID: "a-real-uuid", Content: content, ContentType: "application/octet-stream"}).Return(errors.New("i failed"))
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", WriteContent(mongo)).Methods("PUT")
@@ -67,6 +76,10 @@ func TestDefaultsToBinaryMapping(t *testing.T) {
 
 func TestFailedJSON(t *testing.T) {
 	mongo := new(MockDB)
+	connection := new(MockConnection)
+
+	mongo.On("Open").Return(connection, nil)
+
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", WriteContent(mongo)).Methods("PUT")
 
