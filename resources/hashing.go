@@ -50,8 +50,8 @@ func (f *Filters) CheckNativeHash(mongo db.DB) *Filters {
 			}
 
 			if !matches {
-				log.Warn("The native hash provided with this request does not match the native content in the store!")
-				http.Error(w, "The native hash provided with this request does not match the native content in the store!", http.StatusConflict)
+				log.Warn("The native hash provided with this request does not match the native content in the store, or the original has been removed!")
+				http.Error(w, "The native hash provided with this request does not match the native content in the store.", http.StatusConflict)
 				return
 			}
 		}
@@ -69,7 +69,8 @@ func checkNativeHash(mongo db.Connection, hash string, collection string, id str
 	}
 
 	if !found {
-		return true, nil // no native document for this id, so save it
+		logging.Warn("Received a carousel publish but the original native content does not exist in the native store! collection=" + collection + ", uuid=" + id)
+		return false, nil // no native document for this id, so save it
 	}
 
 	data, err := json.Marshal(resource.Content)
