@@ -53,7 +53,7 @@ func TestHashCheckMatches(t *testing.T) {
 
 	router.ServeHTTP(w, req)
 	mongo.AssertExpectations(t)
-	assert.True(t, passed)
+	assert.False(t, passed)
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 

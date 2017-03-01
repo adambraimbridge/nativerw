@@ -50,10 +50,13 @@ func (f *Filters) CheckNativeHash(mongo db.DB) *Filters {
 			}
 
 			if !matches {
-				log.Warn("The native hash provided with this request does not match the native content in the store, or the original has been removed!")
+				log.Info("The native hash provided with this request does not match the native content in the store, or the original has been removed!")
 				http.Error(w, "The native hash provided with this request does not match the native content in the store.", http.StatusConflict)
 				return
 			}
+
+			writeMessage(w, "Skipped carousel publish.", http.StatusOK)
+			return
 		}
 
 		next(w, r)
