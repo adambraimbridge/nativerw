@@ -55,7 +55,7 @@ func (f *Filters) CheckNativeHash(mongo db.DB) *Filters {
 				return
 			}
 
-			writeMessage(w, "Skipped carousel publish.", http.StatusOK)
+			writeMessage(w, "Hash matches existing content, no need to overwrite existing native data.", http.StatusOK)
 			return
 		}
 
