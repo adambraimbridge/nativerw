@@ -9,6 +9,7 @@ import (
 	"github.com/Financial-Times/nativerw/db"
 	"github.com/Financial-Times/nativerw/logging"
 	"github.com/Financial-Times/nativerw/resources"
+	"github.com/Financial-Times/service-status-go/httphandlers"
 	"github.com/gorilla/mux"
 	"github.com/jawher/mow.cli"
 	"github.com/kr/pretty"
@@ -83,5 +84,9 @@ func router(mongo db.DB) *mux.Router {
 	router.HandleFunc("/{collection}/{resource}", resources.Filter(resources.DeleteContent(mongo)).ValidateAccess(mongo).Build()).Methods("DELETE")
 	router.HandleFunc("/__health", resources.Healthchecks(mongo))
 	router.HandleFunc("/__gtg", resources.GoodToGo(mongo))
+
+	router.HandleFunc(httphandlers.BuildInfoPath, httphandlers.BuildInfoHandler).Methods("GET")
+	router.HandleFunc(httphandlers.PingPath, httphandlers.PingHandler).Methods("GET")
+
 	return router
 }
