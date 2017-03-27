@@ -10,9 +10,12 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jawher/mow.cli"
 	"github.com/kr/pretty"
+	"github.com/opentracing/opentracing-go"
+	tracing "github.com/Financial-Times/go-fttracing"
 )
 
 func main() {
+	opentracing.InitGlobalTracer(tracing.NewTracer("nativerw", "0.0.0.0:0", "prod"))
 	cliApp := cli.App("nativerw", "Writes any raw content/data from native CMS in mongoDB without transformation.")
 	mongos := cliApp.String(cli.StringOpt{
 		Name:   "mongos",
