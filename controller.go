@@ -12,6 +12,9 @@ import (
 	"regexp"
 
 	"github.com/gorilla/mux"
+	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
+	"context"
 )
 
 const txHeaderKey = "X-Request-Id"
@@ -22,7 +25,27 @@ const txHeaderLength = 20
 
 var uuidRegexp = regexp.MustCompile("^[a-z0-9]{8}-[a-z0-9]{4}-[1-5][a-z0-9]{3}-[a-z0-9]{4}-[a-z0-9]{12}$")
 
+func registerSpan(r *http.Request, operationName string) (context.Context, opentracing.Span) {
+	var serverSpan opentracing.Span
+
+	wireContext, _ := opentracing.GlobalTracer().Extract(
+		opentracing.HTTPHeaders,
+		opentracing.HTTPHeadersCarrier(r.Header))
+
+	serverSpan = opentracing.StartSpan(
+		operationName,
+		ext.RPCServerOption(wireContext))
+
+	return opentracing.ContextWithSpan(context.Background(), serverSpan), serverSpan
+}
+
+
 func (ma *mgoAPI) readContent(writer http.ResponseWriter, req *http.Request) {
+
+	_, serverSpan := registerSpan(req, "readContent")
+
+	defer serverSpan.Finish()
+
 	vars := mux.Vars(req)
 	resourceID := vars["resource"]
 	collection := vars["collection"]
@@ -72,10 +95,14 @@ func (ma *mgoAPI) readContent(writer http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (ma *mgoAPI) getIds(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
+func (ma *mgoAPI) getIds(w http.ResponseWriter, req *http.Request) {
+	_, serverSpan := registerSpan(req, "getIds")
+
+	defer serverSpan.Finish()
+
+	vars := mux.Vars(req)
 	coll := vars["collection"]
-	ctxLogger := txCombinedLogger{logger, obtainTxID(r)}
+	ctxLogger := txCombinedLogger{logger, obtainTxID(req)}
 
 	if err := ma.validateAccessForCollection(coll); err != nil {
 		msg := fmt.Sprintf("Invalid collectionId (%v).\n%v", coll, err)
@@ -126,6 +153,10 @@ var outMappers = map[string]outMapper{
 }
 
 func (ma *mgoAPI) deleteContent(writer http.ResponseWriter, req *http.Request) {
+	_, serverSpan := registerSpan(req, "deleteContent")
+
+	defer serverSpan.Finish()
+
 	defer req.Body.Close()
 	collectionID := mux.Vars(req)["collection"]
 	resourceID := mux.Vars(req)["resource"]
@@ -142,6 +173,11 @@ func (ma *mgoAPI) deleteContent(writer http.ResponseWriter, req *http.Request) {
 }
 
 func (ma *mgoAPI) writeContent(writer http.ResponseWriter, req *http.Request) {
+
+	_, serverSpan := registerSpan(req, "writeContent")
+
+	defer serverSpan.Finish()
+
 	defer req.Body.Close()
 	collectionID := mux.Vars(req)["collection"]
 	resourceID := mux.Vars(req)["resource"]
