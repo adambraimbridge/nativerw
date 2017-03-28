@@ -1,4 +1,5 @@
 # Native Store Reader Writer (nativerw)
+[![Coverage Status](https://coveralls.io/repos/github/Financial-Times/nativerw/badge.svg?branch=master)](https://coveralls.io/github/Financial-Times/nativerw?branch=master)
 
 __Writes any raw content/data from native CMS in mongoDB without transformation.
 The same data can then be read from here just like from the original CMS.__
@@ -8,7 +9,7 @@ The same data can then be read from here just like from the original CMS.__
 You need [Go to be installed](https://golang.org/doc/install). Please read about Go and about [How to Write Go Code](https://golang.org/doc/code.html) before jumping right in. For example you will need Git, Mercurial, Bazaar installed and working, so that Go can use them to retrieve dependencies. For this additionally you will also need a computer etc. Hope this helps.
 
 for the first time: `go get github.com/Financial-Times/nativerw` or update: `go get -u github.com/Financial-Times/nativerw`
-	
+
 `go install github.com/Financial-Times/nativerw`
 
 ###Building docker
