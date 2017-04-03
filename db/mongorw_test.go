@@ -179,6 +179,8 @@ func TestReadIDs(t *testing.T) {
 	assert.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	ids, err := connection.ReadIDs(ctx, "methode")
 
 	assert.NoError(t, err)
@@ -191,7 +193,6 @@ func TestReadIDs(t *testing.T) {
 	}
 
 	assert.True(t, found)
-	cancel()
 }
 
 func TestReadMoreThanOneBatch(t *testing.T) {
@@ -210,6 +211,8 @@ func TestReadMoreThanOneBatch(t *testing.T) {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	ids, err := connection.ReadIDs(ctx, "methode")
 
 	assert.NoError(t, err)
@@ -220,7 +223,6 @@ func TestReadMoreThanOneBatch(t *testing.T) {
 	}
 
 	assert.True(t, count >= 64)
-	cancel()
 }
 
 func TestCancelReadIDs(t *testing.T) {
@@ -239,6 +241,8 @@ func TestCancelReadIDs(t *testing.T) {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel() // just in case
+
 	ids, err := connection.ReadIDs(ctx, "methode")
 
 	assert.NoError(t, err)
