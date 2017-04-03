@@ -20,7 +20,7 @@ docker build -t coco/nativerw .
 ```
 
 ## Running
-
+ 
 `$GOPATH/bin/nativerw $GOPATH/src/github.com/Financial-Times/nativerw/config.json`
 
 You can override the mongos with -mongos flag, e.g.
