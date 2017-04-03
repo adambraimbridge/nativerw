@@ -20,7 +20,8 @@ RUN apk add --update bash \
   && cp -r /source/* $GOPATH/src/${REPO_PATH} \
   && cd $GOPATH/src/${REPO_PATH} \
   && echo $LDFLAGS \
-  && go get -v -t \
+  && go get -u github.com/kardianos/govendor \
+  && $GOPATH/bin/govendor sync \
   && go build -v -ldflags="${LDFLAGS}" \
   && mv ./nativerw / \
   && mv ./config.json / \
