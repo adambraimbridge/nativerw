@@ -1,10 +1,9 @@
 package db
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"net"
-	"strings"
 	"sync"
 	"time"
 
@@ -43,23 +42,8 @@ type Connection interface {
 	Delete(collection string, uuidString string) error
 	Write(collection string, resource mapper.Resource) error
 	Read(collection string, uuidString string) (res mapper.Resource, found bool, err error)
+	ReadIDs(ctx context.Context, collection string) (chan string, error)
 	Close()
-}
-
-func tcpDialServer(addr *mgo.ServerAddr) (net.Conn, error) {
-	ra, err := net.ResolveTCPAddr("tcp", addr.String())
-	if err != nil {
-		return nil, err
-	}
-
-	conn, err := net.DialTCP("tcp", nil, ra)
-	if err != nil {
-		return nil, err
-	}
-
-	conn.SetKeepAlive(true)
-	conn.SetKeepAlivePeriod(30 * time.Second)
-	return conn, nil
 }
 
 // NewDBConnection dials the mongo cluster, and returns a new handler DB instance
@@ -111,13 +95,7 @@ func (m *mongoDB) Open() (Connection, error) {
 }
 
 func (m *mongoDB) openMongoSession() (*mongoConnection, error) {
-	info := mgo.DialInfo{
-		Timeout:    5 * time.Second,
-		Addrs:      strings.Split(m.config.Mongos, ","),
-		DialServer: tcpDialServer,
-	}
-
-	session, err := mgo.DialWithInfo(&info)
+	session, err := mgo.DialWithTimeout(m.config.Mongos, 30*time.Second)
 	if err != nil {
 		return nil, err
 	}
@@ -215,4 +193,36 @@ func (ma *mongoConnection) Read(collection string, uuidString string) (res mappe
 	}
 
 	return res, true, nil
+}
+
+func (ma *mongoConnection) ReadIDs(ctx context.Context, collection string) (chan string, error) {
+	ids := make(chan string, 8)
+
+	newSession := ma.session.Copy()
+	coll := newSession.DB(ma.dbName).C(collection)
+
+	iter := coll.Find(nil).Select(bson.M{uuidName: true}).Batch(32).Iter()
+
+	if err := iter.Err(); err != nil {
+		newSession.Close()
+		return ids, err
+	}
+
+	go func() {
+		defer newSession.Close()
+		defer iter.Close()
+		defer close(ids)
+
+		var result map[string]interface{}
+
+		for iter.Next(&result) {
+			if err := ctx.Err(); err != nil {
+				break
+			}
+
+			ids <- uuid.UUID(result["uuid"].(bson.Binary).Data).String()
+		}
+	}()
+
+	return ids, nil
 }

@@ -1,6 +1,8 @@
 package resources
 
 import (
+	"context"
+
 	"github.com/Financial-Times/nativerw/db"
 	"github.com/Financial-Times/nativerw/mapper"
 	"github.com/stretchr/testify/mock"
@@ -48,10 +50,10 @@ func (m *MockConnection) Delete(collection string, uuidString string) error {
 	return args.Error(0)
 }
 
-func (m *MockConnection) Ids(collection string, stopChan chan struct{}, errChan chan error) chan string {
-	args := m.Called(collection, stopChan, errChan)
-	m.CallArgs = []interface{}{collection, stopChan, errChan}
-	return args.Get(0).(chan string)
+func (m *MockConnection) ReadIDs(ctx context.Context, collection string) (chan string, error) {
+	args := m.Called(ctx, collection)
+	m.CallArgs = []interface{}{ctx, collection}
+	return args.Get(0).(chan string), args.Error(1)
 }
 
 func (m *MockConnection) Write(collection string, resource mapper.Resource) error {

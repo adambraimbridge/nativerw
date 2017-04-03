@@ -39,3 +39,7 @@ func (l *ResponseLogger) Status() int {
 func (l *ResponseLogger) Size() int {
 	return l.size
 }
+
+func (l *ResponseLogger) Flush() {
+	l.Writer.(http.Flusher).Flush()
+}
