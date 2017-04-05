@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
@@ -162,4 +163,106 @@ func TestOpenFailsIfInitialisationFailed(t *testing.T) {
 	connection, err := mongo.Open()
 	assert.Error(t, err)
 	assert.Nil(t, connection)
+}
+
+func TestReadIDs(t *testing.T) {
+	mongo := startMongo(t).(*mongoDB)
+	connection, err := mongo.Open()
+
+	assert.NoError(t, err)
+
+	defer connection.Close()
+
+	expectedResource := generateResource()
+
+	err = connection.Write("methode", expectedResource)
+	assert.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	ids, err := connection.ReadIDs(ctx, "methode")
+
+	assert.NoError(t, err)
+	found := false
+
+	for uuid := range ids {
+		if uuid == expectedResource.UUID {
+			found = true
+		}
+	}
+
+	assert.True(t, found)
+}
+
+func TestReadMoreThanOneBatch(t *testing.T) {
+	mongo := startMongo(t).(*mongoDB)
+	connection, err := mongo.Open()
+
+	assert.NoError(t, err)
+
+	defer connection.Close()
+
+	for range make([]struct{}, 64) {
+		expectedResource := generateResource()
+
+		err = connection.Write("methode", expectedResource)
+		assert.NoError(t, err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	ids, err := connection.ReadIDs(ctx, "methode")
+
+	assert.NoError(t, err)
+	count := 0
+
+	for range ids {
+		count++
+	}
+
+	assert.True(t, count >= 64)
+}
+
+func TestCancelReadIDs(t *testing.T) {
+	mongo := startMongo(t).(*mongoDB)
+	connection, err := mongo.Open()
+
+	assert.NoError(t, err)
+
+	defer connection.Close()
+
+	for range make([]struct{}, 64) {
+		expectedResource := generateResource()
+
+		err = connection.Write("methode", expectedResource)
+		assert.NoError(t, err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel() // just in case
+
+	ids, err := connection.ReadIDs(ctx, "methode")
+
+	assert.NoError(t, err)
+
+	time.Sleep(1 * time.Second) // allow the channel to fill
+
+	uuid := <-ids
+	assert.NotEqual(t, "", uuid) // prove one uuid has been retrieved, but let the channel fill and block after
+	cancel()                     // cancel the request
+
+	count := 0
+	for {
+		uuid, ok := <-ids
+
+		if !ok {
+			assert.Equal(t, 8, count) // count should be 8, which is the size of the channel
+			break
+		}
+
+		assert.NotEqual(t, "", uuid) // all uuids should be non-zero
+		count++
+	}
 }

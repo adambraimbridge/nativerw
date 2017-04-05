@@ -79,9 +79,13 @@ func main() {
 func router(mongo db.DB) *mux.Router {
 	router := mux.NewRouter()
 	http.HandleFunc("/", resources.AccessLogging(router))
+
+	router.HandleFunc("/{collection}/__ids", resources.Filter(resources.ReadIDs(mongo)).ValidateAccessForCollection(mongo).Build()).Methods("GET")
+
 	router.HandleFunc("/{collection}/{resource}", resources.Filter(resources.ReadContent(mongo)).ValidateAccess(mongo).Build()).Methods("GET")
 	router.HandleFunc("/{collection}/{resource}", resources.Filter(resources.WriteContent(mongo)).ValidateAccess(mongo).CheckNativeHash(mongo).Build()).Methods("PUT")
 	router.HandleFunc("/{collection}/{resource}", resources.Filter(resources.DeleteContent(mongo)).ValidateAccess(mongo).Build()).Methods("DELETE")
+
 	router.HandleFunc("/__health", resources.Healthchecks(mongo))
 	router.HandleFunc("/__gtg", resources.GoodToGo(mongo))
 

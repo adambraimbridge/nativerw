@@ -2,3 +2,6 @@
 .idea
 nativerw
 *.exe
+
+/vendor/*
+!/vendor/vendor.json

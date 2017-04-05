@@ -8,11 +8,11 @@ The same data can then be read from here just like from the original CMS.__
 
 You need [Go to be installed](https://golang.org/doc/install). Please read about Go and about [How to Write Go Code](https://golang.org/doc/code.html) before jumping right in. For example you will need Git, Mercurial, Bazaar installed and working, so that Go can use them to retrieve dependencies. For this additionally you will also need a computer etc. Hope this helps.
 
-for the first time: `go get github.com/Financial-Times/nativerw` or update: `go get -u github.com/Financial-Times/nativerw`
+For the first time: `go get github.com/Financial-Times/nativerw` and `govendor sync`.
 
 `go install github.com/Financial-Times/nativerw`
 
-###Building docker
+### Building docker
 
 ```bash
 CGO_ENABLED=0 go build -a -installsuffix cgo -o nativerw .
@@ -27,25 +27,12 @@ You can override the mongos with -mongos flag, e.g.
 
 `$GOPATH/bin/nativerw -mongos=mongo1:port,mongo2:port $GOPATH/src/github.com/Financial-Times/nativerw/config.json`
 
-## Try it!
+## API
 
-`curl -XPUT -H "X-Request-Id: 123" -H "Content-Type: application/json" localhost:8080/methode/221da02e-c853-48ed-8753-3d1540fa190f --data '{"uuid":"221da02e-c853-48ed-8753-3d1540fa190f", "test": "test" }'`
+The nativerw supports the following endpoints:
 
-`curl -H "X-Request-Id: 123" localhost:8080/methode/221da02e-c853-48ed-8753-3d1540fa190f`
-
-Look in your mongoDB for database _native-store_ and collection _methode_ and notice the things you've written.
-
-Healthchecks: [http://localhost:8080/__health](http://localhost:8080/__health)
-
-Good-to-go: [http://localhost:8080/__gtg](http://localhost:8080/__gtg)
-
-
-## Managing the app on the FT remote hosts
-
-You can easily start or stop the app and see the logs on this page: [http://remote-hostname:9001/](http://ftapp08074-lvpr-uk-int:9001/)
-
-The following commands are also useful:
-
-Check the app's status: `sudo supervisorctl status nativerw`
-
-Starting or stopping the app: `sudo supervisorctl stop/start/restart nativerw`
+* GET `/{collection}/{uuid}` retrieves the native document, and returns it in either json or binary (depending on how it is saved).
+* PUT `/{collection}/{uuid}` upserts a new native document for the given uuid.
+* GET `/{collection}/__ids` returns all uuids for the given collection on a **best efforts basis**. If the collection is very large, the endpoint is likely to time out (timeout duration is hardcoded to 10s) before all uuids have been returned. This will be indistinguishable from a request which sends back the complete set of uuids, however, if there are less than ~10,000 uuids returned, you can be fairly confident you have the entire set.
+* GET `/__gtg` the good to go endpoint.
+* GET `/__health` the health endpoint.
