@@ -68,6 +68,7 @@ func GoodToGo(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 	healthChecks := []func() error{checkReadable(mongo), checkWritable(mongo)}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain; charset=ascii")
 		for _, hCheck := range healthChecks {
 			if err := hCheck(); err != nil {
 				w.WriteHeader(http.StatusServiceUnavailable)

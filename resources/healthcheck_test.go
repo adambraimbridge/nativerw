@@ -70,6 +70,7 @@ func TestG2G(t *testing.T) {
 	router.ServeHTTP(w, req)
 	mongo.AssertExpectations(t)
 	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "text/plain; charset=ascii", w.Result().Header.Get("Content-Type"))
 }
 
 func TestG2GFailsOnRead(t *testing.T) {
@@ -88,6 +89,7 @@ func TestG2GFailsOnRead(t *testing.T) {
 	router.ServeHTTP(w, req)
 	mongo.AssertExpectations(t)
 	assert.Equal(t, http.StatusServiceUnavailable, w.Code)
+	assert.Equal(t, "text/plain; charset=ascii", w.Result().Header.Get("Content-Type"))
 }
 
 func TestG2GFailsOnWrite(t *testing.T) {
@@ -107,6 +109,7 @@ func TestG2GFailsOnWrite(t *testing.T) {
 	router.ServeHTTP(w, req)
 	mongo.AssertExpectations(t)
 	assert.Equal(t, http.StatusServiceUnavailable, w.Code)
+	assert.Equal(t, "text/plain; charset=ascii", w.Result().Header.Get("Content-Type"))
 }
 
 func TestFailedMongoDuringHealthcheck(t *testing.T) {
@@ -137,4 +140,5 @@ func TestFailedMongoDuringGTG(t *testing.T) {
 	router.ServeHTTP(w, req)
 	mongo.AssertExpectations(t)
 	assert.Equal(t, http.StatusServiceUnavailable, w.Code)
+	assert.Equal(t, "text/plain; charset=ascii", w.Result().Header.Get("Content-Type"))
 }
