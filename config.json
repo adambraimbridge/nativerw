@@ -5,11 +5,9 @@
    },
    "dbName": "native-store",
    "collections": [
-      "brightcove",
       "methode",
       "wordpress",
       "v1-metadata",
-      "brightcove-metadata",
       "video"
    ]
 }
