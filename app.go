@@ -55,7 +55,7 @@ func main() {
 		}
 
 		conf.Mongos = *mongos
-		logger.Infof(nil, "Using configuration %# v", pretty.Formatter(conf))
+		logger.Infof(map[string]interface{}{}, "Using configuration %# v", pretty.Formatter(conf))
 
 		logger.ServiceStartedEvent(conf.Server.Port)
 		mongo := db.NewDBConnection(conf)
@@ -71,7 +71,7 @@ func main() {
 				}
 			}
 
-			logger.Infof(nil, "Established connection to mongoDB.")
+			logger.Infof(map[string]interface{}{}, "Established connection to mongoDB.")
 			connection.EnsureIndex()
 		}()
 
