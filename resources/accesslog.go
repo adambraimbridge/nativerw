@@ -2,12 +2,8 @@ package resources
 
 import (
 	"encoding/json"
-	"fmt"
 	"math/rand"
 	"net/http"
-	"time"
-
-	"github.com/Financial-Times/nativerw/logging"
 )
 
 const txHeaderKey = "X-Request-Id"
@@ -18,18 +14,7 @@ var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 // AccessLogging intercepts traffic and logs the request and response
 func AccessLogging(next http.Handler) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		t1 := time.Now()
-		ctxlogger := logging.NewTransactionLogger(obtainTxID(r))
-		var loggingWriter = &logging.ResponseLogger{Writer: w}
-
-		next.ServeHTTP(loggingWriter, r)
-
-		ctxlogger.Access(fmt.Sprintf("status=%v ; method=%v ; url=%v ; response_time=%.4f ; response_size=%v",
-			loggingWriter.Status(),
-			r.Method,
-			r.URL.String(),
-			time.Now().Sub(t1).Seconds(),
-			loggingWriter.Size()))
+		next.ServeHTTP(w, r)
 	}
 }
 

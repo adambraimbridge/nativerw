@@ -8,7 +8,7 @@ import (
 
 // Server config struct
 type Server struct {
-	Port string `json:"port"`
+	Port int `json:"port"`
 }
 
 // Configuration data

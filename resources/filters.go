@@ -3,11 +3,11 @@ package resources
 import (
 	"errors"
 	"fmt"
+	"github.com/Financial-Times/go-logger"
 	"net/http"
 	"regexp"
 
 	"github.com/Financial-Times/nativerw/db"
-	"github.com/Financial-Times/nativerw/logging"
 	"github.com/gorilla/mux"
 )
 
@@ -17,14 +17,14 @@ func validateAccess(mongo db.Connection, collectionID, resourceID string) error 
 	if mongo.GetSupportedCollections()[collectionID] && uuidRegexp.MatchString(resourceID) {
 		return nil
 	}
-	return errors.New("Collection not supported or resourceId not a valid uuid.")
+	return errors.New("collection not supported or resourceId not a valid uuid")
 }
 
 func validateAccessForCollection(mongo db.Connection, collectionID string) error {
 	if mongo.GetSupportedCollections()[collectionID] {
 		return nil
 	}
-	return errors.New("Collection not supported.")
+	return errors.New("Collection not supported.	")
 }
 
 // ValidateAccess validates whether the collection exists and the resource ID is in uuid format.
@@ -41,9 +41,9 @@ func (f *Filters) ValidateAccess(mongo db.DB) *Filters {
 		resourceID := mux.Vars(r)["resource"]
 
 		if err := validateAccess(connection, collectionID, resourceID); err != nil {
-			ctxlogger := logging.NewTransactionLogger(obtainTxID(r))
-			msg := fmt.Sprintf("Invalid collectionId (%v) or resourceId (%v).\n%v", collectionID, resourceID, err)
-			ctxlogger.Info(msg)
+			tid := obtainTxID(r)
+			msg := fmt.Sprintf("Invalid collectionId (%v) or resourceId (%v)", collectionID, resourceID)
+			logger.ErrorEvent(tid, msg, err)
 			http.Error(w, msg, http.StatusBadRequest)
 			return
 		}
@@ -66,9 +66,9 @@ func (f *Filters) ValidateAccessForCollection(mongo db.DB) *Filters {
 		collection := mux.Vars(r)["collection"]
 
 		if err := validateAccessForCollection(connection, collection); err != nil {
-			ctxLogger := logging.NewTransactionLogger(obtainTxID(r))
-			msg := fmt.Sprintf("Invalid collectionId (%v).\n%v", collection, err)
-			ctxLogger.Info(msg)
+			tid := obtainTxID(r)
+			msg := fmt.Sprintf("Invalid collectionId (%v)", collection)
+			logger.ErrorEvent(tid, msg, err)
 			http.Error(w, msg, http.StatusBadRequest)
 			return
 		}

@@ -6,10 +6,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Financial-Times/go-logger"
 	"github.com/Financial-Times/nativerw/mapper"
 	"github.com/pborman/uuid"
 	"github.com/stretchr/testify/assert"
 )
+
+func init() {
+	logger.InitLogger("nativerw", "info")
+}
 
 func generateResource() mapper.Resource {
 	return mapper.Resource{

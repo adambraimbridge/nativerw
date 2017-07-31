@@ -2,10 +2,10 @@ package resources
 
 import (
 	"fmt"
+	"github.com/Financial-Times/go-logger"
 	"net/http"
 
 	"github.com/Financial-Times/nativerw/db"
-	"github.com/Financial-Times/nativerw/logging"
 	"github.com/gorilla/mux"
 )
 
@@ -21,15 +21,15 @@ func DeleteContent(mongo db.DB) func(writer http.ResponseWriter, req *http.Reque
 		defer r.Body.Close()
 		collectionID := mux.Vars(r)["collection"]
 		resourceID := mux.Vars(r)["resource"]
-		ctxlogger := logging.NewTransactionLogger(obtainTxID(r))
+		tid := obtainTxID(r)
 
 		if err := connection.Delete(collectionID, resourceID); err != nil {
-			msg := fmt.Sprintf("Deleting from mongoDB failed:\n%v\n", err)
-			ctxlogger.Error(msg)
-			http.Error(w, msg, http.StatusInternalServerError)
+			msg := "Deleting from mongoDB failed"
+			logger.ErrorEventWithUUID(tid, resourceID, msg, err)
+			http.Error(w, fmt.Sprintf(msg+"\n%v\n", err), http.StatusInternalServerError)
 			return
 		}
 
-		ctxlogger.Info(fmt.Sprintf("Delete native content successful. resource_id: %+v", resourceID))
+		logger.MonitoringEventWithUUID("NativeDelete", tid, resourceID, "Annotations", "Successfully deleted")
 	}
 }
