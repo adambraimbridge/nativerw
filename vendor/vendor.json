@@ -11,6 +11,12 @@
 			"versionExact": "0.2.0"
 		},
 		{
+			"checksumSHA1": "TT5TiVe4UF1qEuyko3yQRp1W3UA=",
+			"path": "github.com/Financial-Times/go-logger",
+			"revision": "bd0622ea9923a1a014013e7712e6a097720755a8",
+			"revisionTime": "2017-07-27T13:48:46Z"
+		},
+		{
 			"checksumSHA1": "fqpohN7Qp2qj7TLMbUxh/cK4oH0=",
 			"path": "github.com/Financial-Times/service-status-go/buildinfo",
 			"revision": "3f5199736a3d7ae52394c63aac36834786825e21",
