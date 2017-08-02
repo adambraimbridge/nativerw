@@ -30,6 +30,6 @@ func DeleteContent(mongo db.DB) func(writer http.ResponseWriter, req *http.Reque
 			return
 		}
 
-		logger.MonitoringEventWithUUID("NativeDelete", tid, resourceID, "Annotations", "Successfully deleted")
+		logger.MonitoringEventWithUUID("NativeDelete", tid, resourceID, "", "Successfully deleted")
 	}
 }

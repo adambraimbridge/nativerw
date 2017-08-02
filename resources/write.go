@@ -51,6 +51,6 @@ func WriteContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		logger.MonitoringEventWithUUID("NativeSave", tid, resourceID, "Annotations", "Successfully saved")
+		logger.MonitoringEventWithUUID("NativeSave", tid, resourceID, "", "Successfully saved")
 	}
 }
