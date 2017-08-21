@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/Financial-Times/go-logger"
 	"net/http"
 	"os"
@@ -51,7 +52,7 @@ func main() {
 		}
 
 		if err := db.CheckMongoUrls(*mongos, *mongoNodeCount); err != nil {
-			logger.FatalEvent("Provided mongoDB urls are invalid", err)
+			logger.FatalEvent(fmt.Sprintf("Provided mongoDB urls %s are invalid", *mongos), err)
 		}
 
 		conf.Mongos = *mongos
