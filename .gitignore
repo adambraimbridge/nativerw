@@ -5,3 +5,4 @@ nativerw
 
 /vendor/*
 !/vendor/vendor.json
+/.project
