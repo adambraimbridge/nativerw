@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/Financial-Times/go-logger"
 	"net/http"
 	"os"
@@ -48,15 +47,15 @@ func main() {
 	cliApp.Action = func() {
 		conf, err := config.ReadConfig(*configFile)
 		if err != nil {
-			logger.FatalEvent("Error reading the configuration", err)
+			logger.Fatalf(nil, err, "Error reading the configuration")
 		}
 
 		if err := db.CheckMongoUrls(*mongos, *mongoNodeCount); err != nil {
-			logger.FatalEvent(fmt.Sprintf("Provided mongoDB urls %s are invalid", *mongos), err)
+			logger.Fatalf(nil, err, "Provided mongoDB urls %s are invalid", *mongos)
 		}
 
 		conf.Mongos = *mongos
-		logger.Infof(map[string]interface{}{}, "Using configuration %# v", pretty.Formatter(conf))
+		logger.Infof(nil, "Using configuration %# v", pretty.Formatter(conf))
 
 		logger.ServiceStartedEvent(conf.Server.Port)
 		mongo := db.NewDBConnection(conf)
@@ -65,10 +64,10 @@ func main() {
 		go func() {
 			connection, err := mongo.Open()
 			if err != nil {
-				logger.Errorf(map[string]interface{}{"error": err}, "Mongo connection not yet established, awaiting stable connection")
+				logger.Errorf(nil, err, "Mongo connection not yet established, awaiting stable connection")
 				connection, err = mongo.Await()
 				if err != nil {
-					logger.FatalEvent("Unrecoverable error connecting to mongo", err)
+					logger.Fatalf(nil, err, "Unrecoverable error connecting to mongo")
 				}
 			}
 
@@ -78,7 +77,7 @@ func main() {
 
 		err = http.ListenAndServe(":"+strconv.Itoa(conf.Server.Port), nil)
 		if err != nil {
-			logger.Errorf(map[string]interface{}{"error": err}, "Couldn't set up HTTP listener")
+			logger.Fatalf(nil, err, "Couldn't set up HTTP listener")
 		}
 	}
 

@@ -29,7 +29,7 @@ func WriteContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 		inMapper := mapper.InMappers[contentType]
 		if inMapper == nil {
 			msg := fmt.Sprintf("Content-Type header missing. Default value ('application/octet-stream') is used.")
-			logger.InfoEventWithUUID(tid, resourceID, msg)
+			logger.NewEntry(tid).WithUUID(resourceID).Info(msg)
 			contentType = "application/octet-stream"
 			inMapper = mapper.InMappers[contentType]
 		}
@@ -37,7 +37,7 @@ func WriteContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 		content, err := inMapper(r.Body)
 		if err != nil {
 			msg := "Extracting content from HTTP body failed"
-			logger.WarnEventWithUUID(tid, resourceID, msg, err)
+			logger.NewMonitoringEntry("NativeSave", tid, "").WithUUID(resourceID).WithError(err).Error(msg)
 			http.Error(w, fmt.Sprintf(msg+":\n%v\n", err), http.StatusBadRequest)
 			return
 		}
@@ -46,11 +46,11 @@ func WriteContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 
 		if err := connection.Write(collectionID, wrappedContent); err != nil {
 			msg := "Writing to mongoDB failed"
-			logger.ErrorEventWithUUID(tid, resourceID, msg, err)
+			logger.NewMonitoringEntry("NativeSave", tid, "").WithUUID(resourceID).WithError(err).Error(msg)
 			http.Error(w, fmt.Sprintf(msg+":\n%v\n", err), http.StatusInternalServerError)
 			return
 		}
 
-		logger.MonitoringEventWithUUID("NativeSave", tid, resourceID, "", "Successfully saved")
+		logger.NewMonitoringEntry("NativeSave", tid, "").WithUUID(resourceID).Info("Successfully saved")
 	}
 }

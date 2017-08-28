@@ -31,14 +31,14 @@ func ReadContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 		resource, found, err := connection.Read(collection, resourceID)
 		if err != nil {
 			msg := "Reading from mongoDB failed."
-			logger.ErrorEventWithUUID(tid, resourceID, msg, err)
+			logger.NewEntry(tid).WithUUID(resourceID).WithError(err).Error(msg)
 			http.Error(w, fmt.Sprintf(msg+": %v", err.Error()), http.StatusInternalServerError)
 			return
 		}
 
 		if !found {
 			msg := fmt.Sprintf("Resource not found. collection: %v, id: %v", collection, resourceID)
-			logger.InfoEventWithUUID(tid, resourceID, msg)
+			logger.NewEntry(tid).WithUUID(resourceID).Info(msg)
 
 			w.Header().Add("Content-Type", "application/json")
 			respBody, _ := json.Marshal(map[string]string{"message": msg})
@@ -52,7 +52,7 @@ func ReadContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 		om, found := mapper.OutMappers[resource.ContentType]
 		if !found {
 			msg := fmt.Sprintf("Unable to handle resource of type %T", resource)
-			logger.WarnEventWithUUID(tid, resourceID, msg, nil)
+			logger.NewEntry(tid).WithUUID(resourceID).Warn(msg)
 			http.Error(w, msg, http.StatusNotImplemented)
 			return
 		}
@@ -60,10 +60,10 @@ func ReadContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 		err = om(w, resource)
 		if err != nil {
 			msg := fmt.Sprintf("Unable to extract native content from resource with id %v. %v", resourceID, err.Error())
-			logger.WarnEventWithUUID(tid, resourceID, msg, err)
+			logger.NewEntry(tid).WithUUID(resourceID).WithError(err).Errorf(msg)
 			http.Error(w, msg, http.StatusInternalServerError)
 		} else {
-			logger.InfoEventWithUUID(tid, resourceID, "Read native content successfully")
+			logger.NewEntry(tid).WithUUID(resourceID).Info("Read native content successfully")
 		}
 	}
 }
@@ -86,7 +86,7 @@ func ReadIDs(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 		ids, err := connection.ReadIDs(ctx, coll)
 		if err != nil {
 			msg := fmt.Sprintf(`Failed to read IDs from mongo for %v! "%v"`, coll, err.Error())
-			logger.WarnEvent(tid, msg, err)
+			logger.NewEntry(tid).WithError(err).Error(msg)
 			http.Error(w, msg, http.StatusServiceUnavailable)
 			return
 		}

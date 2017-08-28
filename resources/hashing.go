@@ -18,7 +18,7 @@ func Hash(payload string) string {
 	hash := sha256.New224()
 	_, err := hash.Write([]byte(payload))
 	if err != nil {
-		logger.WarnEvent("", "Failed to write hash", nil)
+		logger.Warnf(nil, "Failed to write hash")
 	}
 
 	return hex.EncodeToString(hash.Sum(nil))
@@ -44,13 +44,13 @@ func (f *Filters) CheckNativeHash(mongo db.DB) *Filters {
 
 			if err != nil {
 				msg := "Unexpected error occurred while checking the native hash"
-				logger.ErrorEvent(tid, msg, err)
+				logger.NewEntry(tid).WithError(err).Error(msg)
 				http.Error(w, fmt.Sprintf(msg+" : %v", err.Error()), http.StatusServiceUnavailable)
 				return
 			}
 
 			if !matches {
-				logger.InfoEvent(tid, "The native hash provided with this request does not match the native content in the store, or the original has been removed!")
+				logger.NewEntry(tid).Warn("The native hash provided with this request does not match the native content in the store, or the original has been removed!")
 				http.Error(w, "The native hash provided with this request does not match the native content in the store.", http.StatusConflict)
 				return
 			}
@@ -73,7 +73,7 @@ func checkNativeHash(mongo db.Connection, hash string, collection string, id str
 
 	if !found {
 		msg := fmt.Sprintf("Received a carousel publish but the original native content does not exist in the native store! collection=%s" + collection)
-		logger.WarnEventWithUUID("", id, msg, nil)
+		logger.NewEntry("").WithUUID(id).Warn(msg)
 		return false, nil // no native document for this id, so save it
 	}
 

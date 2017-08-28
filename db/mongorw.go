@@ -72,7 +72,7 @@ func (m *mongoDB) Open() (Connection, error) {
 		m.connection = NewOptional(func() (interface{}, error) {
 			connection, err := m.openMongoSession()
 			for err != nil {
-				logger.Errorf(map[string]interface{}{"error": err}, "Couldn't establish connection to mongoDB")
+				logger.Errorf(nil, err, "Couldn't establish connection to mongoDB")
 				time.Sleep(5 * time.Second)
 
 				connection, err = m.openMongoSession()

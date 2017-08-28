@@ -43,7 +43,7 @@ func (f *Filters) ValidateAccess(mongo db.DB) *Filters {
 		if err := validateAccess(connection, collectionID, resourceID); err != nil {
 			tid := obtainTxID(r)
 			msg := fmt.Sprintf("Invalid collectionId (%v) or resourceId (%v)", collectionID, resourceID)
-			logger.ErrorEvent(tid, msg, err)
+			logger.NewEntry(tid).WithError(err).Error(msg)
 			http.Error(w, msg, http.StatusBadRequest)
 			return
 		}
@@ -68,7 +68,7 @@ func (f *Filters) ValidateAccessForCollection(mongo db.DB) *Filters {
 		if err := validateAccessForCollection(connection, collection); err != nil {
 			tid := obtainTxID(r)
 			msg := fmt.Sprintf("Invalid collectionId (%v)", collection)
-			logger.ErrorEvent(tid, msg, err)
+			logger.NewEntry(tid).WithError(err).Error(msg)
 			http.Error(w, msg, http.StatusBadRequest)
 			return
 		}
