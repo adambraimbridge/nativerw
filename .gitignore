@@ -1,7 +1,8 @@
 *.iml
 .idea
-nativerw
+/nativerw
 *.exe
 
 /vendor/*
 !/vendor/vendor.json
+/.project
