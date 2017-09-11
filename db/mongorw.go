@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/Financial-Times/go-logger"
 	"sync"
 	"time"
 
 	"github.com/Financial-Times/nativerw/config"
-	"github.com/Financial-Times/nativerw/logging"
 	"github.com/Financial-Times/nativerw/mapper"
 	"github.com/pborman/uuid"
 	"gopkg.in/mgo.v2"
@@ -72,7 +72,7 @@ func (m *mongoDB) Open() (Connection, error) {
 		m.connection = NewOptional(func() (interface{}, error) {
 			connection, err := m.openMongoSession()
 			for err != nil {
-				logging.Error(fmt.Sprintf("Couldn't establish connection to mongoDB: %+v", err.Error()))
+				logger.Errorf(nil, err, "Couldn't establish connection to mongoDB")
 				time.Sleep(5 * time.Second)
 
 				connection, err = m.openMongoSession()
@@ -96,7 +96,7 @@ func (m *mongoDB) Open() (Connection, error) {
 }
 
 func (m *mongoDB) openMongoSession() (*mongoConnection, error) {
-	session, err := mgo.DialWithTimeout(m.config.Mongos, 30 * time.Second)
+	session, err := mgo.DialWithTimeout(m.config.Mongos, 30*time.Second)
 	if err != nil {
 		return nil, err
 	}

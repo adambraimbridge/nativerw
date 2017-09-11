@@ -5,11 +5,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/Financial-Times/go-logger"
 	"net/http"
 	"strings"
 
 	"github.com/Financial-Times/nativerw/db"
-	"github.com/Financial-Times/nativerw/logging"
 	"github.com/gorilla/mux"
 )
 
@@ -18,7 +18,7 @@ func Hash(payload string) string {
 	hash := sha256.New224()
 	_, err := hash.Write([]byte(payload))
 	if err != nil {
-		logging.Warn("Failed to write hash!")
+		logger.Warnf(nil, "Failed to write hash")
 	}
 
 	return hex.EncodeToString(hash.Sum(nil))
@@ -38,19 +38,19 @@ func (f *Filters) CheckNativeHash(mongo db.DB) *Filters {
 		nativeHash := r.Header.Get("X-Native-Hash")
 
 		if strings.TrimSpace(nativeHash) != "" {
-			log := logging.NewTransactionLogger(r.Header.Get(txHeaderKey))
+			tid := r.Header.Get(txHeaderKey)
 			vars := mux.Vars(r)
 			matches, err := checkNativeHash(connection, nativeHash, vars["collection"], vars["resource"])
 
 			if err != nil {
-				msg := fmt.Sprintf("Unexpected error occurred while checking the native hash! Message: %v", err.Error())
-				log.Error(msg)
-				http.Error(w, msg, http.StatusServiceUnavailable)
+				msg := "Unexpected error occurred while checking the native hash"
+				logger.NewEntry(tid).WithError(err).Error(msg)
+				http.Error(w, fmt.Sprintf(msg+" : %v", err.Error()), http.StatusServiceUnavailable)
 				return
 			}
 
 			if !matches {
-				log.Info("The native hash provided with this request does not match the native content in the store, or the original has been removed!")
+				logger.NewEntry(tid).Warn("The native hash provided with this request does not match the native content in the store, or the original has been removed!")
 				http.Error(w, "The native hash provided with this request does not match the native content in the store.", http.StatusConflict)
 				return
 			}
@@ -72,7 +72,8 @@ func checkNativeHash(mongo db.Connection, hash string, collection string, id str
 	}
 
 	if !found {
-		logging.Warn("Received a carousel publish but the original native content does not exist in the native store! collection=" + collection + ", uuid=" + id)
+		msg := fmt.Sprintf("Received a carousel publish but the original native content does not exist in the native store! collection=%s" + collection)
+		logger.NewEntry("").WithUUID(id).Warn(msg)
 		return false, nil // no native document for this id, so save it
 	}
 

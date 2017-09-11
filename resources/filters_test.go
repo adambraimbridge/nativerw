@@ -2,6 +2,7 @@ package resources
 
 import (
 	"errors"
+	"github.com/Financial-Times/go-logger"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -9,6 +10,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 )
+
+func init() {
+	logger.InitLogger("nativerw", "info")
+}
 
 var testCollections = map[string]bool{
 	"methode":   true,

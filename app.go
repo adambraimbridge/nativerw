@@ -1,19 +1,25 @@
 package main
 
 import (
-	"fmt"
+	"github.com/Financial-Times/go-logger"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/Financial-Times/nativerw/config"
 	"github.com/Financial-Times/nativerw/db"
-	"github.com/Financial-Times/nativerw/logging"
 	"github.com/Financial-Times/nativerw/resources"
 	"github.com/Financial-Times/service-status-go/httphandlers"
 	"github.com/gorilla/mux"
 	"github.com/jawher/mow.cli"
 	"github.com/kr/pretty"
 )
+
+const appName = "nativerw"
+
+func init() {
+	logger.InitLogger(appName, "info")
+}
 
 func main() {
 	cliApp := cli.App("nativerw", "Writes any raw content/data from native CMS in mongoDB without transformation.")
@@ -39,44 +45,39 @@ func main() {
 	})
 
 	cliApp.Action = func() {
-		logging.Info("Starting nativerw app.")
-
 		conf, err := config.ReadConfig(*configFile)
 		if err != nil {
-			logging.Error(fmt.Sprintf("Error reading the configuration: %+v\n", err.Error()))
-			os.Exit(1)
+			logger.Fatalf(nil, err, "Error reading the configuration")
 		}
 
 		if err := db.CheckMongoUrls(*mongos, *mongoNodeCount); err != nil {
-			logging.Error(fmt.Sprintf("Provided mongoDB urls are invalid: %s", err.Error()))
-			os.Exit(1)
+			logger.Fatalf(nil, err, "Provided mongoDB urls %s are invalid", *mongos)
 		}
 
 		conf.Mongos = *mongos
+		logger.Infof(nil, "Using configuration %# v", pretty.Formatter(conf))
 
-		logging.Info(fmt.Sprintf("Using configuration %# v \n", pretty.Formatter(conf)))
-
+		logger.ServiceStartedEvent(conf.Server.Port)
 		mongo := db.NewDBConnection(conf)
 		router(mongo)
 
 		go func() {
 			connection, err := mongo.Open()
 			if err != nil {
-				logging.Error("Mongo connection not yet established, awaiting stable connection. Err: " + err.Error())
+				logger.Errorf(nil, err, "Mongo connection not yet established, awaiting stable connection")
 				connection, err = mongo.Await()
 				if err != nil {
-					logging.Error(fmt.Sprintf("Unrecoverable error connecting to mongo! Message: %+v\n", err.Error()))
-					os.Exit(1)
+					logger.Fatalf(nil, err, "Unrecoverable error connecting to mongo")
 				}
 			}
 
-			logging.Info("Established connection to mongoDB.")
+			logger.Infof(map[string]interface{}{}, "Established connection to mongoDB.")
 			connection.EnsureIndex()
 		}()
 
-		err = http.ListenAndServe(":" + conf.Server.Port, nil)
+		err = http.ListenAndServe(":"+strconv.Itoa(conf.Server.Port), nil)
 		if err != nil {
-			logging.Error(fmt.Sprintf("Couldn't set up HTTP listener: %+v\n", err))
+			logger.Fatalf(nil, err, "Couldn't set up HTTP listener")
 		}
 	}
 

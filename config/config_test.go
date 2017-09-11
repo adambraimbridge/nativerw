@@ -15,7 +15,7 @@ func TestConfigFromReader(t *testing.T) {
 	reader := strings.NewReader(`{
          "mongos": "` + randomness + `",
          "server": {
-            "port": "8080"
+            "port": 8080
          },
          "dbName": "native-store",
          "collections": [
@@ -31,7 +31,7 @@ func TestConfigFromReader(t *testing.T) {
 	assert.Equal(t, randomness, config.Mongos)
 	assert.Equal(t, "native-store", config.DbName)
 	assert.Equal(t, []string{"video", "methode", "wordpress", "v1-metadata"}, config.Collections)
-	assert.Equal(t, "8080", config.Server.Port)
+	assert.Equal(t, 8080, config.Server.Port)
 }
 
 func TestConfigFromReaderFails(t *testing.T) {
@@ -51,7 +51,7 @@ func TestConfigFromFile(t *testing.T) {
 	_, err = file.Write([]byte(`{
          "mongos": "` + randomness + `",
          "server": {
-            "port": "8080"
+            "port": 8080
          },
          "dbName": "native-store",
          "collections": [
@@ -69,5 +69,5 @@ func TestConfigFromFile(t *testing.T) {
 	assert.Equal(t, randomness, config.Mongos)
 	assert.Equal(t, "native-store", config.DbName)
 	assert.Equal(t, []string{"video", "methode", "wordpress", "v1-metadata"}, config.Collections)
-	assert.Equal(t, "8080", config.Server.Port)
+	assert.Equal(t, 8080, config.Server.Port)
 }
