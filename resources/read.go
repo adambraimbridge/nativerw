@@ -143,7 +143,9 @@ func WildcardReadContent(mongo db.DB, conf *config.Configuration) func(w http.Re
 				// return 302 with location - or if ?redirect=false, return inline
 				location := fmt.Sprintf("../%s/%s", collection, resourceID)
 				if redirect {
-					http.Redirect(w, r, location, http.StatusFound)
+					w.Header().Add("Location", location)
+					writeMessage(w, fmt.Sprintf("See other: %s", location), http.StatusFound)
+					//http.Redirect(w, r, location, http.StatusFound)
 				} else {
 					w.Header().Add("Content-Location", location)
 					writeContent(tid, w, res)
@@ -161,7 +163,9 @@ func WildcardReadContent(mongo db.DB, conf *config.Configuration) func(w http.Re
 			// return 303 with location - or if ?redirect=false, return inline
 			location := fmt.Sprintf("../%s/%s", collection, derivedID)
 			if redirect {
-				http.Redirect(w, r, location, http.StatusSeeOther)
+				w.Header().Add("Location", location)
+				writeMessage(w, fmt.Sprintf("See other: %s", location), http.StatusSeeOther)
+				//http.Redirect(w, r, location, http.StatusSeeOther)
 			} else {
 				w.Header().Add("Content-Location", location)
 				writeContent(tid, w, res)
