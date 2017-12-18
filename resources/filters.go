@@ -14,14 +14,14 @@ import (
 var uuidRegexp = regexp.MustCompile("^[a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[a-f0-9]{4}-[a-f0-9]{12}$")
 
 func validateAccess(mongo db.Connection, collectionID, resourceID string) error {
-	if mongo.GetSupportedCollections()[collectionID] && uuidRegexp.MatchString(resourceID) {
+	if validateAccessForCollection(mongo, collectionID) == nil && uuidRegexp.MatchString(resourceID) {
 		return nil
 	}
 	return errors.New("collection not supported or resourceId not a valid uuid")
 }
 
 func validateAccessForCollection(mongo db.Connection, collectionID string) error {
-	if mongo.GetSupportedCollections()[collectionID] {
+	if collectionID == "_" || mongo.GetSupportedCollections()[collectionID] {
 		return nil
 	}
 	return errors.New("Collection not supported.	")

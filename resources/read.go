@@ -5,12 +5,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/Financial-Times/go-logger"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
+	"github.com/Financial-Times/go-logger"
+	"github.com/Financial-Times/nativerw/config"
 	"github.com/Financial-Times/nativerw/db"
 	"github.com/Financial-Times/nativerw/mapper"
+	uuidutils "github.com/Financial-Times/uuid-utils-go"
 	"github.com/gorilla/mux"
 )
 
@@ -110,5 +114,115 @@ func ReadIDs(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 			bw.Flush()
 			w.(http.Flusher).Flush()
 		}
+	}
+}
+
+func WildcardReadContent(mongo db.DB, conf *config.Configuration) func(w http.ResponseWriter, r *http.Request) {
+	contentCollections := []string{}
+	// loop through each collection that is eligible for wildcard read (i.e. exclude metadata collections)
+	for _, c := range conf.Collections {
+		if !strings.HasSuffix(c, "metadata") {
+			contentCollections = append(contentCollections, c)
+		}
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		connection, err := mongo.Open()
+		if err != nil {
+			writeMessage(w, "Failed to connect to the database!", http.StatusServiceUnavailable)
+			return
+		}
+
+		tid := obtainTxID(r)
+		vars := mux.Vars(r)
+		resourceID := vars["resource"]
+		redirect := isRedirectRequest(r)
+
+		found, collection, res, err := findInCollections(tid, connection, contentCollections, resourceID)
+			if found {
+				// return 302 with location - or if ?redirect=false, return inline
+				location := fmt.Sprintf("../%s/%s", collection, resourceID)
+				if redirect {
+					http.Redirect(w, r, location, http.StatusFound)
+				} else {
+					w.Header().Add("Content-Location", location)
+					writeContent(tid, w, res)
+				}
+				return
+			}
+
+		// if still not found - do UUID xor magic
+		requestedUUID, _ := uuidutils.NewUUIDFromString(resourceID)
+		derivedUUID, _ := uuidutils.NewUUIDDeriverWith(uuidutils.IMAGE_SET).From(requestedUUID)
+		derivedID := derivedUUID.String()
+
+		found, collection, res, err = findInCollections(tid, connection, contentCollections, derivedID)
+		if found {
+			// return 303 with location - or if ?redirect=false, return inline
+			location := fmt.Sprintf("../%s/%s", collection, derivedID)
+			if redirect {
+				http.Redirect(w, r, location, http.StatusSeeOther)
+			} else {
+				w.Header().Add("Content-Location", location)
+				writeContent(tid, w, res)
+			}
+			return
+		}
+
+		writeMessage(w, fmt.Sprintf("Not found in any collection: %s", resourceID), http.StatusNotFound)
+	}
+}
+
+func findInCollections(tid string, connection db.Connection, collections []string, uuid string) (bool,string,*mapper.Resource,error) {
+	var lastErr error
+	for _, c := range collections {
+		resource, found, err := connection.Read(c, uuid)
+		if err != nil {
+			msg := "Reading from mongoDB failed."
+			logger.NewEntry(tid).WithUUID(uuid).WithField("collection", c).WithError(err).Error(msg)
+			lastErr = err
+			continue
+		}
+
+		if found {
+			logger.NewEntry(tid).WithField("uuid", uuid).WithField("collection", c).Info("Found resource in collection")
+			return true, c, &resource, nil
+		}
+
+		msg := fmt.Sprintf("Resource not found. collection: %v, id: %v", c, uuid)
+		logger.NewEntry(tid).WithUUID(uuid).Info(msg)
+	}
+
+	return false, "", nil, lastErr
+}
+
+func isRedirectRequest(r *http.Request) bool {
+	redirect := r.URL.Query().Get("redirect")
+	b, err := strconv.ParseBool(redirect)
+	if err != nil {
+		b = true
+	}
+
+	return b
+}
+
+func writeContent(tid string, w http.ResponseWriter, resource *mapper.Resource) {
+	w.Header().Add("Content-Type", resource.ContentType)
+
+	om, found := mapper.OutMappers[resource.ContentType]
+	if !found {
+		msg := fmt.Sprintf("Unable to handle resource of type %T", resource)
+		logger.NewEntry(tid).WithUUID(resource.UUID).Warn(msg)
+		http.Error(w, msg, http.StatusNotImplemented)
+		return
+	}
+
+	err := om(w, *resource)
+	if err != nil {
+		msg := fmt.Sprintf("Unable to extract native content from resource with id %v. %v", resource.UUID, err.Error())
+		logger.NewEntry(tid).WithUUID(resource.UUID).WithError(err).Errorf(msg)
+		http.Error(w, msg, http.StatusInternalServerError)
+	} else {
+		logger.NewEntry(tid).WithUUID(resource.UUID).Info("Read native content successfully")
 	}
 }

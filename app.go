@@ -1,18 +1,19 @@
 package main
 
 import (
-	"github.com/Financial-Times/go-logger"
 	"net/http"
 	"os"
 	"strconv"
 
+	logger "github.com/Financial-Times/go-logger"
 	"github.com/Financial-Times/nativerw/config"
 	"github.com/Financial-Times/nativerw/db"
 	"github.com/Financial-Times/nativerw/resources"
-	"github.com/Financial-Times/service-status-go/httphandlers"
-	"github.com/gorilla/mux"
+	"github.com/Financial-Times/http-handlers-go/httphandlers"
 	"github.com/jawher/mow.cli"
 	"github.com/kr/pretty"
+	status "github.com/Financial-Times/service-status-go/httphandlers"
+	"github.com/gorilla/mux"
 )
 
 const appName = "nativerw"
@@ -59,7 +60,7 @@ func main() {
 
 		logger.ServiceStartedEvent(conf.Server.Port)
 		mongo := db.NewDBConnection(conf)
-		router(mongo)
+		router(mongo, conf)
 
 		go func() {
 			connection, err := mongo.Open()
@@ -87,12 +88,12 @@ func main() {
 	}
 }
 
-func router(mongo db.DB) *mux.Router {
+func router(mongo db.DB, conf *config.Configuration) http.Handler {
 	router := mux.NewRouter()
-	http.HandleFunc("/", resources.AccessLogging(router))
 
 	router.HandleFunc("/{collection}/__ids", resources.Filter(resources.ReadIDs(mongo)).ValidateAccessForCollection(mongo).Build()).Methods("GET")
 
+	router.HandleFunc("/_/{resource}", resources.WildcardReadContent(mongo, conf)).Methods("GET")
 	router.HandleFunc("/{collection}/{resource}", resources.Filter(resources.ReadContent(mongo)).ValidateAccess(mongo).Build()).Methods("GET")
 	router.HandleFunc("/{collection}/{resource}", resources.Filter(resources.WriteContent(mongo)).ValidateAccess(mongo).CheckNativeHash(mongo).Build()).Methods("PUT")
 	router.HandleFunc("/{collection}/{resource}", resources.Filter(resources.DeleteContent(mongo)).ValidateAccess(mongo).Build()).Methods("DELETE")
@@ -100,8 +101,11 @@ func router(mongo db.DB) *mux.Router {
 	router.HandleFunc("/__health", resources.Healthchecks(mongo))
 	router.HandleFunc("/__gtg", resources.GoodToGo(mongo))
 
-	router.HandleFunc(httphandlers.BuildInfoPath, httphandlers.BuildInfoHandler).Methods("GET")
-	router.HandleFunc(httphandlers.PingPath, httphandlers.PingHandler).Methods("GET")
+	router.HandleFunc(status.BuildInfoPath, status.BuildInfoHandler).Methods("GET")
+	router.HandleFunc(status.PingPath, status.PingHandler).Methods("GET")
 
-	return router
+	r := httphandlers.TransactionAwareRequestLoggingHandler(logger.NewLogger(), router)
+	http.Handle("/", r)
+
+	return r
 }
