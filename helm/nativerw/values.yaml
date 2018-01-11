@@ -8,8 +8,8 @@ replicaCount: 2
 image:
   repository: coco/nativerw
   pullPolicy: IfNotPresent
-#resources:
-#  limits:
-#    memory: 256Mi
-
-
+resources:
+  limits:
+    memory: 256Mi
+  requests:
+    memory: 128Mi

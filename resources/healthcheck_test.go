@@ -1,13 +1,14 @@
 package resources
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"regexp"
-	"strings"
 	"testing"
 
+	fthealth "github.com/Financial-Times/go-fthealth/v1_1"
+	status "github.com/Financial-Times/service-status-go/httphandlers"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 )
@@ -49,11 +50,34 @@ func TestHealthchecksFail(t *testing.T) {
 	mongo.AssertExpectations(t)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	expected := regexp.MustCompile(`\{"checks":\[\{"businessImpact":"Publishing won't work. Writing content to native store is broken.","checkOutput":"no writes 4 u","lastUpdated":".*","name":"Write to mongoDB","ok":false,"panicGuide":".*","severity":2,"technicalSummary":"Writing to mongoDB is broken. Check mongoDB is up, its disk space, ports, network."\},\{"businessImpact":"Reading content from native store is broken.","checkOutput":"no reads 4 u","lastUpdated":".*","name":"Read from mongoDB","ok":false,"panicGuide":".*","severity":2,"technicalSummary":"Reading from mongoDB is broken. Check mongoDB is up, its disk space, ports, network."\}\],"description":"Checking connectivity and usability of dependent services: mongoDB.","name":"Dependent services healthcheck","schemaVersion":1,"ok":false,"severity":2\}`)
-	assert.Regexp(t, expected, strings.TrimSpace(w.Body.String()))
+	healthResult := fthealth.HealthResult{}
+	dec := json.NewDecoder(w.Body)
+	dec.Decode(&healthResult)
+
+	assert.Equal(t, 1.0, healthResult.SchemaVersion)
+	assert.Equal(t, "nativerw", healthResult.Name)
+	assert.Equal(t, "NativeStoreReaderWriter", healthResult.SystemCode)
+	assert.Equal(t, "Reads and Writes data to the UPP Native Store, in the received (native) format", healthResult.Description)
+	assert.False(t, healthResult.Ok)
+	assert.Equal(t, uint8(2), healthResult.Severity)
+
+	for _, check := range healthResult.Checks {
+		if check.Name == "Write to mongoDB" {
+			assert.Equal(t, "Publishing won't work. Writing content to native store is broken.", check.BusinessImpact)
+			assert.Equal(t, "Writing to mongoDB is broken. Check mongoDB is up, its disk space, ports, network.", check.TechnicalSummary)
+		} else if check.Name == "Read from mongoDB" {
+			assert.Equal(t, "Reading content from native store is broken.", check.BusinessImpact)
+			assert.Equal(t, "Reading from mongoDB is broken. Check mongoDB is up, its disk space, ports, network.", check.TechnicalSummary)
+		} else {
+			t.Fail() // a new test has been introduced that isn't covered here
+		}
+		assert.Equal(t, "https://dewey.in.ft.com/view/system/NativeStoreReaderWriter", check.PanicGuide)
+		assert.False(t, check.Ok)
+		assert.Equal(t, uint8(2), check.Severity)
+	}
 }
 
-func TestG2G(t *testing.T) {
+func TestGTG(t *testing.T) {
 	mongo := new(MockDB)
 	connection := new(MockConnection)
 
@@ -62,7 +86,7 @@ func TestG2G(t *testing.T) {
 	connection.On("Read", healthcheckColl, sampleUUID).Return(sampleResource, true, nil)
 
 	router := mux.NewRouter()
-	router.HandleFunc("/__gtg", GoodToGo(mongo)).Methods("GET")
+	router.HandleFunc("/__gtg", status.NewGoodToGoHandler(GoodToGo(mongo))).Methods("GET")
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/__gtg", nil)
@@ -82,7 +106,7 @@ func TestG2GFailsOnRead(t *testing.T) {
 	connection.On("Read", healthcheckColl, sampleUUID).Return(sampleResource, true, errors.New("no reads 4 u"))
 
 	router := mux.NewRouter()
-	router.HandleFunc("/__gtg", GoodToGo(mongo)).Methods("GET")
+	router.HandleFunc("/__gtg", status.NewGoodToGoHandler(GoodToGo(mongo))).Methods("GET")
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/__gtg", nil)
@@ -103,7 +127,7 @@ func TestG2GFailsOnWrite(t *testing.T) {
 	connection.On("Read", healthcheckColl, sampleUUID).Return(sampleResource, true, nil)
 
 	router := mux.NewRouter()
-	router.HandleFunc("/__gtg", GoodToGo(mongo)).Methods("GET")
+	router.HandleFunc("/__gtg", status.NewGoodToGoHandler(GoodToGo(mongo))).Methods("GET")
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/__gtg", nil)
@@ -135,7 +159,7 @@ func TestFailedMongoDuringGTG(t *testing.T) {
 	mongo.On("Open").Return(nil, errors.New("no data 4 u"))
 
 	router := mux.NewRouter()
-	router.HandleFunc("/__gtg", GoodToGo(mongo)).Methods("GET")
+	router.HandleFunc("/__gtg", status.NewGoodToGoHandler(GoodToGo(mongo))).Methods("GET")
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/__gtg", nil)
