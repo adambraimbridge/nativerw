@@ -73,7 +73,7 @@ func TestHealthchecksFail(t *testing.T) {
 		}
 		assert.Equal(t, "https://dewey.in.ft.com/view/system/NativeStoreReaderWriter", check.PanicGuide)
 		assert.False(t, check.Ok)
-		assert.Equal(t, uint8(2), check.Severity)
+		assert.Equal(t, uint8(1), check.Severity)
 	}
 }
 
@@ -98,12 +98,13 @@ func TestGTG(t *testing.T) {
 	assert.Equal(t, "no-cache", w.Result().Header.Get("Cache-Control"))
 }
 
-func TestG2GFailsOnRead(t *testing.T) {
+func TestGTGFailsOnRead(t *testing.T) {
 	mongo := new(MockDB)
 	connection := new(MockConnection)
 
 	mongo.On("Open").Return(connection, nil)
 	connection.On("Read", healthcheckColl, sampleUUID).Return(sampleResource, true, errors.New("no reads 4 u"))
+	connection.On("Write", healthcheckColl, sampleResource).Return(nil)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/__gtg", status.NewGoodToGoHandler(GoodToGo(mongo))).Methods("GET")
@@ -118,7 +119,7 @@ func TestG2GFailsOnRead(t *testing.T) {
 	assert.Equal(t, "no-cache", w.Result().Header.Get("Cache-Control"))
 }
 
-func TestG2GFailsOnWrite(t *testing.T) {
+func TestGTGFailsOnWrite(t *testing.T) {
 	mongo := new(MockDB)
 	connection := new(MockConnection)
 

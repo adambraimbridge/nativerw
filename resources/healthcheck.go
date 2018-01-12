@@ -32,7 +32,7 @@ func Healthchecks(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 					BusinessImpact:   "Publishing won't work. Writing content to native store is broken.",
 					Name:             "Write to mongoDB",
 					PanicGuide:       "https://dewey.in.ft.com/view/system/NativeStoreReaderWriter",
-					Severity:         2,
+					Severity:         1,
 					TechnicalSummary: "Writing to mongoDB is broken. Check mongoDB is up, its disk space, ports, network.",
 					Checker:          checkWritable(mongo),
 				},
@@ -40,7 +40,7 @@ func Healthchecks(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 					BusinessImpact:   "Reading content from native store is broken.",
 					Name:             "Read from mongoDB",
 					PanicGuide:       "https://dewey.in.ft.com/view/system/NativeStoreReaderWriter",
-					Severity:         2,
+					Severity:         1,
 					TechnicalSummary: "Reading from mongoDB is broken. Check mongoDB is up, its disk space, ports, network.",
 					Checker:          checkReadable(mongo),
 				},
@@ -84,13 +84,17 @@ func checkReadable(mongo db.DB) func() (string, error) {
 
 // GoodToGo is the /__gtg endpoint
 func GoodToGo(mongo db.DB) gtg.StatusChecker {
-	healthChecks := []func() (string, error){checkReadable(mongo), checkWritable(mongo)}
+	checks := []gtg.StatusChecker{
+		newStatusChecker(checkReadable(mongo)),
+		newStatusChecker(checkWritable(mongo)),
+	}
+	return gtg.FailFastParallelCheck(checks)
+}
 
+func newStatusChecker(check func() (string, error)) gtg.StatusChecker {
 	return func() gtg.Status {
-		for _, check := range healthChecks {
-			if msg, err := check(); err != nil {
-				return gtg.Status{GoodToGo: false, Message: msg}
-			}
+		if msg, err := check(); err != nil {
+			return gtg.Status{GoodToGo: false, Message: msg}
 		}
 		return gtg.Status{GoodToGo: true}
 	}
