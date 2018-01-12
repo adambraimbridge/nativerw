@@ -59,7 +59,7 @@ func TestHealthchecksFail(t *testing.T) {
 	assert.Equal(t, "NativeStoreReaderWriter", healthResult.SystemCode)
 	assert.Equal(t, "Reads and Writes data to the UPP Native Store, in the received (native) format", healthResult.Description)
 	assert.False(t, healthResult.Ok)
-	assert.Equal(t, uint8(2), healthResult.Severity)
+	assert.Equal(t, uint8(1), healthResult.Severity)
 
 	for _, check := range healthResult.Checks {
 		if check.Name == "Write to mongoDB" {
