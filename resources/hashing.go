@@ -5,9 +5,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/Financial-Times/go-logger"
 	"net/http"
 	"strings"
+
+	"github.com/Financial-Times/go-logger"
 
 	"github.com/Financial-Times/nativerw/db"
 	"github.com/gorilla/mux"
@@ -31,6 +32,7 @@ func (f *Filters) CheckNativeHash(mongo db.DB) *Filters {
 	f.next = func(w http.ResponseWriter, r *http.Request) {
 		connection, err := mongo.Open()
 		if err != nil {
+			defer r.Body.Close()
 			writeMessage(w, "Failed to connect to the database!", http.StatusServiceUnavailable)
 			return
 		}
@@ -38,6 +40,8 @@ func (f *Filters) CheckNativeHash(mongo db.DB) *Filters {
 		nativeHash := r.Header.Get("X-Native-Hash")
 
 		if strings.TrimSpace(nativeHash) != "" {
+			defer r.Body.Close()
+
 			tid := r.Header.Get(txHeaderKey)
 			vars := mux.Vars(r)
 			matches, err := checkNativeHash(connection, nativeHash, vars["collection"], vars["resource"])

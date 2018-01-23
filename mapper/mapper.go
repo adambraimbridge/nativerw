@@ -15,8 +15,8 @@ type Resource struct {
 }
 
 // Wrap creates a new resource
-func Wrap(content interface{}, resourceID string, contentType string) Resource {
-	return Resource{
+func Wrap(content interface{}, resourceID string, contentType string) *Resource {
+	return &Resource{
 		UUID:        resourceID,
 		Content:     content,
 		ContentType: contentType,
@@ -24,15 +24,15 @@ func Wrap(content interface{}, resourceID string, contentType string) Resource {
 }
 
 // OutMapper writes a resource in the required content format
-type OutMapper func(io.Writer, Resource) error
+type OutMapper func(io.Writer, *Resource) error
 
 // OutMappers contains all the supported mappers
 var OutMappers = map[string]OutMapper{
-	"application/json": func(w io.Writer, resource Resource) error {
+	"application/json": func(w io.Writer, resource *Resource) error {
 		encoder := json.NewEncoder(w)
 		return encoder.Encode(resource.Content)
 	},
-	"application/octet-stream": func(w io.Writer, resource Resource) error {
+	"application/octet-stream": func(w io.Writer, resource *Resource) error {
 		data := resource.Content.([]byte)
 		_, err := io.Copy(w, bytes.NewReader(data))
 		return err

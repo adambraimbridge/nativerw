@@ -17,7 +17,7 @@ func TestWriteContent(t *testing.T) {
 	connection := new(MockConnection)
 
 	mongo.On("Open").Return(connection, nil)
-	connection.On("Write", "methode", mapper.Resource{UUID: "a-real-uuid", Content: map[string]interface{}{}, ContentType: "application/json"}).Return(nil)
+	connection.On("Write", "methode", &mapper.Resource{UUID: "a-real-uuid", Content: map[string]interface{}{}, ContentType: "application/json"}).Return(nil)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", WriteContent(mongo)).Methods("PUT")
@@ -37,7 +37,7 @@ func TestWriteFailed(t *testing.T) {
 	connection := new(MockConnection)
 
 	mongo.On("Open").Return(connection, nil)
-	connection.On("Write", "methode", mapper.Resource{UUID: "a-real-uuid", Content: map[string]interface{}{}, ContentType: "application/json"}).Return(errors.New("i failed"))
+	connection.On("Write", "methode", &mapper.Resource{UUID: "a-real-uuid", Content: map[string]interface{}{}, ContentType: "application/json"}).Return(errors.New("i failed"))
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", WriteContent(mongo)).Methods("PUT")
@@ -59,7 +59,7 @@ func TestDefaultsToBinaryMapping(t *testing.T) {
 	mongo.On("Open").Return(connection, nil)
 	content, _ := mapper.InMappers["application/octet-stream"](strings.NewReader(`{}`))
 
-	connection.On("Write", "methode", mapper.Resource{UUID: "a-real-uuid", Content: content, ContentType: "application/octet-stream"}).Return(errors.New("i failed"))
+	connection.On("Write", "methode", &mapper.Resource{UUID: "a-real-uuid", Content: content, ContentType: "application/octet-stream"}).Return(errors.New("i failed"))
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", WriteContent(mongo)).Methods("PUT")

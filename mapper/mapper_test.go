@@ -40,14 +40,14 @@ func TestWrap(t *testing.T) {
 
 	for _, test := range tests {
 		result := Wrap(test.resource, test.uuid, test.contentType)
-		if !reflect.DeepEqual(result, test.wantResource) {
+		if !reflect.DeepEqual(*result, test.wantResource) {
 			t.Errorf("Resource: %v\n, Expected: %v\n, Actual: %v", test.resource, test.wantResource, result)
 		}
 	}
 }
 
 func TestJsonMappers(t *testing.T) {
-	testResource := Resource{
+	testResource := &Resource{
 		UUID: "9694733e-163a-4393-801f-000ab7de5041",
 		Content: map[string]interface{}{
 			"title":  "Title",
@@ -75,7 +75,7 @@ func TestJsonMappers(t *testing.T) {
 }
 
 func TestBinaryMappers(t *testing.T) {
-	testResource := Resource{
+	testResource := &Resource{
 		UUID:        "9694733e-163a-4393-801f-000ab7de5041",
 		Content:     []byte("hi"),
 		ContentType: "application/json",

@@ -12,7 +12,7 @@ import (
 
 const healthcheckColl = "healthcheck"
 
-var sampleResource = mapper.Resource{
+var sampleResource = &mapper.Resource{
 	UUID:        "cda5d6a9-cd25-4d76-8bad-9eaa35e85f4a",
 	ContentType: "application/json",
 	Content:     "{\"foo\": [\"a\",\"b\"], \"bar\": 10.4}",

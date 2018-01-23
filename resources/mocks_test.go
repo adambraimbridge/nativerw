@@ -56,12 +56,12 @@ func (m *MockConnection) ReadIDs(ctx context.Context, collection string) (chan s
 	return args.Get(0).(chan string), args.Error(1)
 }
 
-func (m *MockConnection) Write(collection string, resource mapper.Resource) error {
+func (m *MockConnection) Write(collection string, resource *mapper.Resource) error {
 	args := m.Called(collection, resource)
 	return args.Error(0)
 }
 
-func (m *MockConnection) Read(collection string, uuidString string) (res mapper.Resource, found bool, err error) {
+func (m *MockConnection) Read(collection string, uuidString string) (res *mapper.Resource, found bool, err error) {
 	args := m.Called(collection, uuidString)
-	return args.Get(0).(mapper.Resource), args.Bool(1), args.Error(2)
+	return args.Get(0).(*mapper.Resource), args.Bool(1), args.Error(2)
 }

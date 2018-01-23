@@ -5,9 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/Financial-Times/go-logger"
 	"net/http"
 	"time"
+
+	"github.com/Financial-Times/go-logger"
 
 	"github.com/Financial-Times/nativerw/db"
 	"github.com/Financial-Times/nativerw/mapper"

@@ -32,7 +32,7 @@ func TestHashCheckMatches(t *testing.T) {
 	content := make(map[string]interface{})
 	json.Unmarshal([]byte(exampleNativePayload), &content)
 
-	expectedResource := mapper.Resource{
+	expectedResource := &mapper.Resource{
 		UUID:        "a-real-uuid",
 		Content:     content,
 		ContentType: "application/json",
@@ -66,7 +66,7 @@ func TestHashCheckDoesntMatch(t *testing.T) {
 	content := make(map[string]interface{})
 	json.Unmarshal([]byte(exampleNativePayload), &content)
 
-	expectedResource := mapper.Resource{
+	expectedResource := &mapper.Resource{
 		UUID:        "a-real-uuid",
 		Content:     content,
 		ContentType: "application/json",
@@ -101,7 +101,7 @@ func TestNoContentFound(t *testing.T) {
 	connection := new(MockConnection)
 
 	mongo.On("Open").Return(connection, nil)
-	connection.On("Read", "methode", "a-real-uuid").Return(mapper.Resource{}, false, nil)
+	connection.On("Read", "methode", "a-real-uuid").Return(&mapper.Resource{}, false, nil)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("PUT")
@@ -126,7 +126,7 @@ func TestHashCheckContentReadFails(t *testing.T) {
 	connection := new(MockConnection)
 
 	mongo.On("Open").Return(connection, nil)
-	connection.On("Read", "methode", "a-real-uuid").Return(mapper.Resource{}, false, errors.New("i failed"))
+	connection.On("Read", "methode", "a-real-uuid").Return(&mapper.Resource{}, false, errors.New("i failed"))
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{collection}/{resource}", Filter(next).CheckNativeHash(mongo).Build()).Methods("PUT")
@@ -147,7 +147,7 @@ func TestHashCheckJsonMarshalFails(t *testing.T) {
 		passed = true
 	}
 
-	expectedResource := mapper.Resource{
+	expectedResource := &mapper.Resource{
 		UUID:        "a-real-uuid",
 		Content:     func() {},
 		ContentType: "application/json",

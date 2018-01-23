@@ -16,8 +16,8 @@ func init() {
 	logger.InitLogger("nativerw", "info")
 }
 
-func generateResource() mapper.Resource {
-	return mapper.Resource{
+func generateResource() *mapper.Resource {
+	return &mapper.Resource{
 		UUID:        uuid.NewUUID().String(),
 		Content:     map[string]interface{}{"randomness": uuid.NewUUID().String()},
 		ContentType: "application/json",
