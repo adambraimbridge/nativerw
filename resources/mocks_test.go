@@ -2,6 +2,7 @@ package resources
 
 import (
 	"context"
+	"io"
 
 	"github.com/Financial-Times/nativerw/db"
 	"github.com/Financial-Times/nativerw/mapper"
@@ -64,4 +65,23 @@ func (m *MockConnection) Write(collection string, resource *mapper.Resource) err
 func (m *MockConnection) Read(collection string, uuidString string) (res *mapper.Resource, found bool, err error) {
 	args := m.Called(collection, uuidString)
 	return args.Get(0).(*mapper.Resource), args.Bool(1), args.Error(2)
+}
+
+type mockBody struct {
+	mock.Mock
+	body io.Reader
+}
+
+func (m *mockBody) Close() error {
+	args := m.Called()
+	return args.Error(0)
+}
+
+func (m *mockBody) Read(p []byte) (n int, err error) {
+	args := m.Called()
+	if err := args.Error(0); err != nil {
+		return 0, err
+	}
+
+	return m.body.Read(p)
 }
