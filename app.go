@@ -5,7 +5,7 @@ import (
 	"os"
 	"strconv"
 
-	logger "github.com/Financial-Times/go-logger"
+	"github.com/Financial-Times/go-logger"
 	"github.com/Financial-Times/nativerw/config"
 	"github.com/Financial-Times/nativerw/db"
 	"github.com/Financial-Times/nativerw/resources"
@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jawher/mow.cli"
 	"github.com/kr/pretty"
+	"net/http/pprof"
 )
 
 const appName = "nativerw"
@@ -89,6 +90,7 @@ func main() {
 
 func router(mongo db.DB) *mux.Router {
 	router := mux.NewRouter()
+	attachProfiler(router)
 	http.HandleFunc("/", resources.AccessLogging(router))
 
 	router.HandleFunc("/{collection}/__ids", resources.Filter(resources.ReadIDs(mongo)).ValidateAccessForCollection(mongo).Build()).Methods("GET")
@@ -104,4 +106,11 @@ func router(mongo db.DB) *mux.Router {
 	router.HandleFunc(status.PingPath, status.PingHandler).Methods("GET")
 
 	return router
+}
+
+func attachProfiler(router *mux.Router) {
+	router.HandleFunc("/debug/pprof/", pprof.Index)
+	router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	router.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 }
