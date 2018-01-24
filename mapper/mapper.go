@@ -40,16 +40,18 @@ var OutMappers = map[string]OutMapper{
 }
 
 // InMapper marshals the transport format into a resource
-type InMapper func(io.Reader) (interface{}, error)
+type InMapper func(io.ReadCloser) (interface{}, error)
 
 // InMappers contains all the supported mappers
 var InMappers = map[string]InMapper{
-	"application/json": func(r io.Reader) (interface{}, error) {
+	"application/json": func(r io.ReadCloser) (interface{}, error) {
 		var c map[string]interface{}
+		defer r.Close()
 		err := json.NewDecoder(r).Decode(&c)
 		return c, err
 	},
-	"application/octet-stream": func(r io.Reader) (interface{}, error) {
+	"application/octet-stream": func(r io.ReadCloser) (interface{}, error) {
+		defer r.Close()
 		return ioutil.ReadAll(r)
 	},
 }

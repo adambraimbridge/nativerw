@@ -5,7 +5,10 @@ import (
 	"os"
 	"strconv"
 
+	"net/http/pprof"
+
 	"github.com/Financial-Times/go-logger"
+	"github.com/Financial-Times/http-handlers-go/httphandlers"
 	"github.com/Financial-Times/nativerw/config"
 	"github.com/Financial-Times/nativerw/db"
 	"github.com/Financial-Times/nativerw/resources"
@@ -13,7 +16,9 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jawher/mow.cli"
 	"github.com/kr/pretty"
-	"net/http/pprof"
+	metrics "github.com/rcrowley/go-metrics"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const appName = "nativerw"
@@ -88,24 +93,27 @@ func main() {
 	}
 }
 
-func router(mongo db.DB) *mux.Router {
-	router := mux.NewRouter()
-	attachProfiler(router)
-	http.HandleFunc("/", resources.AccessLogging(router))
+func router(mongo db.DB) {
+	r := mux.NewRouter()
+	attachProfiler(r)
 
-	router.HandleFunc("/{collection}/__ids", resources.Filter(resources.ReadIDs(mongo)).ValidateAccessForCollection(mongo).Build()).Methods("GET")
+	r.HandleFunc("/{collection}/__ids", resources.Filter(resources.ReadIDs(mongo)).ValidateAccessForCollection(mongo).Build()).Methods("GET")
 
-	router.HandleFunc("/{collection}/{resource}", resources.Filter(resources.ReadContent(mongo)).ValidateAccess(mongo).Build()).Methods("GET")
-	router.HandleFunc("/{collection}/{resource}", resources.Filter(resources.WriteContent(mongo)).ValidateAccess(mongo).CheckNativeHash(mongo).Build()).Methods("PUT")
-	router.HandleFunc("/{collection}/{resource}", resources.Filter(resources.DeleteContent(mongo)).ValidateAccess(mongo).Build()).Methods("DELETE")
+	r.HandleFunc("/{collection}/{resource}", resources.Filter(resources.ReadContent(mongo)).ValidateAccess(mongo).Build()).Methods("GET")
+	r.HandleFunc("/{collection}/{resource}", resources.Filter(resources.WriteContent(mongo)).ValidateAccess(mongo).CheckNativeHash(mongo).Build()).Methods("PUT")
+	r.HandleFunc("/{collection}/{resource}", resources.Filter(resources.DeleteContent(mongo)).ValidateAccess(mongo).Build()).Methods("DELETE")
 
-	router.HandleFunc("/__health", resources.Healthchecks(mongo))
-	router.HandleFunc(status.GTGPath, status.NewGoodToGoHandler(resources.GoodToGo(mongo)))
+	r.HandleFunc("/__health", resources.Healthchecks(mongo))
+	r.HandleFunc(status.GTGPath, status.NewGoodToGoHandler(resources.GoodToGo(mongo)))
 
-	router.HandleFunc(status.BuildInfoPath, status.BuildInfoHandler).Methods("GET")
-	router.HandleFunc(status.PingPath, status.PingHandler).Methods("GET")
+	r.HandleFunc(status.BuildInfoPath, status.BuildInfoHandler).Methods("GET")
+	r.HandleFunc(status.PingPath, status.PingHandler).Methods("GET")
 
-	return router
+	var router http.Handler = r
+	router = httphandlers.TransactionAwareRequestLoggingHandler(log.StandardLogger(), router)
+	router = httphandlers.HTTPMetricsHandler(metrics.DefaultRegistry, router)
+
+	http.Handle("/", router)
 }
 
 func attachProfiler(router *mux.Router) {

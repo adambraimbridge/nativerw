@@ -2,6 +2,7 @@ package resources
 
 import (
 	"errors"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -57,7 +58,7 @@ func TestDefaultsToBinaryMapping(t *testing.T) {
 	connection := new(MockConnection)
 
 	mongo.On("Open").Return(connection, nil)
-	content, _ := mapper.InMappers["application/octet-stream"](strings.NewReader(`{}`))
+	content, _ := mapper.InMappers["application/octet-stream"](ioutil.NopCloser(strings.NewReader(`{}`)))
 
 	connection.On("Write", "methode", &mapper.Resource{UUID: "a-real-uuid", Content: content, ContentType: "application/octet-stream"}).Return(errors.New("i failed"))
 
