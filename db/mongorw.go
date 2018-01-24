@@ -4,16 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/Financial-Times/go-logger"
 	"sync"
 	"time"
+
+	"github.com/Financial-Times/go-logger"
+
+	"strings"
 
 	"github.com/Financial-Times/nativerw/config"
 	"github.com/Financial-Times/nativerw/mapper"
 	"github.com/pborman/uuid"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"strings"
 )
 
 const uuidName = "uuid"
@@ -41,8 +43,8 @@ type Connection interface {
 	EnsureIndex()
 	GetSupportedCollections() map[string]bool
 	Delete(collection string, uuidString string) error
-	Write(collection string, resource mapper.Resource) error
-	Read(collection string, uuidString string) (res mapper.Resource, found bool, err error)
+	Write(collection string, resource *mapper.Resource) error
+	Read(collection string, uuidString string) (res *mapper.Resource, found bool, err error)
 	ReadIDs(ctx context.Context, collection string) (chan string, error)
 	Close()
 }
@@ -150,7 +152,7 @@ func (ma *mongoConnection) Delete(collection string, uuidString string) error {
 	return coll.Remove(bson.D{{uuidName, bsonUUID}})
 }
 
-func (ma *mongoConnection) Write(collection string, resource mapper.Resource) error {
+func (ma *mongoConnection) Write(collection string, resource *mapper.Resource) error {
 	newSession := ma.session.Copy()
 	defer newSession.Close()
 
@@ -168,7 +170,7 @@ func (ma *mongoConnection) Write(collection string, resource mapper.Resource) er
 	return err
 }
 
-func (ma *mongoConnection) Read(collection string, uuidString string) (res mapper.Resource, found bool, err error) {
+func (ma *mongoConnection) Read(collection string, uuidString string) (res *mapper.Resource, found bool, err error) {
 	newSession := ma.session.Copy()
 	defer newSession.Close()
 
@@ -187,7 +189,7 @@ func (ma *mongoConnection) Read(collection string, uuidString string) (res mappe
 
 	uuidData := bsonResource["uuid"].(bson.Binary).Data
 
-	res = mapper.Resource{
+	res = &mapper.Resource{
 		UUID:        uuid.UUID(uuidData).String(),
 		Content:     bsonResource["content"],
 		ContentType: bsonResource["content-type"].(string),

@@ -2,8 +2,9 @@ package resources
 
 import (
 	"fmt"
-	"github.com/Financial-Times/go-logger"
 	"net/http"
+
+	"github.com/Financial-Times/go-logger"
 
 	"github.com/Financial-Times/nativerw/db"
 	"github.com/gorilla/mux"
@@ -12,13 +13,14 @@ import (
 // DeleteContent deletes the given resource from the given collection
 func DeleteContent(mongo db.DB) func(writer http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+
 		connection, err := mongo.Open()
 		if err != nil {
 			writeMessage(w, "Failed to connect to the database!", http.StatusServiceUnavailable)
 			return
 		}
 
-		defer r.Body.Close()
 		collectionID := mux.Vars(r)["collection"]
 		resourceID := mux.Vars(r)["resource"]
 		tid := obtainTxID(r)

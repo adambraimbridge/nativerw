@@ -2,10 +2,12 @@ package resources
 
 import (
 	"errors"
-	"github.com/Financial-Times/go-logger"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/Financial-Times/go-logger"
 
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -60,7 +62,7 @@ func TestValidateAccess(t *testing.T) {
 	for _, test := range validationTests {
 		forwarded = false
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/"+test.collectionID+"/"+test.resourceID, nil)
+		req, _ := http.NewRequest("GET", "/"+test.collectionID+"/"+test.resourceID, ioutil.NopCloser(nil))
 
 		router.ServeHTTP(w, req)
 		mongo.AssertExpectations(t)
@@ -92,7 +94,7 @@ func TestValidateAccessForCollection(t *testing.T) {
 	for _, test := range validationTests {
 		forwarded = false
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/"+test.collectionID+"/"+test.resourceID, nil)
+		req, _ := http.NewRequest("GET", "/"+test.collectionID+"/"+test.resourceID, ioutil.NopCloser(nil))
 
 		router.ServeHTTP(w, req)
 		mongo.AssertExpectations(t)
@@ -118,7 +120,7 @@ func TestFailedMongoDuringAccessValidation(t *testing.T) {
 	router.HandleFunc("/{collection}/{resource}", Filter(next).ValidateAccess(mongo).Build()).Methods("GET")
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/methode/9694733e-163a-4393-801f-000ab7de5041", nil)
+	req, _ := http.NewRequest("GET", "/methode/9694733e-163a-4393-801f-000ab7de5041", ioutil.NopCloser(nil))
 
 	router.ServeHTTP(w, req)
 	mongo.AssertExpectations(t)
@@ -137,7 +139,7 @@ func TestFailedMongoDuringCollectionValidation(t *testing.T) {
 	router.HandleFunc("/{collection}/{resource}", Filter(next).ValidateAccessForCollection(mongo).Build()).Methods("GET")
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/methode/9694733e-163a-4393-801f-000ab7de5041", nil)
+	req, _ := http.NewRequest("GET", "/methode/9694733e-163a-4393-801f-000ab7de5041", ioutil.NopCloser(nil))
 
 	router.ServeHTTP(w, req)
 	mongo.AssertExpectations(t)

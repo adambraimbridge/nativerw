@@ -5,9 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/Financial-Times/go-logger"
 	"net/http"
 	"time"
+
+	"github.com/Financial-Times/go-logger"
 
 	"github.com/Financial-Times/nativerw/db"
 	"github.com/Financial-Times/nativerw/mapper"
@@ -17,6 +18,8 @@ import (
 // ReadContent reads the native data for the given id and collection
 func ReadContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+
 		connection, err := mongo.Open()
 		if err != nil {
 			writeMessage(w, "Failed to connect to the database!", http.StatusServiceUnavailable)
