@@ -3,9 +3,10 @@ package resources
 import (
 	"errors"
 	"fmt"
-	"github.com/Financial-Times/go-logger"
 	"net/http"
 	"regexp"
+
+	"github.com/Financial-Times/go-logger"
 
 	"github.com/Financial-Times/nativerw/db"
 	"github.com/gorilla/mux"
@@ -33,6 +34,7 @@ func (f *Filters) ValidateAccess(mongo db.DB) *Filters {
 	f.next = func(w http.ResponseWriter, r *http.Request) {
 		connection, err := mongo.Open()
 		if err != nil {
+			defer r.Body.Close()
 			writeMessage(w, "Failed to connect to the database!", http.StatusServiceUnavailable)
 			return
 		}
@@ -41,6 +43,8 @@ func (f *Filters) ValidateAccess(mongo db.DB) *Filters {
 		resourceID := mux.Vars(r)["resource"]
 
 		if err := validateAccess(connection, collectionID, resourceID); err != nil {
+			defer r.Body.Close()
+
 			tid := obtainTxID(r)
 			msg := fmt.Sprintf("Invalid collectionId (%v) or resourceId (%v)", collectionID, resourceID)
 			logger.NewEntry(tid).WithError(err).Error(msg)
@@ -59,6 +63,7 @@ func (f *Filters) ValidateAccessForCollection(mongo db.DB) *Filters {
 	f.next = func(w http.ResponseWriter, r *http.Request) {
 		connection, err := mongo.Open()
 		if err != nil {
+			defer r.Body.Close()
 			writeMessage(w, "Failed to connect to the database!", http.StatusServiceUnavailable)
 			return
 		}
@@ -66,6 +71,7 @@ func (f *Filters) ValidateAccessForCollection(mongo db.DB) *Filters {
 		collection := mux.Vars(r)["collection"]
 
 		if err := validateAccessForCollection(connection, collection); err != nil {
+			defer r.Body.Close()
 			tid := obtainTxID(r)
 			msg := fmt.Sprintf("Invalid collectionId (%v)", collection)
 			logger.NewEntry(tid).WithError(err).Error(msg)
