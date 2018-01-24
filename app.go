@@ -5,10 +5,7 @@ import (
 	"os"
 	"strconv"
 
-	"net/http/pprof"
-
 	"github.com/Financial-Times/go-logger"
-	"github.com/Financial-Times/http-handlers-go/httphandlers"
 	"github.com/Financial-Times/nativerw/config"
 	"github.com/Financial-Times/nativerw/db"
 	"github.com/Financial-Times/nativerw/resources"
@@ -16,9 +13,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jawher/mow.cli"
 	"github.com/kr/pretty"
-	metrics "github.com/rcrowley/go-metrics"
-
-	log "github.com/sirupsen/logrus"
 )
 
 const appName = "nativerw"
@@ -56,7 +50,7 @@ func main() {
 			logger.Fatalf(nil, err, "Error reading the configuration")
 		}
 
-		if err := db.CheckMongoUrls(*mongos, *mongoNodeCount); err != nil {
+		if err = db.CheckMongoUrls(*mongos, *mongoNodeCount); err != nil {
 			logger.Fatalf(nil, err, "Provided mongoDB urls %s are invalid", *mongos)
 		}
 
@@ -95,7 +89,6 @@ func main() {
 
 func router(mongo db.DB) {
 	r := mux.NewRouter()
-	attachProfiler(r)
 
 	r.HandleFunc("/{collection}/__ids", resources.Filter(resources.ReadIDs(mongo)).ValidateAccessForCollection(mongo).Build()).Methods("GET")
 
@@ -109,16 +102,5 @@ func router(mongo db.DB) {
 	r.HandleFunc(status.BuildInfoPath, status.BuildInfoHandler).Methods("GET")
 	r.HandleFunc(status.PingPath, status.PingHandler).Methods("GET")
 
-	var router http.Handler = r
-	router = httphandlers.TransactionAwareRequestLoggingHandler(log.StandardLogger(), router)
-	router = httphandlers.HTTPMetricsHandler(metrics.DefaultRegistry, router)
-
-	http.Handle("/", router)
-}
-
-func attachProfiler(router *mux.Router) {
-	router.HandleFunc("/debug/pprof/", pprof.Index)
-	router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-	router.HandleFunc("/debug/pprof/profile", pprof.Profile)
-	router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	http.Handle("/", r)
 }
