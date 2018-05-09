@@ -10,7 +10,8 @@
 [[projects]]
   name = "github.com/Financial-Times/go-logger"
   packages = ["."]
-  revision = "7c2095e4ec6ec9ad33650182bd6cc461a2570021"
+  revision = "febee6537e90971bab6f6fe60b71b4a0562dcab3"
+  version = "0.0.4"
 
 [[projects]]
   name = "github.com/Financial-Times/service-status-go"
@@ -29,42 +30,55 @@
   version = "v1.1.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/gorilla/context"
   packages = ["."]
-  revision = "08b5f424b9271eedf6f9f0ce86cb9396ed337a42"
+  revision = "1ea25387ff6f684839d82767c1733ff4d4d15d0a"
+  version = "v1.1"
 
 [[projects]]
   name = "github.com/gorilla/mux"
   packages = ["."]
-  revision = "392c28fe23e1c45ddba891b0320b3b5df220beea"
-  version = "v1.3.0"
+  revision = "53c1911da2b537f792e7cafcb446b05ffe33b996"
+  version = "v1.6.1"
 
 [[projects]]
+  branch = "master"
   name = "github.com/hashicorp/go-version"
   packages = ["."]
-  revision = "03c5bf6be031b6dd45afec16b1cf94fc8938bc77"
+  revision = "23480c0665776210b5fbbac6eaaee40e3e6a96b7"
 
 [[projects]]
   name = "github.com/jawher/mow.cli"
-  packages = ["."]
-  revision = "d3ffbc2f98b83e09dc8efd55ecec75eb5fd656ec"
+  packages = [
+    ".",
+    "internal/container",
+    "internal/flow",
+    "internal/fsm",
+    "internal/lexer",
+    "internal/matcher",
+    "internal/parser",
+    "internal/values"
+  ]
+  revision = "2f22195f169da29d54624afd9eb83ada5c9e4ee9"
+  version = "v1.0.4"
 
 [[projects]]
   name = "github.com/kr/pretty"
   packages = ["."]
-  revision = "cfb55aafdaf3ec08f0db22699ab822c50091b1c4"
+  revision = "73f6ac0b30a98e433b289500d779f50c1a6f0712"
+  version = "v0.1.0"
 
 [[projects]]
   name = "github.com/kr/text"
   packages = ["."]
-  revision = "7cafcd837844e784b526369c9bce262804aebc60"
+  revision = "e2ffdb16a802fe2bb95e2e35ff34f0e53aeef34f"
+  version = "v0.1.0"
 
 [[projects]]
   name = "github.com/pborman/uuid"
   packages = ["."]
-  revision = "a97ce2ca70fa5a848076093f05e639a89ca34d06"
-  version = "v1.0"
+  revision = "e790cca94e6cc75c7064b1332e63811d4aae1a53"
+  version = "v1.1"
 
 [[projects]]
   name = "github.com/pmezard/go-difflib"
@@ -74,12 +88,9 @@
 
 [[projects]]
   name = "github.com/sirupsen/logrus"
-  packages = [
-    ".",
-    "hooks/test"
-  ]
-  revision = "d682213848ed68c0a260ca37d6dd5ace8423f5ba"
-  version = "v1.0.4"
+  packages = ["."]
+  revision = "c155da19408a8799da419ed3eeb0cb5db0ad5dbc"
+  version = "v1.0.5"
 
 [[projects]]
   name = "github.com/stretchr/objx"
@@ -93,21 +104,23 @@
     "assert",
     "mock"
   ]
-  revision = "69483b4bd14f5845b5a1e55bca19e954e827f1d0"
-  version = "v1.1.4"
+  revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
+  version = "v1.2.1"
 
 [[projects]]
+  branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "faadfbdc035307d901e69eea569f5dda451a3ee3"
+  revision = "21052ae46654ecf18dfdba0f7c12701a1e2b3164"
 
 [[projects]]
+  branch = "master"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows"
   ]
-  revision = "062cd7e4e68206d8bab9b18396626e855c992658"
+  revision = "7db1c3b1a98089d0071c84f646ff5c96aad43682"
 
 [[projects]]
   branch = "v2"
@@ -124,6 +137,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "30fd58db1abb49ee4265cdfcf67a3ae117a9f2e08fbd283f06955f870b35cef5"
+  inputs-digest = "bd54f8c1c9984a7665c49f44ccabcf5ff6063b192cc63a1c9096d0ed502c4828"
   solver-name = "gps-cdcl"
   solver-version = 1

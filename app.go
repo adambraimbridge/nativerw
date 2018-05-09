@@ -47,15 +47,15 @@ func main() {
 	cliApp.Action = func() {
 		conf, err := config.ReadConfig(*configFile)
 		if err != nil {
-			logger.Fatalf(nil, err, "Error reading the configuration")
+			logger.WithError(err).Fatal("Error reading the configuration")
 		}
 
 		if err = db.CheckMongoUrls(*mongos, *mongoNodeCount); err != nil {
-			logger.Fatalf(nil, err, "Provided mongoDB urls %s are invalid", *mongos)
+			logger.WithError(err).Fatalf("Provided mongoDB urls %s are invalid", *mongos)
 		}
 
 		conf.Mongos = *mongos
-		logger.Infof(nil, "Using configuration %# v", pretty.Formatter(conf))
+		logger.Infof("Using configuration %# v", pretty.Formatter(conf))
 
 		logger.ServiceStartedEvent(conf.Server.Port)
 		mongo := db.NewDBConnection(conf)
@@ -64,20 +64,20 @@ func main() {
 		go func() {
 			connection, err := mongo.Open()
 			if err != nil {
-				logger.Errorf(nil, err, "Mongo connection not yet established, awaiting stable connection")
+				logger.WithError(err).Error("Mongo connection not yet established, awaiting stable connection")
 				connection, err = mongo.Await()
 				if err != nil {
-					logger.Fatalf(nil, err, "Unrecoverable error connecting to mongo")
+					logger.WithError(err).Fatal("Unrecoverable error connecting to mongo")
 				}
 			}
 
-			logger.Infof(map[string]interface{}{}, "Established connection to mongoDB.")
+			logger.Info("Established connection to mongoDB.")
 			connection.EnsureIndex()
 		}()
 
 		err = http.ListenAndServe(":"+strconv.Itoa(conf.Server.Port), nil)
 		if err != nil {
-			logger.Fatalf(nil, err, "Couldn't set up HTTP listener")
+			logger.WithError(err).Fatal("Couldn't set up HTTP listener")
 		}
 	}
 

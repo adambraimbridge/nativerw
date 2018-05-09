@@ -1,4 +1,4 @@
-FROM golang:1.8.3-alpine
+FROM golang:1.10.2-alpine
 
 ENV PROJECT=nativerw
 COPY . /${PROJECT}-sources/

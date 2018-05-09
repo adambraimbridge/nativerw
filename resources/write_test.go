@@ -33,6 +33,33 @@ func TestWriteContent(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
+func TestWriteContentWithCharsetDirective(t *testing.T) {
+	mongo := new(MockDB)
+	connection := new(MockConnection)
+
+	mongo.On("Open").Return(connection, nil)
+
+	connection.On("Write",
+		"methode",
+		&mapper.Resource{
+			UUID:        "a-real-uuid",
+			Content:     map[string]interface{}{},
+			ContentType: "application/json; charset=utf-8"}).
+		Return(nil)
+
+	router := mux.NewRouter()
+	router.HandleFunc("/{collection}/{resource}", WriteContent(mongo)).Methods("PUT")
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("PUT", "/methode/a-real-uuid", strings.NewReader(`{}`))
+
+	req.Header.Add("Content-Type", "application/json; charset=utf-8")
+
+	router.ServeHTTP(w, req)
+	mongo.AssertExpectations(t)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
 func TestWriteFailed(t *testing.T) {
 	mongo := new(MockDB)
 	connection := new(MockConnection)
