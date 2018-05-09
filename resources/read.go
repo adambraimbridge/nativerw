@@ -7,13 +7,13 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+	"strings"
 
 	"github.com/Financial-Times/go-logger"
 
 	"github.com/Financial-Times/nativerw/db"
 	"github.com/Financial-Times/nativerw/mapper"
 	"github.com/gorilla/mux"
-	"strings"
 )
 
 // ReadContent reads the native data for the given id and collection

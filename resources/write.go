@@ -3,13 +3,12 @@ package resources
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/Financial-Times/go-logger"
-
 	"github.com/Financial-Times/nativerw/db"
 	"github.com/Financial-Times/nativerw/mapper"
 	"github.com/gorilla/mux"
-	"strings"
 )
 
 // WriteContent writes a new native record
