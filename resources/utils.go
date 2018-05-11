@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"math/rand"
 	"net/http"
+	"fmt"
+	"github.com/Financial-Times/go-logger"
 )
 
 const txHeaderKey = "X-Request-Id"
@@ -35,4 +37,16 @@ func randSeq(n int) string {
 		b[i] = letters[rand.Intn(len(letters))]
 	}
 	return string(b)
+}
+
+func extractContentTypeHeader(r *http.Request, tid string, resourceID string) string {
+	contentTypeHeader := r.Header.Get("Content-Type")
+
+	if contentTypeHeader == "" {
+		msg := fmt.Sprintf("Content-Type header missing. Default value ('application/octet-stream') is used.")
+		logger.WithTransactionID(tid).WithUUID(resourceID).Warn(msg)
+		return "application/octet-stream"
+	}
+
+	return contentTypeHeader
 }

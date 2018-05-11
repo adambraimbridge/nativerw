@@ -3,8 +3,6 @@ package resources
 import (
 	"fmt"
 	"net/http"
-	"strings"
-
 	"github.com/Financial-Times/go-logger"
 	"github.com/Financial-Times/nativerw/db"
 	"github.com/Financial-Times/nativerw/mapper"
@@ -26,20 +24,14 @@ func WriteContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 		resourceID := mux.Vars(r)["resource"]
 		tid := obtainTxID(r)
 
-		contentTypeHeader := r.Header.Get("Content-Type")
-		contentType := contentTypeHeader
+		contentTypeHeader := extractContentTypeHeader(r, tid, resourceID)
 
-		// in case, the content-type header comes with additional parameters
-		if strings.Contains(contentType, ";") {
-			contentType = strings.Split(contentType, ";")[0]
-		}
-
-		inMapper := mapper.InMappers[contentType]
-		if inMapper == nil {
-			msg := fmt.Sprintf("Content-Type header missing. Default value ('application/octet-stream') is used.")
-			logger.WithTransactionID(tid).WithUUID(resourceID).Warn(msg)
-			contentTypeHeader = "application/octet-stream"
-			inMapper = mapper.InMappers[contentTypeHeader]
+		inMapper, err := mapper.InMapperForContentType(contentTypeHeader)
+		if err != nil {
+			msg := "Unsupported content-type"
+			logger.WithMonitoringEvent("NativeSave", tid, contentTypeHeader).WithUUID(resourceID).WithError(err).Error(msg)
+			http.Error(w, fmt.Sprintf(msg+":\n%v\n", err), http.StatusBadRequest)
+			return
 		}
 
 		content, err := inMapper(r.Body)

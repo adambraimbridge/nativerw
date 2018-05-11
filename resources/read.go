@@ -7,10 +7,8 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-	"strings"
 
 	"github.com/Financial-Times/go-logger"
-
 	"github.com/Financial-Times/nativerw/db"
 	"github.com/Financial-Times/nativerw/mapper"
 	"github.com/gorilla/mux"
@@ -52,17 +50,12 @@ func ReadContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		contentTypeHeader := resource.ContentType
-
 		w.Header().Add("Content-Type", contentTypeHeader)
 
-		if strings.Contains(contentTypeHeader, ";") {
-			contentTypeHeader = strings.Split(contentTypeHeader, ";")[0]
-		}
-
-		om, found := mapper.OutMappers[contentTypeHeader]
-		if !found {
+		om, err := mapper.OutMapperForContentType(contentTypeHeader)
+		if err != nil {
 			msg := fmt.Sprintf("Unable to handle resource of type %T", resource)
-			logger.WithTransactionID(tid).WithUUID(resourceID).Warn(msg)
+			logger.WithError(err).WithTransactionID(tid).WithUUID(resourceID).Warn(msg)
 			http.Error(w, msg, http.StatusNotImplemented)
 			return
 		}
