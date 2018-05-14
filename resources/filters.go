@@ -47,7 +47,7 @@ func (f *Filters) ValidateAccess(mongo db.DB) *Filters {
 
 			tid := obtainTxID(r)
 			msg := fmt.Sprintf("Invalid collectionId (%v) or resourceId (%v)", collectionID, resourceID)
-			logger.NewEntry(tid).WithError(err).Error(msg)
+			logger.WithTransactionID(tid).WithError(err).Error(msg)
 			http.Error(w, msg, http.StatusBadRequest)
 			return
 		}
@@ -74,7 +74,7 @@ func (f *Filters) ValidateAccessForCollection(mongo db.DB) *Filters {
 			defer r.Body.Close()
 			tid := obtainTxID(r)
 			msg := fmt.Sprintf("Invalid collectionId (%v)", collection)
-			logger.NewEntry(tid).WithError(err).Error(msg)
+			logger.WithTransactionID(tid).WithError(err).Error(msg)
 			http.Error(w, msg, http.StatusBadRequest)
 			return
 		}

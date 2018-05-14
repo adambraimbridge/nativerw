@@ -33,6 +33,33 @@ func TestWriteContent(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
+func TestWriteContentWithCharsetDirective(t *testing.T) {
+	mongo := new(MockDB)
+	connection := new(MockConnection)
+
+	mongo.On("Open").Return(connection, nil)
+
+	connection.On("Write",
+		"methode",
+		&mapper.Resource{
+			UUID:        "a-real-uuid",
+			Content:     map[string]interface{}{},
+			ContentType: "application/json; charset=utf-8"}).
+		Return(nil)
+
+	router := mux.NewRouter()
+	router.HandleFunc("/{collection}/{resource}", WriteContent(mongo)).Methods("PUT")
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("PUT", "/methode/a-real-uuid", strings.NewReader(`{}`))
+
+	req.Header.Add("Content-Type", "application/json; charset=utf-8")
+
+	router.ServeHTTP(w, req)
+	mongo.AssertExpectations(t)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
 func TestWriteFailed(t *testing.T) {
 	mongo := new(MockDB)
 	connection := new(MockConnection)
@@ -58,7 +85,11 @@ func TestDefaultsToBinaryMapping(t *testing.T) {
 	connection := new(MockConnection)
 
 	mongo.On("Open").Return(connection, nil)
-	content, _ := mapper.InMappers["application/octet-stream"](ioutil.NopCloser(strings.NewReader(`{}`)))
+	inMapper, err := mapper.InMapperForContentType("application/octet-stream")
+	assert.NoError(t, err)
+
+	content, err := inMapper(ioutil.NopCloser(strings.NewReader(`{}`)))
+	assert.NoError(t, err)
 
 	connection.On("Write", "methode", &mapper.Resource{UUID: "a-real-uuid", Content: content, ContentType: "application/octet-stream"}).Return(errors.New("i failed"))
 
@@ -72,7 +103,7 @@ func TestDefaultsToBinaryMapping(t *testing.T) {
 
 	router.ServeHTTP(w, req)
 	mongo.AssertExpectations(t)
-	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
 func TestFailedJSON(t *testing.T) {
