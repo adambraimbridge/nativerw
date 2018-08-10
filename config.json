@@ -4,6 +4,7 @@
    },
    "dbName": "native-store",
    "collections": [
+	  "audio",
       "spark",
       "methode",
       "wordpress",
