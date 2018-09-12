@@ -103,13 +103,7 @@ func isApplicationJsonVariantWithDirectives(contentType string) bool {
 }
 
 func isOctetStreamWithDirectives(contentType string) bool {
-	contentType = stripDirectives(contentType)
-
-	if contentType == "application/octet-stream" {
-		return true
-	}
-
-	return false
+	return stripDirectives(contentType) == "application/octet-stream"
 }
 
 func stripDirectives(contentType string) string {
