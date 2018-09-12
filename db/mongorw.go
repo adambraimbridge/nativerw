@@ -160,9 +160,10 @@ func (ma *mongoConnection) Write(collection string, resource *mapper.Resource) e
 
 	bsonUUID := bson.Binary{Kind: 0x04, Data: []byte(uuid.Parse(resource.UUID))}
 	bsonResource := map[string]interface{}{
-		"uuid":         bsonUUID,
-		"content":      resource.Content,
-		"content-type": resource.ContentType,
+		"uuid":             bsonUUID,
+		"content":          resource.Content,
+		"content-type":     resource.ContentType,
+		"origin-system-id": resource.OriginSystemID,
 	}
 
 	_, err := coll.Upsert(bson.D{{uuidName, bsonUUID}}, bsonResource)
@@ -190,9 +191,10 @@ func (ma *mongoConnection) Read(collection string, uuidString string) (res *mapp
 	uuidData := bsonResource["uuid"].(bson.Binary).Data
 
 	res = &mapper.Resource{
-		UUID:        uuid.UUID(uuidData).String(),
-		Content:     bsonResource["content"],
-		ContentType: bsonResource["content-type"].(string),
+		UUID:           uuid.UUID(uuidData).String(),
+		Content:        bsonResource["content"],
+		ContentType:    bsonResource["content-type"].(string),
+		OriginSystemID: bsonResource["origin-system-id"].(string),
 	}
 
 	return res, true, nil

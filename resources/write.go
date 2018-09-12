@@ -3,6 +3,7 @@ package resources
 import (
 	"fmt"
 	"net/http"
+
 	"github.com/Financial-Times/go-logger"
 	"github.com/Financial-Times/nativerw/db"
 	"github.com/Financial-Times/nativerw/mapper"
@@ -24,7 +25,7 @@ func WriteContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 		resourceID := mux.Vars(r)["resource"]
 		tid := obtainTxID(r)
 
-		contentTypeHeader := extractContentTypeHeader(r, tid, resourceID)
+		contentTypeHeader := extractAttrFromHeader(r, "Content-Type", "application/octet-stream", tid, resourceID)
 
 		inMapper, err := mapper.InMapperForContentType(contentTypeHeader)
 		if err != nil {
@@ -34,6 +35,7 @@ func WriteContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		originSystemIDHeader := extractAttrFromHeader(r, "Origin-System-Id", "", tid, resourceID)
 		content, err := inMapper(r.Body)
 		if err != nil {
 			msg := "Extracting content from HTTP body failed"
@@ -42,7 +44,7 @@ func WriteContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		wrappedContent := mapper.Wrap(content, resourceID, contentTypeHeader)
+		wrappedContent := mapper.Wrap(content, resourceID, contentTypeHeader, originSystemIDHeader)
 
 		if err := connection.Write(collectionID, wrappedContent); err != nil {
 			msg := "Writing to mongoDB failed"
