@@ -5,8 +5,11 @@ jobs:
     docker:
       - image: circleci/golang:1.10.2
         environment:
+          GOPATH: /go
           CIRCLE_TEST_REPORTS: /tmp/test-results
           CIRCLE_COVERAGE_REPORT: /tmp/coverage-results
+          MONGO_TEST_URL: localhost:27017
+      - image: mongo:3.2.18
     steps:
       - checkout
       - run:
