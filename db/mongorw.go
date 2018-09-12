@@ -189,12 +189,20 @@ func (ma *mongoConnection) Read(collection string, uuidString string) (res *mapp
 	}
 
 	uuidData := bsonResource["uuid"].(bson.Binary).Data
-
-	res = &mapper.Resource{
-		UUID:           uuid.UUID(uuidData).String(),
-		Content:        bsonResource["content"],
-		ContentType:    bsonResource["content-type"].(string),
-		OriginSystemID: bsonResource["origin-system-id"].(string),
+	originSystemID, found := bsonResource["origin-system-id"]
+	if !found {
+		res = &mapper.Resource{
+			UUID:        uuid.UUID(uuidData).String(),
+			Content:     bsonResource["content"],
+			ContentType: bsonResource["content-type"].(string),
+		}
+	} else {
+		res = &mapper.Resource{
+			UUID:           uuid.UUID(uuidData).String(),
+			Content:        bsonResource["content"],
+			ContentType:    bsonResource["content-type"].(string),
+			OriginSystemID: originSystemID.(string),
+		}
 	}
 
 	return res, true, nil
