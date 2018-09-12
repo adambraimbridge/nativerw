@@ -39,7 +39,7 @@ func WriteContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 		content, err := inMapper(r.Body)
 		if err != nil {
 			msg := "Extracting content from HTTP body failed"
-			logger.WithMonitoringEvent("NativeSave", tid, "").WithUUID(resourceID).WithError(err).Error(msg)
+			logger.WithMonitoringEvent("NativeSave", tid, contentTypeHeader).WithUUID(resourceID).WithError(err).Error(msg)
 			http.Error(w, fmt.Sprintf(msg+":\n%v\n", err), http.StatusBadRequest)
 			return
 		}
@@ -48,11 +48,12 @@ func WriteContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 
 		if err := connection.Write(collectionID, wrappedContent); err != nil {
 			msg := "Writing to mongoDB failed"
-			logger.WithMonitoringEvent("NativeSave", tid, "").WithUUID(resourceID).WithError(err).Error(msg)
+			logger.WithMonitoringEvent("NativeSave", tid, contentTypeHeader).WithUUID(resourceID).WithError(err).Error(msg)
 			http.Error(w, fmt.Sprintf(msg+":\n%v\n", err), http.StatusInternalServerError)
 			return
 		}
 
-		logger.WithMonitoringEvent("NativeSave", tid, "").WithUUID(resourceID).Info("Successfully saved")
+		logger.WithMonitoringEvent("NativeSave", tid, contentTypeHeader).WithUUID(resourceID).Info(fmt.Sprintf("Successfully saved, collection=%s, origin-system-id=%s",
+			collectionID, originSystemIDHeader))
 	}
 }
