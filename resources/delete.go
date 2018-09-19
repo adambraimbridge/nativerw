@@ -28,7 +28,6 @@ func DeleteContent(mongo db.DB) func(writer http.ResponseWriter, req *http.Reque
 
 		if err := connection.Delete(collectionID, resourceID); err != nil {
 			msg := "Deleting from mongoDB failed"
-			logger.WithTransactionID(tid).WithUUID(resourceID).WithError(err).Error(msg)
 			logger.WithMonitoringEvent("SaveToNative", tid, contentTypeHeader).WithUUID(resourceID).WithError(err).Error(msg)
 			http.Error(w, fmt.Sprintf(msg+"\n%v\n", err), http.StatusInternalServerError)
 			return
