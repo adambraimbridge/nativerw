@@ -30,7 +30,7 @@ func WriteContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			msg := "Unsupported content-type"
 			logger.WithMonitoringEvent("SaveToNative", tid, contentTypeHeader).WithUUID(resourceID).WithError(err).Error(msg)
-			http.Error(w, fmt.Sprintf(msg+":\n%v\n", err), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("%s\n%v\n", msg, err), http.StatusBadRequest)
 			return
 		}
 
@@ -38,7 +38,7 @@ func WriteContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			msg := "Extracting content from HTTP body failed"
 			logger.WithMonitoringEvent("SaveToNative", tid, "").WithUUID(resourceID).WithError(err).Error(msg)
-			http.Error(w, fmt.Sprintf(msg+":\n%v\n", err), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("%s\n%v\n", msg, err), http.StatusBadRequest)
 			return
 		}
 
@@ -47,7 +47,7 @@ func WriteContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 		if err := connection.Write(collectionID, wrappedContent); err != nil {
 			msg := "Writing to mongoDB failed"
 			logger.WithMonitoringEvent("SaveToNative", tid, "").WithUUID(resourceID).WithError(err).Error(msg)
-			http.Error(w, fmt.Sprintf(msg+":\n%v\n", err), http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("%s\n%v\n", msg, err), http.StatusInternalServerError)
 			return
 		}
 
