@@ -34,3 +34,7 @@ The nativerw supports the following endpoints:
 * GET `/{collection}/__ids` returns all uuids for the given collection on a **best efforts basis**. If the collection is very large, the endpoint is likely to time out (timeout duration is hardcoded to 10s) before all uuids have been returned. This will be indistinguishable from a request which sends back the complete set of uuids, however, if there are less than ~10,000 uuids returned, you can be fairly confident you have the entire set.
 * GET `/__gtg` the good to go endpoint.
 * GET `/__health` the health endpoint.
+
+### Logging
+
+* The application uses [go-logger](https://github.com/Financial-Times/go-logger ); the log file is initialised in [main.go](main.go).
