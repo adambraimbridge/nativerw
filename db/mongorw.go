@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/Financial-Times/go-logger"
@@ -23,7 +22,6 @@ const uuidName = "uuid"
 type mongoDB struct {
 	config     *config.Configuration
 	connection *Optional
-	once       *sync.Once
 }
 
 type mongoConnection struct {

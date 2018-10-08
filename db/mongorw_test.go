@@ -44,7 +44,8 @@ func TestReadWriteDelete(t *testing.T) {
 	err = connection.Delete("methode", expectedResource.UUID)
 	assert.NoError(t, err)
 
-	res, found, err = connection.Read("methode", expectedResource.UUID)
+	_, found, err = connection.Read("methode", expectedResource.UUID)
+
 	assert.False(t, found)
 	assert.NoError(t, err)
 }
