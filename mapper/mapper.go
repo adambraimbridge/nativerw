@@ -3,28 +3,31 @@ package mapper
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"io/ioutil"
 	"strings"
-	"errors"
 )
 
 var (
 	ErrUnsupportedContentType = errors.New("unsupported content-type, no mapping implementation")
 )
+
 // Resource is the representation of a native resource
 type Resource struct {
-	UUID        string
-	Content     interface{}
-	ContentType string
+	UUID           string
+	Content        interface{}
+	ContentType    string
+	OriginSystemID string
 }
 
 // Wrap creates a new resource
-func Wrap(content interface{}, resourceID string, contentType string) *Resource {
+func Wrap(content interface{}, resourceID, contentType, originSystemID string) *Resource {
 	return &Resource{
-		UUID:        resourceID,
-		Content:     content,
-		ContentType: contentType,
+		UUID:           resourceID,
+		Content:        content,
+		ContentType:    contentType,
+		OriginSystemID: originSystemID,
 	}
 }
 
@@ -100,13 +103,7 @@ func isApplicationJsonVariantWithDirectives(contentType string) bool {
 }
 
 func isOctetStreamWithDirectives(contentType string) bool {
-	contentType = stripDirectives(contentType)
-
-	if contentType == "application/octet-stream" {
-		return true
-	}
-
-	return false
+	return stripDirectives(contentType) == "application/octet-stream"
 }
 
 func stripDirectives(contentType string) string {

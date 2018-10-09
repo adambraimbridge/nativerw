@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/Financial-Times/go-logger"
@@ -23,7 +22,6 @@ const uuidName = "uuid"
 type mongoDB struct {
 	config     *config.Configuration
 	connection *Optional
-	once       *sync.Once
 }
 
 type mongoConnection struct {
@@ -56,7 +54,7 @@ func NewDBConnection(config *config.Configuration) DB {
 
 func (m *mongoDB) Await() (Connection, error) {
 	if m.connection == nil {
-		return nil, errors.New("Please Open() a new connection before awaiting.")
+		return nil, errors.New("please Open() a new connection before awaiting")
 	}
 
 	if m.connection.Nil() {
@@ -74,7 +72,7 @@ func (m *mongoDB) Open() (Connection, error) {
 		m.connection = NewOptional(func() (interface{}, error) {
 			connection, err := m.openMongoSession()
 			for err != nil {
-				logger.WithError(err).Error("Couldn't establish connection to mongoDB")
+				logger.WithError(err).Error("couldn't establish connection to mongoDB")
 				time.Sleep(5 * time.Second)
 
 				connection, err = m.openMongoSession()
@@ -91,7 +89,7 @@ func (m *mongoDB) Open() (Connection, error) {
 	}
 
 	if m.connection.Nil() {
-		return nil, errors.New("Mongo connection is not yet initialised!")
+		return nil, errors.New("mongo connection is not yet initialised")
 	}
 
 	return m.connection.Get().(*mongoConnection), nil
@@ -160,9 +158,10 @@ func (ma *mongoConnection) Write(collection string, resource *mapper.Resource) e
 
 	bsonUUID := bson.Binary{Kind: 0x04, Data: []byte(uuid.Parse(resource.UUID))}
 	bsonResource := map[string]interface{}{
-		"uuid":         bsonUUID,
-		"content":      resource.Content,
-		"content-type": resource.ContentType,
+		"uuid":             bsonUUID,
+		"content":          resource.Content,
+		"content-type":     resource.ContentType,
+		"origin-system-id": resource.OriginSystemID,
 	}
 
 	_, err := coll.Upsert(bson.D{{uuidName, bsonUUID}}, bsonResource)
@@ -188,11 +187,20 @@ func (ma *mongoConnection) Read(collection string, uuidString string) (res *mapp
 	}
 
 	uuidData := bsonResource["uuid"].(bson.Binary).Data
-
-	res = &mapper.Resource{
-		UUID:        uuid.UUID(uuidData).String(),
-		Content:     bsonResource["content"],
-		ContentType: bsonResource["content-type"].(string),
+	originSystemID, found := bsonResource["origin-system-id"]
+	if !found {
+		res = &mapper.Resource{
+			UUID:        uuid.UUID(uuidData).String(),
+			Content:     bsonResource["content"],
+			ContentType: bsonResource["content-type"].(string),
+		}
+	} else {
+		res = &mapper.Resource{
+			UUID:           uuid.UUID(uuidData).String(),
+			Content:        bsonResource["content"],
+			ContentType:    bsonResource["content-type"].(string),
+			OriginSystemID: originSystemID.(string),
+		}
 	}
 
 	return res, true, nil
@@ -234,7 +242,7 @@ func CheckMongoUrls(providedMongoUrls string, expectedMongoNodeCount int) error 
 	mongoUrls := strings.Split(providedMongoUrls, ",")
 	actualMongoNodeCount := len(mongoUrls)
 	if actualMongoNodeCount != expectedMongoNodeCount {
-		return fmt.Errorf("The provided list of MongoDB URLs should have %d instances, but it has %d instead. Provided MongoDB URLs are: %s", expectedMongoNodeCount, actualMongoNodeCount, providedMongoUrls)
+		return fmt.Errorf("the provided list of MongoDB URLs should have %d instances, but it has %d instead. Provided MongoDB URLs are: %s", expectedMongoNodeCount, actualMongoNodeCount, providedMongoUrls)
 	}
 
 	for _, mongoUrl := range mongoUrls {
@@ -242,7 +250,7 @@ func CheckMongoUrls(providedMongoUrls string, expectedMongoNodeCount int) error 
 		noOfUrlComponents := len(urlComponents)
 
 		if noOfUrlComponents != 2 || urlComponents[0] == "" || urlComponents[1] == "" {
-			return fmt.Errorf("One of the MongoDB URLs is invalid: %s. It should have host and port.", mongoUrl)
+			return fmt.Errorf("one of the MongoDB URLs is invalid: %s. It should have host and port", mongoUrl)
 		}
 	}
 

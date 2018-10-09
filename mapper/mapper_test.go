@@ -17,11 +17,13 @@ const (
 	octetStreamCt = "application/octet-stream; version=1.0"
 	textPlainCt   = "text/plain; charset=iso-8859-1"
 )
+
 func TestWrap(t *testing.T) {
 	var tests = []struct {
 		resource         map[string]interface{}
 		uuid             string
 		contentType      string
+		originSystemID   string
 		publishReference string
 		wantResource     Resource
 	}{
@@ -33,6 +35,7 @@ func TestWrap(t *testing.T) {
 			},
 			"9694733e-163a-4393-801f-000ab7de5041",
 			"application/json",
+			"methode",
 			"tid_blahblahblah",
 			Resource{
 				UUID: "9694733e-163a-4393-801f-000ab7de5041",
@@ -41,13 +44,14 @@ func TestWrap(t *testing.T) {
 					"body":   "This is a body.",
 					"brands": []string{"Lex", "Markets"},
 				},
-				ContentType: "application/json",
+				ContentType:    "application/json",
+				OriginSystemID: "methode",
 			},
 		},
 	}
 
 	for _, test := range tests {
-		result := Wrap(test.resource, test.uuid, test.contentType)
+		result := Wrap(test.resource, test.uuid, test.contentType, test.originSystemID)
 		if !reflect.DeepEqual(*result, test.wantResource) {
 			t.Errorf("Resource: %v\n, Expected: %v\n, Actual: %v", test.resource, test.wantResource, result)
 		}
@@ -62,7 +66,8 @@ func TestJsonMappers(t *testing.T) {
 			"body":   "This is a body.",
 			"brands": []interface{}{"Lex", "Markets"},
 		},
-		ContentType: "application/json",
+		ContentType:    "application/json",
+		OriginSystemID: "methode",
 	}
 
 	mockBody := &MockBody{Body: strings.NewReader(`{"body":"This is a body.","brands":["Lex","Markets"],"title":"Title"}`)}

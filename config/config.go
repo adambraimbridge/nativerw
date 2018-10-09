@@ -29,7 +29,7 @@ func ReadConfigFromReader(r io.Reader) (c *Configuration, e error) {
 		return nil, e
 	}
 
-	return
+	return c, nil
 }
 
 // ReadConfig reads config as a json file from the given path

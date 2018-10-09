@@ -2,14 +2,17 @@ package resources
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"net/http"
-	"fmt"
+
 	"github.com/Financial-Times/go-logger"
 )
 
-const txHeaderKey = "X-Request-Id"
-const txHeaderLength = 20
+const (
+	txHeaderKey    = "X-Request-Id"
+	txHeaderLength = 20
+)
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
@@ -39,14 +42,14 @@ func randSeq(n int) string {
 	return string(b)
 }
 
-func extractContentTypeHeader(r *http.Request, tid string, resourceID string) string {
-	contentTypeHeader := r.Header.Get("Content-Type")
+func extractAttrFromHeader(r *http.Request, attrName, defValue, tid, resourceID string) string {
+	val := r.Header.Get(attrName)
 
-	if contentTypeHeader == "" {
-		msg := fmt.Sprintf("Content-Type header missing. Default value ('application/octet-stream') is used.")
+	if val == "" {
+		msg := fmt.Sprintf("%s header missing. Default value ('%s') is used.", attrName, defValue)
 		logger.WithTransactionID(tid).WithUUID(resourceID).Warn(msg)
-		return "application/octet-stream"
+		return defValue
 	}
 
-	return contentTypeHeader
+	return val
 }

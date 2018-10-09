@@ -51,6 +51,7 @@ func ReadContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 
 		contentTypeHeader := resource.ContentType
 		w.Header().Add("Content-Type", contentTypeHeader)
+		w.Header().Add("Origin-System-Id", resource.OriginSystemID)
 
 		om, err := mapper.OutMapperForContentType(contentTypeHeader)
 		if err != nil {
