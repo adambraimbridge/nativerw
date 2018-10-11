@@ -40,7 +40,7 @@ var validationTests = []struct {
 	{
 		"other",
 		"9694733e-163a-4393-801f-000ab7de5041",
-		errors.New("Collection not supported or resourceId not a valid uuid."),
+		errors.New("collection not supported or resourceId not a valid uuid"),
 	},
 }
 

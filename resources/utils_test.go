@@ -4,8 +4,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"strings"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestObtainTxID(t *testing.T) {
@@ -23,13 +24,13 @@ func TestObtainTxIDGeneratesANewOneIfNoneAvailable(t *testing.T) {
 
 func TestExtractContentTypeHeaderReturnsOctetStreamIfMissing(t *testing.T) {
 	req, _ := http.NewRequest("PUT", "/", strings.NewReader(`{}`))
-	contentTypeHeader := extractContentTypeHeader(req, "", "")
+	contentTypeHeader := extractAttrFromHeader(req, "Content-Type", "application/octet-stream", "", "")
 	assert.Equal(t, "application/octet-stream", contentTypeHeader)
 }
 func TestExtractContentTypeHeaderReturnsContentType(t *testing.T) {
 	req, _ := http.NewRequest("PUT", "/", strings.NewReader(`{}`))
 	req.Header.Add("Content-Type", "application/a-fake-type")
 
-	contentTypeHeader := extractContentTypeHeader(req, "", "")
+	contentTypeHeader := extractAttrFromHeader(req, "Content-Type", "application/a-fake-type", "", "")
 	assert.Equal(t, "application/a-fake-type", contentTypeHeader)
 }

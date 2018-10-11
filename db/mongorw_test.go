@@ -29,16 +29,12 @@ func TestReadWriteDelete(t *testing.T) {
 	connection, err := mongo.Open()
 
 	assert.NoError(t, err)
-
 	defer connection.Close()
-
 	expectedResource := generateResource()
-
 	err = connection.Write("methode", expectedResource)
 	assert.NoError(t, err)
 
 	res, found, err := connection.Read("methode", expectedResource.UUID)
-
 	assert.True(t, found)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedResource.ContentType, res.ContentType)
@@ -48,7 +44,8 @@ func TestReadWriteDelete(t *testing.T) {
 	err = connection.Delete("methode", expectedResource.UUID)
 	assert.NoError(t, err)
 
-	res, found, err = connection.Read("methode", expectedResource.UUID)
+	_, found, err = connection.Read("methode", expectedResource.UUID)
+
 	assert.False(t, found)
 	assert.NoError(t, err)
 }

@@ -4,7 +4,7 @@
    },
    "dbName": "native-store",
    "collections": [
-      "spark",
+      "universal-content",
       "methode",
       "wordpress",
       "v1-metadata",
