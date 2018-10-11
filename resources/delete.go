@@ -24,7 +24,7 @@ func DeleteContent(mongo db.DB) func(writer http.ResponseWriter, req *http.Reque
 		collectionID := mux.Vars(r)["collection"]
 		resourceID := mux.Vars(r)["resource"]
 		tid := obtainTxID(r)
-		contentTypeHeader := extractContentTypeHeader(r, tid, resourceID)
+		contentTypeHeader := extractAttrFromHeader(r, "Content-Type", "application/octet-stream", tid, resourceID)
 
 		if err := connection.Delete(collectionID, resourceID); err != nil {
 			msg := "Deleting from mongoDB failed"
