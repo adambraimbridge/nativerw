@@ -15,14 +15,13 @@ import (
 	"github.com/kr/pretty"
 )
 
-const appName = "nativerw"
-
-func init() {
-	logger.InitLogger(appName, "info")
-}
+const (
+	appName = "nativerw"
+	appDescription = "Writes any raw content/data from native CMS in mongoDB without transformation."
+)
 
 func main() {
-	cliApp := cli.App("nativerw", "Writes any raw content/data from native CMS in mongoDB without transformation.")
+	cliApp := cli.App(appName, appDescription)
 	mongos := cliApp.String(cli.StringOpt{
 		Name:   "mongos",
 		Value:  "",
@@ -43,6 +42,8 @@ func main() {
 		Desc:   "Config file (e.g. config.json)",
 		EnvVar: "CONFIG",
 	})
+
+	logger.InitLogger(appName, "info")
 
 	cliApp.Action = func() {
 		conf, err := config.ReadConfig(*configFile)

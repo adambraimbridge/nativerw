@@ -24,14 +24,15 @@ func DeleteContent(mongo db.DB) func(writer http.ResponseWriter, req *http.Reque
 		collectionID := mux.Vars(r)["collection"]
 		resourceID := mux.Vars(r)["resource"]
 		tid := obtainTxID(r)
+		contentTypeHeader := extractAttrFromHeader(r, "Content-Type", "application/octet-stream", tid, resourceID)
 
 		if err := connection.Delete(collectionID, resourceID); err != nil {
 			msg := "Deleting from mongoDB failed"
-			logger.WithTransactionID(tid).WithUUID(resourceID).WithError(err).Error(msg)
-			http.Error(w, fmt.Sprintf(msg+"\n%v\n", err), http.StatusInternalServerError)
+			logger.WithMonitoringEvent("SaveToNative", tid, contentTypeHeader).WithUUID(resourceID).WithError(err).Error(msg)
+			http.Error(w, fmt.Sprintf("%s\n%v\n", msg, err), http.StatusInternalServerError)
 			return
 		}
 
-		logger.WithTransactionID(tid).WithUUID(resourceID).Info("Successfully deleted")
+		logger.WithMonitoringEvent("SaveToNative", tid, contentTypeHeader).WithUUID(resourceID).Info("Successfully deleted")
 	}
 }
