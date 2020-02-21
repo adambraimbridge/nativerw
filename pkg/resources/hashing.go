@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Financial-Times/go-logger"
-
-	"github.com/Financial-Times/nativerw/db"
 	"github.com/gorilla/mux"
+
+	"github.com/Financial-Times/go-logger"
+	"github.com/Financial-Times/nativerw/pkg/db"
 )
 
 // Hash hashes the given payload in SHA224 + Hex

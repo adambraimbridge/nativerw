@@ -120,11 +120,11 @@ func TestBinaryMappers(t *testing.T) {
 }
 
 func TestApplicationJsonVariantEval(t *testing.T) {
-	assert.True(t, isApplicationJsonVariantWithDirectives(articleCt))
-	assert.True(t, isApplicationJsonVariantWithDirectives(articlePlainCt))
+	assert.True(t, isApplicationJSONVariantWithDirectives(articleCt))
+	assert.True(t, isApplicationJSONVariantWithDirectives(articlePlainCt))
 
-	assert.False(t, isApplicationJsonVariantWithDirectives(octetStreamCt))
-	assert.False(t, isApplicationJsonVariantWithDirectives(textPlainCt))
+	assert.False(t, isApplicationJSONVariantWithDirectives(octetStreamCt))
+	assert.False(t, isApplicationJSONVariantWithDirectives(textPlainCt))
 }
 
 func TestOctetStreamVariantEval(t *testing.T) {

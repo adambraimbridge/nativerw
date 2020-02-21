@@ -3,9 +3,10 @@ package resources
 import (
 	"context"
 
-	"github.com/Financial-Times/nativerw/db"
-	"github.com/Financial-Times/nativerw/mapper"
 	"github.com/stretchr/testify/mock"
+
+	"github.com/Financial-Times/nativerw/pkg/db"
+	"github.com/Financial-Times/nativerw/pkg/mapper"
 )
 
 type MockConnection struct {

@@ -33,11 +33,19 @@ func ReadConfigFromReader(r io.Reader) (c *Configuration, e error) {
 }
 
 // ReadConfig reads config as a json file from the given path
-func ReadConfig(confPath string) (c *Configuration, e error) {
+func ReadConfig(confPath string) (*Configuration, error) {
 	file, fErr := os.Open(confPath)
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			fErr = err
+		}
+	}()
+
 	if fErr != nil {
 		return nil, fErr
 	}
-	return ReadConfigFromReader(file)
+
+	c, fErr := ReadConfigFromReader(file)
+
+	return c, fErr
 }

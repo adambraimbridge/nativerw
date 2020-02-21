@@ -4,17 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
-	"github.com/Financial-Times/go-logger"
-
-	"strings"
-
-	"github.com/Financial-Times/nativerw/config"
-	"github.com/Financial-Times/nativerw/mapper"
 	"github.com/pborman/uuid"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+
+	"github.com/Financial-Times/go-logger"
+	"github.com/Financial-Times/nativerw/pkg/config"
+	"github.com/Financial-Times/nativerw/pkg/mapper"
 )
 
 const uuidName = "uuid"
@@ -136,7 +135,9 @@ func (ma *mongoConnection) EnsureIndex() {
 	}
 
 	for coll := range ma.collections {
-		newSession.DB(ma.dbName).C(coll).EnsureIndex(index)
+		if err := newSession.DB(ma.dbName).C(coll).EnsureIndex(index); err != nil {
+			logger.WithError(err).Info("could not EnsureIndex: %s ", index)
+		}
 	}
 }
 
@@ -147,7 +148,7 @@ func (ma *mongoConnection) Delete(collection string, uuidString string) error {
 	coll := newSession.DB(ma.dbName).C(collection)
 	bsonUUID := bson.Binary{Kind: 0x04, Data: []byte(uuid.Parse(uuidString))}
 
-	return coll.Remove(bson.D{{uuidName, bsonUUID}})
+	return coll.Remove(bson.D{bson.DocElem{Name: uuidName, Value: bsonUUID}})
 }
 
 func (ma *mongoConnection) Write(collection string, resource *mapper.Resource) error {
@@ -164,7 +165,7 @@ func (ma *mongoConnection) Write(collection string, resource *mapper.Resource) e
 		"origin-system-id": resource.OriginSystemID,
 	}
 
-	_, err := coll.Upsert(bson.D{{uuidName, bsonUUID}}, bsonResource)
+	_, err := coll.Upsert(bson.D{bson.DocElem{Name: uuidName, Value: bsonUUID}}, bsonResource)
 
 	return err
 }
@@ -245,12 +246,12 @@ func CheckMongoUrls(providedMongoUrls string, expectedMongoNodeCount int) error 
 		return fmt.Errorf("the provided list of MongoDB URLs should have %d instances, but it has %d instead. Provided MongoDB URLs are: %s", expectedMongoNodeCount, actualMongoNodeCount, providedMongoUrls)
 	}
 
-	for _, mongoUrl := range mongoUrls {
-		urlComponents := strings.Split(mongoUrl, ":")
-		noOfUrlComponents := len(urlComponents)
+	for _, mongoURL := range mongoUrls {
+		urlComponents := strings.Split(mongoURL, ":")
+		noOfURLComponents := len(urlComponents)
 
-		if noOfUrlComponents != 2 || urlComponents[0] == "" || urlComponents[1] == "" {
-			return fmt.Errorf("one of the MongoDB URLs is invalid: %s. It should have host and port", mongoUrl)
+		if noOfURLComponents != 2 || urlComponents[0] == "" || urlComponents[1] == "" {
+			return fmt.Errorf("one of the MongoDB URLs is invalid: %s. It should have host and port", mongoURL)
 		}
 	}
 
