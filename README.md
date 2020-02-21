@@ -8,14 +8,14 @@ The same data can then be read from here just like from the original CMS.__
 
 You need [Go to be installed](https://golang.org/doc/install). Please read about Go and about [How to Write Go Code](https://golang.org/doc/code.html) before jumping right in. For example you will need Git, Mercurial, Bazaar installed and working, so that Go can use them to retrieve dependencies. For this additionally you will also need a computer etc. Hope this helps.
 
-For the first time: `go get github.com/Financial-Times/nativerw` and `dep ensure -vendor-only`.
+For the first time: `go get github.com/Financial-Times/nativerw`.
 
 `go install github.com/Financial-Times/nativerw`
 
 ### Building docker
 
 ```bash
-CGO_ENABLED=0 go build -a -installsuffix cgo -o nativerw .
+CGO_ENABLED=0 go build -mod=readonly -a -installsuffix cgo -o nativerw .
 docker build -t coco/nativerw .
 ```
 

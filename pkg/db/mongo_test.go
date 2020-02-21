@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Financial-Times/nativerw/config"
+	"github.com/Financial-Times/nativerw/pkg/config"
 )
 
 func startMongo(t *testing.T) DB {

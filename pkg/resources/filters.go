@@ -8,7 +8,7 @@ import (
 
 	"github.com/Financial-Times/go-logger"
 
-	"github.com/Financial-Times/nativerw/db"
+	"github.com/Financial-Times/nativerw/pkg/db"
 	"github.com/gorilla/mux"
 )
 
@@ -25,7 +25,7 @@ func validateAccessForCollection(mongo db.Connection, collectionID string) error
 	if mongo.GetSupportedCollections()[collectionID] {
 		return nil
 	}
-	return errors.New("Collection not supported.	")
+	return errors.New("collection not supported.	")
 }
 
 // ValidateAccess validates whether the collection exists and the resource ID is in uuid format.

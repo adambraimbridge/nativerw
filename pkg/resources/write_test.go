@@ -8,9 +8,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Financial-Times/nativerw/mapper"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/Financial-Times/nativerw/pkg/mapper"
 )
 
 func TestWriteContent(t *testing.T) {

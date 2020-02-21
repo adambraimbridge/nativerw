@@ -5,12 +5,12 @@ import (
 	"time"
 
 	fthealth "github.com/Financial-Times/go-fthealth/v1_1"
-	"github.com/Financial-Times/nativerw/db"
-	"github.com/Financial-Times/nativerw/mapper"
+	"github.com/Financial-Times/nativerw/pkg/db"
+	"github.com/Financial-Times/nativerw/pkg/mapper"
 	"github.com/Financial-Times/service-status-go/gtg"
 )
 
-const healthcheckColl = "healthcheck"
+const healthCheckColl = "healthcheck"
 
 var sampleResource = &mapper.Resource{
 	UUID:        "cda5d6a9-cd25-4d76-8bad-9eaa35e85f4a",
@@ -57,7 +57,7 @@ func checkWritable(mongo db.DB) func() (string, error) {
 			return "Failed to establish connection to MongoDB", err
 		}
 
-		err = connection.Write(healthcheckColl, sampleResource)
+		err = connection.Write(healthCheckColl, sampleResource)
 		if err != nil {
 			return "Failed to write data to MongoDB, please check the connection.", err
 		}
@@ -73,7 +73,7 @@ func checkReadable(mongo db.DB) func() (string, error) {
 			return "Failed to establish connection to MongoDB", err
 		}
 
-		_, _, err = connection.Read(healthcheckColl, sampleUUID)
+		_, _, err = connection.Read(healthCheckColl, sampleUUID)
 		if err != nil {
 			return "Failed to read data from MongoDB, please check the connection.", err
 		}

@@ -1,11 +1,10 @@
 version: 2
 jobs:
   build:
-    working_directory: /go/src/github.com/Financial-Times/nativerw
+    working_directory: /nativerw
     docker:
       - image: golang:1
         environment:
-          GOPATH: /go
           CIRCLE_TEST_REPORTS: /tmp/test-results
           CIRCLE_COVERAGE_REPORT: /tmp/coverage-results
           MONGO_TEST_URL: localhost:27017
@@ -15,23 +14,24 @@ jobs:
       - run:
           name: External dependencies
           command: |
-            go get -u github.com/mattn/goveralls
-            go get -u github.com/jstemmer/go-junit-report
-            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+            GO111MODULE=off go get -u github.com/mattn/goveralls
+            GO111MODULE=off go get -u github.com/jstemmer/go-junit-report
+            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.18.0
+            wget https://raw.githubusercontent.com/Financial-Times/upp-coding-standard/v1.0.0/golangci-config/.golangci.yml
       - run:
           name: Make result folders
           command: |
             mkdir -p ${CIRCLE_TEST_REPORTS}
             mkdir -p ${CIRCLE_COVERAGE_REPORT}
       - run:
-          name: Download vendored dependencies
-          command: dep ensure -v -vendor-only
+          name: Run Linters
+          command: golangci-lint run --config=.golangci.yml --new-from-rev=master
       - run:
           name: Go build
-          command: go build -v
+          command: go build -mod=readonly -v ./cmd/nativerw
       - run:
           name: Run tests
-          command: go test -race -cover -coverprofile=${CIRCLE_COVERAGE_REPORT}/coverage.out ./... | go-junit-report > ${CIRCLE_TEST_REPORTS}/junit.xml
+          command: go test -mod=readonly -race -cover -coverprofile=${CIRCLE_COVERAGE_REPORT}/coverage.out ./... | go-junit-report > ${CIRCLE_TEST_REPORTS}/junit.xml
       - run:
           name: Upload coverage
           command: goveralls -coverprofile=${CIRCLE_COVERAGE_REPORT}/coverage.out -service=circle-ci -repotoken=${COVERALLS_TOKEN}

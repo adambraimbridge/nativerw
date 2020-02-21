@@ -35,7 +35,7 @@ func Wrap(content interface{}, resourceID, contentType, originSystemID string) *
 type OutMapper func(io.Writer, *Resource) error
 
 func OutMapperForContentType(contentType string) (OutMapper, error) {
-	if isApplicationJsonVariantWithDirectives(contentType) {
+	if isApplicationJSONVariantWithDirectives(contentType) {
 		return jsonVariantOutMapper, nil
 	}
 
@@ -63,7 +63,7 @@ type InMapper func(io.ReadCloser) (interface{}, error)
 // InMapperForContentType checks the content type if it's a json variant
 // and returns an InMapper. Default mapper for non json variants is an octet stream mapper.
 func InMapperForContentType(contentType string) (InMapper, error) {
-	if isApplicationJsonVariantWithDirectives(contentType) {
+	if isApplicationJSONVariantWithDirectives(contentType) {
 		return jsonVariantInMapper, nil
 	}
 
@@ -87,7 +87,7 @@ func octetStreamInMapper(r io.ReadCloser) (interface{}, error) {
 	return ioutil.ReadAll(r)
 }
 
-func isApplicationJsonVariantWithDirectives(contentType string) bool {
+func isApplicationJSONVariantWithDirectives(contentType string) bool {
 	contentType = stripDirectives(contentType)
 
 	if contentType == "application/json" {
