@@ -96,6 +96,7 @@ func router(mongo db.DB) {
 
 	r.HandleFunc("/{collection}/{resource}", resources.Filter(resources.ReadContent(mongo)).ValidateAccess(mongo).Build()).Methods("GET")
 	r.HandleFunc("/{collection}/{resource}", resources.Filter(resources.WriteContent(mongo)).ValidateAccess(mongo).CheckNativeHash(mongo).Build()).Methods("PUT")
+	r.HandleFunc("/{collection}/{resource}", resources.Filter(resources.PatchContent(mongo)).ValidateAccess(mongo).CheckNativeHash(mongo).Build()).Methods("PATCH")
 	r.HandleFunc("/{collection}/{resource}", resources.Filter(resources.DeleteContent(mongo)).ValidateAccess(mongo).Build()).Methods("DELETE")
 
 	r.HandleFunc("/__health", resources.Healthchecks(mongo))

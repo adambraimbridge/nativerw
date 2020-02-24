@@ -7,6 +7,7 @@ require (
 	github.com/Financial-Times/go-logger v0.0.0-20180323124113-febee6537e90
 	github.com/Financial-Times/service-status-go v0.0.0-20160323111542-3f5199736a3d
 	github.com/davecgh/go-spew v1.1.0 // indirect
+	github.com/google/go-cmp v0.4.0
 	github.com/gorilla/context v0.0.0-20160226214623-1ea25387ff6f // indirect
 	github.com/gorilla/mux v1.6.1
 	github.com/hashicorp/go-version v0.0.0-20180322230233-23480c066577 // indirect
