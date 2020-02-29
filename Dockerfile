@@ -6,6 +6,9 @@ ENV ORG_PATH="github.com/Financial-Times"
 ENV SRC_FOLDER="${GOPATH}/src/${ORG_PATH}/${PROJECT}"
 ENV BUILDINFO_PACKAGE="${ORG_PATH}/service-status-go/buildinfo."
 
+RUN mkdir -p /artifacts/configs
+COPY ./configs/config.json /artifacts/configs/config.json
+
 COPY . ${SRC_FOLDER}
 WORKDIR ${SRC_FOLDER}
 
@@ -22,6 +25,6 @@ RUN VERSION="version=$(git describe --tag --always 2> /dev/null)" \
 FROM scratch
 WORKDIR /
 COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=0 /artifacts/* /
+COPY --from=0 /artifacts/ /
 
 CMD [ "/nativerw" ]
