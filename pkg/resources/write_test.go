@@ -84,7 +84,7 @@ func TestWriteFailed(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
 
-func TestDefaultsToBinaryMapping(t *testing.T) {
+func TestDefaultsToBinaryMapping(t *testing.T) 	{
 	mongo := new(MockDB)
 	connection := new(MockConnection)
 
@@ -507,6 +507,13 @@ func TestPatchContentReflection(t *testing.T) {
 			originalC:      `{}`,
 			patchC:         `{"myInt":0,"myHash":{"myHash":999}}`,
 			expectedResult: `{"myInt":0,"myHash":{"myHash":999}}`,
+		},
+		{
+			name:           "Same field different data type",
+			description:    "In this case there should be no action, original preserves its data",
+			originalC:      `{"myInt":0}`,
+			patchC:         `{"myInt":"str"}`,
+			expectedResult: `{"myInt":0}`,
 		},
 	}
 

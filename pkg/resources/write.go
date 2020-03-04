@@ -182,10 +182,10 @@ func mergeContent(patchC, originalC map[string]interface{}) map[string]interface
 		_, oExists := originalC[key]
 		if oExists && compareConditions(patchC[key], originalC[key]) {
 
-			switch v := reflect.ValueOf(patchC[key]); v.Kind() {
-			case reflect.Slice:
+			switch patchC[key].(type) {
+			case []interface{}:
 				res[key] = patchC[key]
-			case reflect.Map:
+			case map[string]interface{}:
 				p, _ := patchC[key].(map[string]interface{})
 				o, _ := originalC[key].(map[string]interface{})
 				res[key] = mergeContent(p, o)
