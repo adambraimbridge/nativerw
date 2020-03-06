@@ -27,7 +27,6 @@ func PatchContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 		collectionID := mux.Vars(r)["collection"]
 		resourceID := mux.Vars(r)["resource"]
 
-		// 1- read resource from mongo
 		resource, found, err := connection.Read(collectionID, resourceID)
 		if err != nil {
 			msg := "Reading from mongoDB failed."
@@ -37,7 +36,7 @@ func PatchContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if !found {
-			msg := fmt.Sprintf("Resource not found. collection: %v, id: %v", collectionID, resourceID)
+			msg := fmt.Sprintf("Could not update resource, not found, collection= %v, id= %v", collectionID, resourceID)
 			logger.WithTransactionID(tid).WithUUID(resourceID).Info(msg)
 
 			w.Header().Add("Content-Type", "application/json")
@@ -47,7 +46,6 @@ func PatchContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// 2- incoming request
 		contentTypeHeader := extractAttrFromHeader(r, "Content-Type", "application/octet-stream", tid, resourceID)
 		inMapper, err := mapper.InMapperForContentType(contentTypeHeader)
 		if err != nil {
@@ -74,22 +72,20 @@ func PatchContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// 3- patch operation
 		originalC, _ := resource.Content.(map[string]interface{})
 		PatchC, _ := content.(map[string]interface{})
 		patchResult := mergeContent(PatchC, originalC)
 		resource.Content = patchResult
 
-		// 4- update mongo
 		wrappedContent := mapper.Wrap(patchResult, resourceID, contentTypeHeader, originSystemIDHeader)
-		if err := connection.Write(collectionID, wrappedContent); err != nil {
+		if errWrite := connection.Write(collectionID, wrappedContent); errWrite != nil {
 			msg := "Writing to mongoDB failed"
 			logger.
 				WithMonitoringEvent("UpdatedToNative", tid, contentTypeHeader).
 				WithUUID(resourceID).
-				WithError(err).
+				WithError(errWrite).
 				Error(msg)
-			http.Error(w, fmt.Sprintf("%s\n%v\n", msg, err), http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("%s\n%v\n", msg, errWrite), http.StatusInternalServerError)
 			return
 		}
 
@@ -98,7 +94,6 @@ func PatchContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 			WithUUID(resourceID).
 			Info(fmt.Sprintf("Successfully updated, collection=%s, origin-system-id=%s", collectionID, originSystemIDHeader))
 
-		// 5- build response
 		om, err := mapper.OutMapperForContentType(contentTypeHeader)
 		if err != nil {
 			msg := fmt.Sprintf("Unable to handle resource of type %T", resource)
@@ -128,6 +123,7 @@ func PatchContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 // 2- New fields can also be added, whenever the new field does not exists in originalC and it is not 'nil' in PatchC.
 // Note: This method always returns an object (check rules above), it never panics and does not returns any errors
 // Note: slices are being treated as a single object, therefore a slice in PatchD will always overwrite an originalD's.
+// Note:Whenever a delete operation takes place within a hash struct, there is a need to check whether the result hash (parent) remains empty, in that case is removed.(recursive safe)
 func mergeContent(patchC, originalC map[string]interface{}) map[string]interface{} {
 	res := originalC
 	for key := range patchC {
@@ -141,8 +137,6 @@ func mergeContent(patchC, originalC map[string]interface{}) map[string]interface
 				p, _ := patchC[key].(map[string]interface{})
 				o, _ := originalC[key].(map[string]interface{})
 				res[key] = mergeContent(p, o)
-				// note: whenever a delete operation within a hash takes place, in case being the last field the result is an
-				// empty hash. e.g: {"myHash":{},"myInt":0} -> {"myInt":0} (it is recursive safe)
 				if emptyHash(res[key]) {
 					delete(res, key)
 				}
@@ -160,13 +154,10 @@ func mergeContent(patchC, originalC map[string]interface{}) map[string]interface
 	return res
 }
 
-// Checks whether patch and original data are the same type, or patch is nil and therefore the field must be deleted from
-// the original data
 func compareConditions(p, o interface{}) bool {
 	return reflect.TypeOf(p) == nil || reflect.TypeOf(p) == reflect.TypeOf(o)
 }
 
-// using reflection to assert an interface as map(JSON hash), and get the number of keys stored
 func emptyHash(v interface{}) bool {
 	m, isMap := v.(map[string]interface{})
 	return isMap && len(m) == 0

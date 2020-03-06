@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/google/go-cmp/cmp"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -20,18 +20,51 @@ import (
 func TestPatchContent(t *testing.T) {
 	mongo := new(MockDB)
 	connection := new(MockConnection)
+	uuid := "a-real-uuid"
+	collection := "methode"
+	updatedContent := map[string]interface{}{"body": "updated-data"}
+	contentType := "application/json"
+	httpMethod := "PATCH"
 
 	mongo.On("Open").Return(connection, nil)
-	connection.On("Write", "methode", &mapper.Resource{UUID: "a-real-uuid", Content: map[string]interface{}{}, ContentType: "application/json"}).Return(nil)
-	connection.On("Read", "methode", "a-real-uuid").Return(&mapper.Resource{ContentType: "application/json", Content: map[string]interface{}{"uuid": "fake-data"}}, true, nil)
+	connection.On("Read", collection, uuid).Return(&mapper.Resource{ContentType: contentType, Content: map[string]interface{}{}}, true, nil)
+	connection.On("Write", collection, &mapper.Resource{UUID: uuid, Content: updatedContent, ContentType: contentType}).Return(nil)
 
 	router := mux.NewRouter()
-	router.HandleFunc("/{collection}/{resource}", PatchContent(mongo)).Methods("PATCH")
+	router.HandleFunc("/{collection}/{resource}", PatchContent(mongo)).Methods(httpMethod)
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("PATCH", "/methode/a-real-uuid", strings.NewReader(`{}`))
+	path := fmt.Sprintf("/%s/%s", collection, uuid)
+	req, _ := http.NewRequest(httpMethod, path, strings.NewReader(`{"body": "updated-data"}`))
 
-	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Content-Type", contentType)
+
+	router.ServeHTTP(w, req)
+	mongo.AssertExpectations(t)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestShouldNotUpdatePatchContentEmptyRequestBody(t *testing.T) {
+	mongo := new(MockDB)
+	connection := new(MockConnection)
+	uuid := "a-real-uuid"
+	collection := "methode"
+	existingContent := map[string]interface{}{"body": "data"}
+	contentType := "application/json"
+	httpMethod := "PATCH"
+
+	mongo.On("Open").Return(connection, nil)
+	connection.On("Read", collection, uuid).Return(&mapper.Resource{ContentType: contentType, Content: existingContent}, true, nil)
+	connection.On("Write", collection, &mapper.Resource{UUID: uuid, Content: existingContent, ContentType: contentType}).Return(nil)
+
+	router := mux.NewRouter()
+	router.HandleFunc("/{collection}/{resource}", PatchContent(mongo)).Methods(httpMethod)
+
+	w := httptest.NewRecorder()
+	path := fmt.Sprintf("/%s/%s", collection, uuid)
+	req, _ := http.NewRequest(httpMethod, path, strings.NewReader(`{}`))
+
+	req.Header.Add("Content-Type", contentType)
 
 	router.ServeHTTP(w, req)
 	mongo.AssertExpectations(t)
@@ -41,89 +74,109 @@ func TestPatchContent(t *testing.T) {
 func TestPatchContentWithCharsetDirective(t *testing.T) {
 	mongo := new(MockDB)
 	connection := new(MockConnection)
+	uuid := "a-real-uuid"
+	collection := "methode"
+	content := map[string]interface{}{"body": "updated-data"}
+	contentType := "application/json"
+	contentTypeWithCharset := "application/json; charset=utf-8"
+	httpMethod := "PATCH"
 
 	mongo.On("Open").Return(connection, nil)
 
+	connection.On("Read", collection, uuid).Return(&mapper.Resource{ContentType: contentType, Content: map[string]interface{}{}}, true, nil)
 	connection.On("Write",
-		"methode",
+		collection,
 		&mapper.Resource{
-			UUID:        "a-real-uuid",
-			Content:     map[string]interface{}{},
-			ContentType: "application/json; charset=utf-8"}).
+			UUID:        uuid,
+			Content:     content,
+			ContentType: contentTypeWithCharset}).
 		Return(nil)
-	connection.On("Read", "methode", "a-real-uuid").Return(&mapper.Resource{ContentType: "application/json", Content: map[string]interface{}{"uuid": "fake-data"}}, true, nil)
-
 
 	router := mux.NewRouter()
-	router.HandleFunc("/{collection}/{resource}", PatchContent(mongo)).Methods("PATCH")
+	router.HandleFunc("/{collection}/{resource}", PatchContent(mongo)).Methods(httpMethod)
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("PATCH", "/methode/a-real-uuid", strings.NewReader(`{}`))
+	path := fmt.Sprintf("/%s/%s", collection, uuid)
+	req, _ := http.NewRequest(httpMethod, path, strings.NewReader(`{"body": "updated-data"}`))
 
-	req.Header.Add("Content-Type", "application/json; charset=utf-8")
+	req.Header.Add("Content-Type", contentTypeWithCharset)
 
 	router.ServeHTTP(w, req)
 	mongo.AssertExpectations(t)
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
-func TestPatchFailed(t *testing.T) {
+func TestPatchFailedOnWrite(t *testing.T) {
 	mongo := new(MockDB)
 	connection := new(MockConnection)
+	uuid := "a-real-uuid"
+	collection := "methode"
+	content := map[string]interface{}{"body": "updated-data"}
+	contentType := "application/json"
+	httpMethod := "PATCH"
 
 	mongo.On("Open").Return(connection, nil)
-	connection.On("Write", "methode", &mapper.Resource{UUID: "a-real-uuid", Content: map[string]interface{}{}, ContentType: "application/json"}).Return(errors.New("i failed"))
+	connection.On("Read", collection, uuid).Return(&mapper.Resource{ContentType: contentType, Content: map[string]interface{}{}}, true, nil)
+	connection.On("Write", collection, &mapper.Resource{UUID: uuid, Content: content, ContentType: contentType}).Return(errors.New("i failed"))
 
 	router := mux.NewRouter()
-	router.HandleFunc("/{collection}/{resource}", PatchContent(mongo)).Methods("PATCH")
+	router.HandleFunc("/{collection}/{resource}", PatchContent(mongo)).Methods(httpMethod)
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("PATCH", "/methode/a-real-uuid", strings.NewReader(`{}`))
+	path := fmt.Sprintf("/%s/%s", collection, uuid)
+	req, _ := http.NewRequest(httpMethod, path, strings.NewReader(`{"body": "updated-data"}`))
 
-	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Content-Type", contentType)
 
 	router.ServeHTTP(w, req)
 	mongo.AssertExpectations(t)
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
 
-func TestDefaultsToBinaryMappingPatch(t *testing.T) 	{
+func TestPatchFailedOnRead(t *testing.T) {
 	mongo := new(MockDB)
 	connection := new(MockConnection)
+	uuid := "a-real-uuid"
+	collection := "methode"
+	contentType := "application/json"
+	httpMethod := "PATCH"
 
 	mongo.On("Open").Return(connection, nil)
-	inMapper, err := mapper.InMapperForContentType("application/octet-stream")
-	assert.NoError(t, err)
-
-	content, err := inMapper(ioutil.NopCloser(strings.NewReader(`{}`)))
-	assert.NoError(t, err)
-
-	connection.On("Write", "methode", &mapper.Resource{UUID: "a-real-uuid", Content: content, ContentType: "application/octet-stream"}).Return(errors.New("i failed"))
+	connection.On("Read", collection, uuid).Return((*mapper.Resource)(nil), false, errors.New("i failed"))
 
 	router := mux.NewRouter()
-	router.HandleFunc("/{collection}/{resource}", PatchContent(mongo)).Methods("PATCH")
+	router.HandleFunc("/{collection}/{resource}", PatchContent(mongo)).Methods(httpMethod)
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("PATCH", "/methode/a-real-uuid", strings.NewReader(`{}`))
+	path := fmt.Sprintf("/%s/%s", collection, uuid)
+	req, _ := http.NewRequest(httpMethod, path, strings.NewReader(`{"body": "updated-data"}`))
 
-	req.Header.Add("Content-Type", "application/a-fake-type")
+	req.Header.Add("Content-Type", contentType)
 
 	router.ServeHTTP(w, req)
 	mongo.AssertExpectations(t)
-	assert.Equal(t, http.StatusBadRequest, w.Code)
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
 
 func TestPatchFailedJSON(t *testing.T) {
 	mongo := new(MockDB)
 	connection := new(MockConnection)
 
+	uuid := "a-real-uuid"
+	collection := "methode"
+	content := map[string]interface{}{"body": "data"}
+	contentType := "application/json"
+	httpMethod := "PATCH"
+
 	mongo.On("Open").Return(connection, nil)
+	connection.On("Read", collection, uuid).Return(&mapper.Resource{ContentType: contentType, Content: content}, true, nil)
 
 	router := mux.NewRouter()
-	router.HandleFunc("/{collection}/{resource}", PatchContent(mongo)).Methods("PATCH")
+	router.HandleFunc("/{collection}/{resource}", PatchContent(mongo)).Methods(httpMethod)
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("PATCH", "/methode/a-real-uuid", strings.NewReader(`i am not json`))
+	path := fmt.Sprintf("/%s/%s", collection, uuid)
+	req, _ := http.NewRequest(httpMethod, path, strings.NewReader(`i am not a json`))
 
 	req.Header.Add("Content-Type", "application/json")
 
