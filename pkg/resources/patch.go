@@ -37,7 +37,7 @@ func PatchContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if !found {
-			msg := fmt.Sprintf("Could not update resource, not found. collection: %v, id: %v", collectionID, resourceID)
+			msg := fmt.Sprintf("Could not update resource, not found, collection= %v, id= %v", collectionID, resourceID)
 			logger.WithTransactionID(tid).WithUUID(resourceID).Info(msg)
 
 			w.Header().Add("Content-Type", "application/json")
