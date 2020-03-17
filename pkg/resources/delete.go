@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Financial-Times/go-logger"
-
-	"github.com/Financial-Times/nativerw/db"
 	"github.com/gorilla/mux"
+
+	"github.com/Financial-Times/go-logger"
+	"github.com/Financial-Times/nativerw/pkg/db"
 )
 
 // DeleteContent deletes the given resource from the given collection

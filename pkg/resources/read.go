@@ -8,10 +8,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Financial-Times/go-logger"
-	"github.com/Financial-Times/nativerw/db"
-	"github.com/Financial-Times/nativerw/mapper"
 	"github.com/gorilla/mux"
+
+	"github.com/Financial-Times/go-logger"
+	"github.com/Financial-Times/nativerw/pkg/db"
+	"github.com/Financial-Times/nativerw/pkg/mapper"
 )
 
 // ReadContent reads the native data for the given id and collection
@@ -39,7 +40,7 @@ func ReadContent(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if !found {
-			msg := fmt.Sprintf("Resource not found. collection: %v, id: %v", collection, resourceID)
+			msg := fmt.Sprintf("Resource not found, collection= %v, id= %v", collection, resourceID)
 			logger.WithTransactionID(tid).WithUUID(resourceID).Info(msg)
 
 			w.Header().Add("Content-Type", "application/json")
@@ -109,7 +110,9 @@ func ReadIDs(mongo db.DB) func(w http.ResponseWriter, r *http.Request) {
 			id.ID = docID
 			jd, _ := json.Marshal(id)
 
-			bw.WriteString(string(jd) + "\n")
+			if _, err = bw.WriteString(string(jd) + "\n"); err != nil {
+				logger.WithTransactionID(tid).WithError(err).Error("unable to write string")
+			}
 
 			bw.Flush()
 			w.(http.Flusher).Flush()

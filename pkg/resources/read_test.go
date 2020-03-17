@@ -7,10 +7,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Financial-Times/nativerw/mapper"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+
+	"github.com/Financial-Times/nativerw/pkg/mapper"
 )
 
 func TestReadContent(t *testing.T) {

@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Financial-Times/go-logger"
-	"github.com/Financial-Times/nativerw/db"
-	"github.com/Financial-Times/nativerw/mapper"
 	"github.com/gorilla/mux"
+
+	"github.com/Financial-Times/go-logger"
+	"github.com/Financial-Times/nativerw/pkg/db"
+	"github.com/Financial-Times/nativerw/pkg/mapper"
 )
 
 // WriteContent writes a new native record

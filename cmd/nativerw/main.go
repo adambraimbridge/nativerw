@@ -5,18 +5,19 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/Financial-Times/go-logger"
-	"github.com/Financial-Times/nativerw/config"
-	"github.com/Financial-Times/nativerw/db"
-	"github.com/Financial-Times/nativerw/resources"
-	status "github.com/Financial-Times/service-status-go/httphandlers"
 	"github.com/gorilla/mux"
 	"github.com/jawher/mow.cli"
 	"github.com/kr/pretty"
+
+	"github.com/Financial-Times/go-logger"
+	"github.com/Financial-Times/nativerw/pkg/config"
+	"github.com/Financial-Times/nativerw/pkg/db"
+	"github.com/Financial-Times/nativerw/pkg/resources"
+	status "github.com/Financial-Times/service-status-go/httphandlers"
 )
 
 const (
-	appName = "nativerw"
+	appName        = "nativerw"
 	appDescription = "Writes any raw content/data from native CMS in mongoDB without transformation."
 )
 
@@ -38,7 +39,7 @@ func main() {
 
 	configFile := cliApp.String(cli.StringOpt{
 		Name:   "config",
-		Value:  "config.json",
+		Value:  "configs/config.json",
 		Desc:   "Config file (e.g. config.json)",
 		EnvVar: "CONFIG",
 	})
@@ -63,12 +64,12 @@ func main() {
 		router(mongo)
 
 		go func() {
-			connection, err := mongo.Open()
-			if err != nil {
-				logger.WithError(err).Error("Mongo connection not yet established, awaiting stable connection")
-				connection, err = mongo.Await()
-				if err != nil {
-					logger.WithError(err).Fatal("Unrecoverable error connecting to mongo")
+			connection, mErr := mongo.Open()
+			if mErr != nil {
+				logger.WithError(mErr).Error("Mongo connection not yet established, awaiting stable connection")
+				connection, mErr = mongo.Await()
+				if mErr != nil {
+					logger.WithError(mErr).Fatal("Unrecoverable error connecting to mongo")
 				}
 			}
 
@@ -95,6 +96,7 @@ func router(mongo db.DB) {
 
 	r.HandleFunc("/{collection}/{resource}", resources.Filter(resources.ReadContent(mongo)).ValidateAccess(mongo).Build()).Methods("GET")
 	r.HandleFunc("/{collection}/{resource}", resources.Filter(resources.WriteContent(mongo)).ValidateAccess(mongo).CheckNativeHash(mongo).Build()).Methods("PUT")
+	r.HandleFunc("/{collection}/{resource}", resources.Filter(resources.PatchContent(mongo)).ValidateAccess(mongo).CheckNativeHash(mongo).Build()).Methods("PATCH")
 	r.HandleFunc("/{collection}/{resource}", resources.Filter(resources.DeleteContent(mongo)).ValidateAccess(mongo).Build()).Methods("DELETE")
 
 	r.HandleFunc("/__health", resources.Healthchecks(mongo))

@@ -7,10 +7,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	fthealth "github.com/Financial-Times/go-fthealth/v1_1"
-	status "github.com/Financial-Times/service-status-go/httphandlers"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
+
+	fthealth "github.com/Financial-Times/go-fthealth/v1_1"
+	status "github.com/Financial-Times/service-status-go/httphandlers"
 )
 
 func TestHealthchecks(t *testing.T) {
@@ -18,8 +19,8 @@ func TestHealthchecks(t *testing.T) {
 	connection := new(MockConnection)
 
 	mongo.On("Open").Return(connection, nil)
-	connection.On("Write", healthcheckColl, sampleResource).Return(nil)
-	connection.On("Read", healthcheckColl, sampleUUID).Return(sampleResource, true, nil)
+	connection.On("Write", healthCheckColl, sampleResource).Return(nil)
+	connection.On("Read", healthCheckColl, sampleUUID).Return(sampleResource, true, nil)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/__health", Healthchecks(mongo)).Methods("GET")
@@ -37,8 +38,8 @@ func TestHealthchecksFail(t *testing.T) {
 	connection := new(MockConnection)
 
 	mongo.On("Open").Return(connection, nil)
-	connection.On("Write", healthcheckColl, sampleResource).Return(errors.New("no writes 4 u"))
-	connection.On("Read", healthcheckColl, sampleUUID).Return(sampleResource, true, errors.New("no reads 4 u"))
+	connection.On("Write", healthCheckColl, sampleResource).Return(errors.New("no writes 4 u"))
+	connection.On("Read", healthCheckColl, sampleUUID).Return(sampleResource, true, errors.New("no reads 4 u"))
 
 	router := mux.NewRouter()
 	router.HandleFunc("/__health", Healthchecks(mongo)).Methods("GET")
@@ -82,8 +83,8 @@ func TestGTG(t *testing.T) {
 	connection := new(MockConnection)
 
 	mongo.On("Open").Return(connection, nil)
-	connection.On("Write", healthcheckColl, sampleResource).Return(nil)
-	connection.On("Read", healthcheckColl, sampleUUID).Return(sampleResource, true, nil)
+	connection.On("Write", healthCheckColl, sampleResource).Return(nil)
+	connection.On("Read", healthCheckColl, sampleUUID).Return(sampleResource, true, nil)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/__gtg", status.NewGoodToGoHandler(GoodToGo(mongo))).Methods("GET")
@@ -103,8 +104,8 @@ func TestGTGFailsOnRead(t *testing.T) {
 	connection := new(MockConnection)
 
 	mongo.On("Open").Return(connection, nil)
-	connection.On("Read", healthcheckColl, sampleUUID).Return(sampleResource, true, errors.New("no reads 4 u"))
-	connection.On("Write", healthcheckColl, sampleResource).Return(nil)
+	connection.On("Read", healthCheckColl, sampleUUID).Return(sampleResource, true, errors.New("no reads 4 u"))
+	connection.On("Write", healthCheckColl, sampleResource).Return(nil)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/__gtg", status.NewGoodToGoHandler(GoodToGo(mongo))).Methods("GET")
@@ -124,8 +125,8 @@ func TestGTGFailsOnWrite(t *testing.T) {
 	connection := new(MockConnection)
 
 	mongo.On("Open").Return(connection, nil)
-	connection.On("Write", healthcheckColl, sampleResource).Return(errors.New("no writes 4 u"))
-	connection.On("Read", healthcheckColl, sampleUUID).Return(sampleResource, true, nil)
+	connection.On("Write", healthCheckColl, sampleResource).Return(errors.New("no writes 4 u"))
+	connection.On("Read", healthCheckColl, sampleUUID).Return(sampleResource, true, nil)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/__gtg", status.NewGoodToGoHandler(GoodToGo(mongo))).Methods("GET")

@@ -23,7 +23,9 @@ func writeMessage(w http.ResponseWriter, msg string, status int) {
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(status)
-	w.Write(data)
+	if _, err := w.Write(data); err != nil {
+		logger.WithError(err).Error("could not build response JSON body")
+	}
 }
 
 func obtainTxID(req *http.Request) string {
