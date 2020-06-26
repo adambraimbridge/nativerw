@@ -11,3 +11,5 @@ image:
 resources:
   requests:
     memory: 256Mi
+
+eksCluster: false
