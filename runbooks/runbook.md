@@ -59,9 +59,7 @@ No
 
 ## Dependencies
 
-- native-ingester
-- upp-prod-publish-eu
-- upp-prod-publish-us
+- upp-mongodb
 
 ## Failover Architecture Type
 
